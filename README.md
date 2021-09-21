@@ -1,2 +1,2 @@
 # genarm
-Requires Genlib2 to function
+Requires Genlib3 to function
