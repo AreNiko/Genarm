@@ -1,15 +1,17 @@
 import numpy as np
+import tensorflow as tf
 
-def FEM_truss(E,N,extF,extC, varargin):
+@tf.function
+def FEM_truss(E,N,extF,extC):
 
 	verbose = 0;
 	EModulus = 2e9;
-	readVgrarginInput(); % se nederst
+	#readVgrarginInput(); % se nederst
 
 	A = E[:,3] # Areal pï¿½ stag tverrsnitt, user spesifisert
 
-	extC = np.reshape(extC, [], 1)
-	extF = np.reshape(extF, [], 1)
+	extC = np.reshape(extC, 1) # TODO
+	extF = np.reshape(extF, 1) # TODO
 
 
 	numberOfEdges = np.size(E,1)
@@ -238,10 +240,84 @@ def FEM_truss(E,N,extF,extC, varargin):
 	    X[ IJindexTeller ] = -T[2,3] # verdi
 
 	    IJindexTeller = IJindexTeller+1;
-	    % celle z1 bort, x1 ned
-	    I( IJindexTeller ) = edgeDof(5); % x index
-	    J( IJindexTeller ) = edgeDof(3); % y index
-	    X( IJindexTeller ) = -T(2,3); % verdi
+	    # celle x1 bort, x1 ned
+	    I[ IJindexTeller ] = edgeDof[6] # x index
+	    J[ IJindexTeller ] = edgeDof[1] # y index
+	    X[ IJindexTeller ] = -T[3,1] # verdi
+
+	    IJindexTeller = IJindexTeller+1;
+	    # celle x1 bort, x1 ned
+	    I[ IJindexTeller ] = edgeDof[6] # x index
+	    J[ IJindexTeller ] = edgeDof[2] # y index
+	    X[ IJindexTeller ] = -T[3,2] # verdi
+
+	    IJindexTeller = IJindexTeller+1;
+	    # celle x1 bort, x1 ned
+	    I[ IJindexTeller ] = edgeDof[6] # x index
+	    J[ IJindexTeller ] = edgeDof[3] # y index
+	    X[ IJindexTeller ] = -T[3,3] # verdi
+
+
+
+    KK = sparse(I,J,X,kDof,kDof) # TODO
+
+    c = find(extC==0);
+
+	if verbose:
+	    print('fjerner rad/col med boundary ... ')
+	end
+
+	#KK = KK(bb,bb);
+
+	KK[c,:]=[]
+	KK[:,c]=[]
+	extF[c,:]=[]
+
+
+	spparms('spumoni',0); # eller 2 TODO
+	U = np.linalg.lstsq(KK, extF) # nodal displ = stiffness / force
+
+	"""
+	if verbose
+	    fprintf('CPU ferdig \n');
+	end
+
+	if verbose
+	    toc;
+	end
+	"""
+
+	# setter tilbake rader og kolonner som er fjernet grunnet boundary
+	cc = find(extC==1); # setter bare inn pï¿½ indekser der det er noe, ellers 0
+	Ufull=np.zeros((numberOfNodes*3,1))
+	for i in range(1,len(cc)):
+	    Ufull[cc[i],1] = U[i,1]
+	
+
+	dU = np.reshape(Ufull, 3, [])
+
+	#%%%%%%%%%%%%%%%%%%%%%%%%%%%% STRESS
+
+	eS=np.zeros((numberOfEdges,1))
+	for e in range(numberOfEdges):
+	    indice=E[e,:]
+	    edgeDof = [3*indice[1]-2 3*indice[1]-1, 3*indice[1], 3*indice[2]-2, 3*indice[2]-1, 3*indice[2]] #index til current Edge
+	    x1=N[indice[1],1]
+	    y1=N[indice[1],2]
+	    z1=N[indice[1],3]
+	    x2=N[indice[2],1]
+	    y2=N[indice[2],2]
+	    z2=N[indice[2],3]
+	    L = sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1) + (z2-z1)*(z2-z1)) # opprinnelige L
+	    CXx = (x2-x1)/L
+	    CYx = (y2-y1)/L
+	    CZx = (z2-z1)/L
+	    uc = Ufull[edgeDof] # u til current Edge
+	    eS[e] = EModulus/L * [-CXx -CYx -CZx CXx CYx CZx]*uc
+	
+
+	sE = eS
+	dN = dU
 	return sE, dN
 
 
@@ -303,37 +379,6 @@ for e=1:numberOfEdges % runner alle edger/element
     CZx = (z2-z1)/L; % lengde pï¿½ edge i z retning / total lengde
     T = EModulus*A(e)/L*[CXx*CXx CXx*CYx CXx*CZx ; CYx*CXx CYx*CYx CYx*CZx ; CZx*CXx CZx*CYx CZx*CZx]; % [3,3] matrise
     
-    
-    IJindexTeller = IJindexTeller+1;
-    % celle y1 bort, x1 ned
-    I( IJindexTeller ) = edgeDof(5); % x index
-    J( IJindexTeller ) = edgeDof(2); % y index
-    X( IJindexTeller ) = -T(2,2); % verdi
-    
-    IJindexTeller = IJindexTeller+1;
-    % celle z1 bort, x1 ned
-    I( IJindexTeller ) = edgeDof(5); % x index
-    J( IJindexTeller ) = edgeDof(3); % y index
-    X( IJindexTeller ) = -T(2,3); % verdi
-    
-    
-    IJindexTeller = IJindexTeller+1;
-    % celle x1 bort, x1 ned
-    I( IJindexTeller ) = edgeDof(6); % x index
-    J( IJindexTeller ) = edgeDof(1); % y index
-    X( IJindexTeller ) = -T(3,1); % verdi
-    
-    IJindexTeller = IJindexTeller+1;
-    % celle y1 bort, x1 ned
-    I( IJindexTeller ) = edgeDof(6); % x index
-    J( IJindexTeller ) = edgeDof(2); % y index
-    X( IJindexTeller ) = -T(3,2); % verdi
-    
-    IJindexTeller = IJindexTeller+1;
-    % celle z1 bort, x1 ned
-    I( IJindexTeller ) = edgeDof(6); % x index
-    J( IJindexTeller ) = edgeDof(3); % y index
-    X( IJindexTeller ) = -T(3,3); % verdi
     
     % klï¿½sjer en 6x6 matrise ofte oppï¿½ i pos bestemt av edge noder
     %K(edgeDof,edgeDof) = K(edgeDof,edgeDof) + EModulus*A(e)/L*[T -T ; -T T];
