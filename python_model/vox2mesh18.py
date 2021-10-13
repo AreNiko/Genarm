@@ -1,6 +1,7 @@
 import numpy as np
 
 def vox2mesh18(vG):
+    """
     if np.sum(vG) == 0:
         print(" - vG er tom, sorry ")
         return
@@ -9,7 +10,8 @@ def vox2mesh18(vG):
         print("Legger på 0-marginer \n")
         vG = addMargin(vG,1)
         marginsAreAdded = 1
-
+    """
+    
     dimX,dimY,dimZ = np.size(vG)
     E = np.zeros((np.sum(vG)*18,2))
     N = np.zeros((np.sum(vG), 3))
