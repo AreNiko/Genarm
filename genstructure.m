@@ -1,4 +1,4 @@
-function [vG, vGc] = genstructure(env, origo, max_radius, wrist_radius, height, thickness, arm_height)
+function [vG, vGc, vGextC, vGextF, vGstayOff] = genstructure(env, origo, max_radius, wrist_radius, height, thickness, arm_height)
     
     width = (max_radius+thickness)*2;
     depth = (max_radius+thickness)*2;
@@ -32,4 +32,21 @@ function [vG, vGc] = genstructure(env, origo, max_radius, wrist_radius, height, 
     vG(vG<0) = 0;
     
     vG(origo(1) + (max_radius+thickness):end,:,:) = 0;
+    
+    vGc_1more = outerShell(vGc, ceil(thickness/2)+2);
+    
+    f_layer = origo(3) + arm_height + height - thickness;
+    b_layer = origo(3) + arm_height + max_radius - thickness;
+    
+    vGextC = vGc + vGc_1more.*vG;
+
+    %%%%%%%%%%% Definerer kraft voksler - grå
+    vGextF = zeros(size(vG),'int8');
+    vGextF = vGcylinder(vGextF,[origo(1),origo(2),f_layer+1],1, wrist_radius+1,thickness);
+    
+    %%%%%%%%%%% Definerer stayOff voksler - gule
+    vGstayOff = zeros(size(vG),'int8');
+    vGstayOff = vGcylinder(vGstayOff,[origo(1),origo(2),f_layer+1],1, wrist_radius+1,thickness); % Hand connection point
+    
+    vGstayOff(vGstayOff>1) = 1;
 end

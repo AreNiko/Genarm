@@ -1,12 +1,12 @@
-function vG = reinforce_struct(vG, vGextC, vGextF)
+function vG = reinforce_struct(vG, vGextC, vGextF, vGstayOff, noVoxToRemove)
 
-    [E,N, ~] = vox2mesh18(vG_work);
+    [E,N, ~] = vox2mesh18(vG);
     radius = 0.003; E(:,3) = pi*radius^2;
 
     extC = vGextC2extC(vGextC,vG);
     extF = vGextF2extF(vGextF,vG);
 
-    extF = extF.* [100 0 0];
+    extF = extF.* [0 1 0];
         
     extC(:,3) = 0;
 
