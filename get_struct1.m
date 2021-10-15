@@ -1,17 +1,17 @@
 function [vG, vGc] = get_struct1()
-    arm_radiusx = 16;
-    arm_radiusy = 16;
+    arm_radiusx = 8;
+    arm_radiusy = 8;
 
-    wrist_radius = 12; % Radius of my arm is about 30 mm 
-    arm_height = 15;
-    thickness = 7;
+    wrist_radius = 6; % Radius of my arm is about 30 mm 
+    arm_height = 10;
+    thickness = 5;
 
-    height = 100; % Average forearm length is 46 cm, so 460 mm
+    height = 50; % Average forearm length is 46 cm, so 460 mm
 
     max_radius = max(arm_radiusx, arm_radiusy);
 
     % Initial enviornment
-    env = zeros(height, height, height*2, 'int8');
+    env = zeros(height*2, height*2, height*2, 'int8');
     origo = [round(height/2) round(height/2) max_radius+thickness+10];
 
     [vG, vGc] = genstructure(env, origo, max_radius, wrist_radius, height, thickness, arm_height);

@@ -4,7 +4,9 @@ import argparse
 import time
 import csv
 from functools import partial
+import matlab
 import matlab.engine
+
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -76,9 +78,17 @@ def runstuff(train_dir, use_mlab):
 	# Construct model and measurements
 	
 	if use_mlab == "1":
-		#eng = matlab.engine.start_matlab()
-		eng = matlab.engine.connect_matlab()
+		eng = matlab.engine.start_matlab()
+		"""
+		names = matlab.engine.find_matlab()
+		print(names)
+		if not names:
+			eng = matlab.engine.start_matlab()
+		else:
+			eng = matlab.engine.connect_matlab(names[0])
+		"""
 		struct1og = eng.get_struct1()
+		print(type(struct1og))
 		struct1 = np.array(struct1og)
 		(x,y,z) = struct1.shape
 		struct1 = tf.convert_to_tensor(struct1, dtype=tf.float32)
@@ -134,7 +144,6 @@ def runstuff(train_dir, use_mlab):
 	#print(struct1)
 	#print(tf.shape(struct1))
 
-
 	colors = np.empty([x,y,z] + [4], dtype=np.float32)
 	alpha = .8
 	for i in range(x):
@@ -142,12 +151,16 @@ def runstuff(train_dir, use_mlab):
 
 
 	out = model(struct1)
+	struct1ml = matlab.int8(np.int8(struct1.numpy()).tolist())
+	eng.plotVg_safe(struct1ml, 'edgeOff', nargout=0)
 
-	fig0 = plt.figure()
-	plot_vox(fig0, struct1.numpy(), colors, [x,y,z])
+	outml = matlab.int8(np.int8(out.numpy()).tolist())
+	eng.plotVg_safe(outml, 'edgeOff', nargout=0)
+	#fig0 = plt.figure()
+	#plot_vox(fig0, struct1.numpy(), colors, [x,y,z])
 
-	fig = plt.figure()
-	plot_vox(fig, out.numpy(), colors, [x,y,z], True)
+	#fig = plt.figure()
+	#plot_vox(fig, out.numpy(), colors, [x,y,z], True)
 
 	#plt.savefig("demo.png")
 	
@@ -164,10 +177,12 @@ def runstuff(train_dir, use_mlab):
 	for epoch in range(500):
 		# Trains model on structures with a truth structure created from
 		# The direct stiffness method and shifted voxels
-		#true_struct = eng.reinforce_struct(struct)
-		new_struct = train_step(struct, true_struct)
+		true_struct = eng.reinforce_struct(matlab.int8(np.int8(struct1.numpy()).tolist()))
+		true_struct = np.array(true_struct)
+		true_struct = tf.convert_to_tensor(true_struct, dtype=tf.float32)
+		new_struct = train_step(struct1, true_struct)
 
-		#struct = true_struct 
+		struct1 = true_struct 
 		"""
 		for element in dataset:
 			new_struct = train_step(element, true_element)
@@ -179,6 +194,9 @@ def runstuff(train_dir, use_mlab):
 		if epoch % summary_interval == 0:
 			#print("Training epoch: %d" % epoch)
 			print("Epoch %3d. Train loss: %f" % (epoch, train_loss.result().numpy()))
+			out = new_struct.numpy()
+			out[out < 0.1] = 0
+			eng.plotVg_safe(matlab.int8(np.int8(out.numpy()).tolist()), 'edgeOff', nargout=0)
 		
 		# write summaries to TensorBoard
 		with train_writer.as_default():
@@ -189,8 +207,9 @@ def runstuff(train_dir, use_mlab):
 				
 	out = new_struct.numpy()
 	out[out < 0.1] = 0
-	fig1= plt.figure()
-	plot_vox(fig1, out.numpy(), colors, [x,y,z], True)
+	eng.plotVg_safe(matlab.int8(np.int8(out.numpy()).tolist()), 'edgeOff', nargout=0)
+	#fig1= plt.figure()
+	#plot_vox(fig1, out.numpy(), colors, [x,y,z], True)
 	
 
 def parse_args():
