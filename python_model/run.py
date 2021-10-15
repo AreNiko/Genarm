@@ -4,7 +4,7 @@ import argparse
 import time
 import csv
 from functools import partial
-#import matlab.engine
+import matlab.engine
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -75,10 +75,14 @@ def plot_vox(fig, struct, colors, dims, show=False):
 def runstuff(train_dir, use_mlab):
 	# Construct model and measurements
 	
-	if use_mlab == 1:
+	if use_mlab == "1":
 		#eng = matlab.engine.start_matlab()
-		0
-
+		eng = matlab.engine.connect_matlab()
+		struct1og = eng.get_struct1()
+		struct1 = np.array(struct1og)
+		(x,y,z) = struct1.shape
+		struct1 = tf.convert_to_tensor(struct1, dtype=tf.float32)
+		eng.plotVg_safe(struct1og, 'edgeOff', nargout=0)
 
 	else:
 		x = 20; y = 20; z = 20
@@ -88,6 +92,7 @@ def runstuff(train_dir, use_mlab):
 		struct4 = generate_random_struct((x,y,z))
 		dataset = tf.data.Dataset.from_tensor_slices([[struct1], [struct2], [struct3], [struct4]])
 
+	print(x,y,z)
 	model = gen_model.Model3D((x,y,z))
 	optimizer = get_optimizer()
 	#model.compile(optimizer='adam', loss=custom_loss_function)
@@ -134,11 +139,7 @@ def runstuff(train_dir, use_mlab):
 	alpha = .8
 	for i in range(x):
 		colors[i] = [1-(i/x), 1-((i*i)/(x*x)), (i*i*i)/(x*x*x), alpha]
-	#colors[1] = [0, 1, 0, alpha]
-	#colors[2] = [0, 0, 1, alpha]
-	#colors[3] = [1, 1, 0, alpha]
-	#colors[4] = [0, 1, 1, alpha]
-	#colors[5] = [1, 1, 1, alpha]
+
 
 	out = model(struct1)
 
@@ -195,7 +196,7 @@ def runstuff(train_dir, use_mlab):
 def parse_args():
   """Parse command line argument."""
 
-  parser = argparse.ArgumentParser("Train segmention model on Kitti dataset.")
+  parser = argparse.ArgumentParser("Train segmention model on 3D structures.")
   parser.add_argument("train_dir", help="Directory to put logs and saved model.")
   parser.add_argument("use_mlab", help="1 or 0, activate matlab session for generating structure.")
 
