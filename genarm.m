@@ -23,40 +23,10 @@ function [vG, figcount] = genarm(env, origo, arm_radiusx, arm_radiusy, wrist_rad
     % Infill not taking into account that the voxels are connected yet
     plainfill = (Voxsize*Voxsize*Voxsize*infill*0.001) + (Voxsize*Voxsize*6*0.01); 
     
-
     max_radius = max(arm_radiusx, arm_radiusy);
-    width = (arm_radiusx+thickness)*2;
-    depth = (arm_radiusy+thickness)*2;
-
-    vG = vGcone(env, [origo(1) origo(2) origo(3)+arm_height], width, depth, height, wrist_radius);
+    [vG, vGc, ~, ~, ~] = genstructure(env, origo, max_radius, wrist_radius, height, thickness, arm_height);
     figcount=figcount+1;figure(figcount);clf;plotVg_safe(vG, 'edgeOff');
-    stayoff_shell1 = outerShell(vG, 1);
-    %figure(2);clf;plotMesh(N,E);
-    % INSERT CALCULATES FOR FINDING THE LARGEST POSSIBLE radius    % Use the largest possible width distance as the radius of the arm 
-    % Placeholder for arm connection point
-
-    vGc = env;
-    for i = 1:arm_height
-        vGc = vGsphere(vGc, [origo(1) origo(2) origo(3)+i], 1, max_radius);
-        vGc = vGsphere(vGc, [origo(1)+i origo(2) origo(3)], 1, max_radius);
-    end
-
-    vGc = innerFillet(vGc,10);
     figcount=figcount+1;figure(figcount);clf;plotVg_safe(vGc, 'edgeOff');
-    
-    % Creates shell around arm and adds to structure
-    vGc_shell = outerShell(vGc, thickness);
-    vG = vG + vGc_shell;
-    vG(vG>1) = 1;
-    
-    % Hollows main structure and creates connection point
-    vG = innerShell(vG,thickness*2) - vGc;
-    vGc1 = shift_3dmatrix(vGc, round((thickness+max_radius)/4),0,0);
-
-    vG = vG - vGc1;
-    vG(vG<0) = 0;
-    
-    vG(origo(1) + (max_radius+thickness):end,:,:) = 0;
     
     f_layer = origo(3) + arm_height + height - thickness;
     b_layer = origo(3) + arm_height + max_radius - thickness;
@@ -84,7 +54,6 @@ function [vG, figcount] = genarm(env, origo, arm_radiusx, arm_radiusy, wrist_rad
     %vGextC(:,:,1:b_layer+1) = vG_work(:,:,1:b_layer+1);
     
     vGc_1more = outerShell(vGc, ceil(thickness/2)+2);
-    %vGextC = vGc;
     %vGextC = vGc;
     %vGextC(vGextC>1) = 1;
     
@@ -114,8 +83,8 @@ function [vG, figcount] = genarm(env, origo, arm_radiusx, arm_radiusy, wrist_rad
     vG_work(1:origo(1), origo(2)-2:origo(2)+2, origo(3)) = 0;
     vG_work(1:origo(1), origo(2)-2:origo(2)+2, origo(3)+5) = 0;
     vG_work(1:origo(1), origo(2)-2:origo(2)+2, origo(3)-5) = 0;
-    vG_work(1:origo(1)-5, origo(2)-2:origo(2)+2, origo(3)) = 0;
-    vG_work(1:origo(1)+5, origo(2)-2:origo(2)+2, origo(3)) = 0;
+    vG_work(1:origo(1), origo(2)-14:origo(2)-9, origo(3)) = 0;
+    vG_work(1:origo(1), origo(2)+9:origo(2)+14, origo(3)) = 0;
     
     figcount=figcount+1;figure(figcount);clf;plotVg_safe(vG_work(:,origo(2):end,:), 'edgeOff');
     %[N, E, F, C, vGno] = make_N_E_F_C_vGno(vG, 2, 1);
@@ -138,16 +107,16 @@ function [vG, figcount] = genarm(env, origo, arm_radiusx, arm_radiusy, wrist_rad
     for i = 1:gt
         fprintf("Step: %d/%d \n", i, gt)
         
-        vGextF(1:origo(1), origo(2)-1:origo(2)+1, 1:f_layer) = vG_work(1:origo(1), origo(2)-1:origo(2)+1, 1:end);
-        vGextF(origo(1)-1:origo(1)+1, 1:origo(2), 1:f_layer) = vG_work(origo(1)-1:origo(1)+1, 1:origo(2), 1:end);
-        vGextF(origo(1):end, origo(2)-1:origo(2)+1, 1:f_layer) = vG_work(origo(1):end, origo(2)-1:origo(2)+1, 1:end);
-        vGextF(origo(1)-1:origo(1)+1, origo(2):end, 1:f_layer) = vG_work(origo(1)-1:origo(1)+1, origo(2):end, 1:end);
+        vGextF(1:origo(1), origo(2)-1:origo(2)+1, 1:b_layer) = vG_work(1:origo(1), origo(2)-1:origo(2)+1, 1:b_layer);
+        vGextF(origo(1)-1:origo(1)+1, 1:origo(2), 1:b_layer) = vG_work(origo(1)-1:origo(1)+1, 1:origo(2), 1:b_layer);
+        vGextF(origo(1):end, origo(2)-1:origo(2)+1, 1:b_layer) = vG_work(origo(1):end, origo(2)-1:origo(2)+1, 1:b_layer);
+        vGextF(origo(1)-1:origo(1)+1, origo(2):end, 1:b_layer) = vG_work(origo(1)-1:origo(1)+1, origo(2):end, 1:b_layer);
         vGextF = vGextF - vGc;
         vGextF(vGextF<0) = 0;
         
         figure(figcount);clf;plotVg_safe(vG_work,'edgeOff');
         hold on;plotVg_safe(vGstayOff,'edgeOff','col',[0.9 0.9 0.5]);
-        %hold on;plotVg_safe(vGextF,'edgeOff','col',[0.5 0.5 0.5]);
+        hold on;plotVg_safe(vGextF,'edgeOff','col',[0.5 0.5 0.5]);
         %hold on;plotVg_safe(vGextC,'edgeOff','col',[0.6 0.6 0.8]);
         title("Generation: " + i + " Stay off (gul), extF (grå), låst (blå)");
         sun1;
@@ -156,6 +125,7 @@ function [vG, figcount] = genarm(env, origo, arm_radiusx, arm_radiusy, wrist_rad
         
         [E,N, ~] = vox2mesh18(vG_work);
         radius = 0.003; E(:,3) = pi*radius^2;
+        %fprintf("%d %d \n", size(E), size(N))
         extC = vGextC2extC(vGextC,vG_work);
         extF = vGextF2extF(vGextF,vG_work);
         

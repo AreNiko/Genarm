@@ -28,7 +28,7 @@ height = 100; % Average forearm length is 46 cm, so 460 mm
 max_radius = max(arm_radiusx, arm_radiusy);
 
 % Initial enviornment
-env = zeros(max_radius*8, max_radius*8, height*2, 'int8');
+env = zeros(height, height, height*2, 'int8');
 origo = [round(height/2) round(height/2) max_radius+thickness+10];
 
 % Weight
