@@ -74,21 +74,24 @@ def plot_vox(fig, struct, colors, dims, show=False):
 	if show:
 		plt.show()
 
-def runstuff(train_dir, use_mlab):
+def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True):
 	# Construct model and measurements
-	
-	if use_mlab == "1":
-		eng = matlab.engine.start_matlab()
-		"""
+	if use_mlab != train_reinforce:
+		print("WARNING: Training on reinforced structures only work if Matlab is enabled")
+		print("Training to duplicate instead")
+		train_reinforce = False
+
+	if use_mlab:
+		#eng = matlab.engine.start_matlab()
+		
 		names = matlab.engine.find_matlab()
 		print(names)
 		if not names:
 			eng = matlab.engine.start_matlab()
 		else:
 			eng = matlab.engine.connect_matlab(names[0])
-		"""
-		struct1og = eng.get_struct1()
-		print(type(struct1og))
+		
+		struct1og, vgc, vGextC, vGextF, vGstayOff = eng.get_struct1(nargout=5)
 		struct1 = np.array(struct1og)
 		(x,y,z) = struct1.shape
 		struct1 = tf.convert_to_tensor(struct1, dtype=tf.float32)
@@ -140,9 +143,49 @@ def runstuff(train_dir, use_mlab):
 
 		return new_struct
 
-	# Test model
-	#print(struct1)
-	#print(tf.shape(struct1))
+	def train_step_same(struct):
+		"""Updates model parameters, as well as `train_loss` and `train_accuracy`
+
+		Args:
+			3D matrix: float tensor of shape [batch_size, height, width, depth]
+
+		Returns:
+			3D matrix [batch_size, height, width, depth] with probabilties
+		"""
+
+		# TODO: Implement
+		with tf.GradientTape() as g:
+
+			new_struct = model(struct, training=True)
+			
+			# Calculate loss and accuracy of prediction
+			loss = custom_loss_function(struct, new_struct)
+			#loss = mse(true_struct, new_struct)
+
+		#print(loss.numpy())
+		grad = g.gradient(loss, model.trainable_weights)
+		# Calculate gradient and update model
+		optimizer.apply_gradients(zip(grad, model.trainable_weights))
+		
+		# Update loss and accuracy
+		train_loss.update_state(loss)
+
+		return new_struct
+
+	if train_reinforce:
+		train = train_step
+		checkpoint_path = "training_reinforce/cp-{epoch:04d}.ckpt"
+	else:
+		train = train_step_same
+		checkpoint_path = "training_duplicate/cp-{epoch:04d}.ckpt"
+
+	checkpoint_dir = os.path.dirname(checkpoint_path)
+	cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
+                                                 save_weights_only=True,
+                                                 verbose=1)
+	if continue_train:
+		latest = tf.train.latest_checkpoint(checkpoint_dir)
+		model.load_weights(latest)
 
 	colors = np.empty([x,y,z] + [4], dtype=np.float32)
 	alpha = .8
@@ -151,16 +194,23 @@ def runstuff(train_dir, use_mlab):
 
 
 	out = model(struct1)
-	struct1ml = matlab.int8(np.int8(struct1.numpy()).tolist())
-	eng.plotVg_safe(struct1ml, 'edgeOff', nargout=0)
+	out = out.numpy()
+	out[out < 0.1] = 0
 
-	outml = matlab.int8(np.int8(out.numpy()).tolist())
-	eng.plotVg_safe(outml, 'edgeOff', nargout=0)
-	#fig0 = plt.figure()
-	#plot_vox(fig0, struct1.numpy(), colors, [x,y,z])
+	if use_mlab:
+		struct1ml = matlab.int8(np.int8(struct1.numpy()).tolist())
+		eng.plotVg_safe(struct1ml, 'edgeOff', nargout=0)
+		#eng.plot_struct(struct1ml, 1, nargout=0)
 
-	#fig = plt.figure()
-	#plot_vox(fig, out.numpy(), colors, [x,y,z], True)
+		outml = matlab.int8(np.int8(out).tolist())
+		eng.plotVg_safe(outml, 'edgeOff', nargout=0)
+		#eng.plot_struct(outml, 2, nargout=0)
+	else:
+		fig0 = plt.figure()
+		plot_vox(fig0, struct1.numpy(), colors, [x,y,z])
+
+		fig = plt.figure()
+		plot_vox(fig, out, colors, [x,y,z], True)
 
 	#plt.savefig("demo.png")
 	
@@ -170,33 +220,40 @@ def runstuff(train_dir, use_mlab):
 		os.path.join(train_dir, "train"), flush_millis=3000)
 	val_writer = tf.summary.create_file_writer(
 		os.path.join(train_dir, "val"), flush_millis=3000)
-	summary_interval = 10
+	summary_interval = 5
 
 	step = 0
-	start_training = start = time.time()
-	for epoch in range(500):
+	#start_training = start = time.time()
+	for epoch in range(15):
 		# Trains model on structures with a truth structure created from
 		# The direct stiffness method and shifted voxels
-		true_struct = eng.reinforce_struct(matlab.int8(np.int8(struct1.numpy()).tolist()))
-		true_struct = np.array(true_struct)
-		true_struct = tf.convert_to_tensor(true_struct, dtype=tf.float32)
-		new_struct = train_step(struct1, true_struct)
+		if train_reinforce:
+			true_struct = eng.reinforce_struct(matlab.int8(np.int8(struct1.numpy()).tolist()), vGextC, vGextF, vGstayOff, 100)
+			#eng.plotVg_safe(true_struct, 'edgeOff', nargout=0)
+			true_struct = np.array(true_struct)
+			true_struct = tf.convert_to_tensor(true_struct, dtype=tf.float32)
+			new_struct = train(struct1, true_struct)
+			struct1 = true_struct
 
-		struct1 = true_struct 
-		"""
-		for element in dataset:
-			new_struct = train_step(element, true_element)
-		"""
+		else:
+			new_struct = train(struct1)
 
 		step += 1
 
 		# summaries to terminal
 		if epoch % summary_interval == 0:
 			#print("Training epoch: %d" % epoch)
+			model.save_weights(checkpoint_path.format(epoch=epoch))
 			print("Epoch %3d. Train loss: %f" % (epoch, train_loss.result().numpy()))
+
 			out = new_struct.numpy()
 			out[out < 0.1] = 0
-			eng.plotVg_safe(matlab.int8(np.int8(out.numpy()).tolist()), 'edgeOff', nargout=0)
+			if use_mlab:
+				eng.plotVg_safe(matlab.int8(np.int8(np.ceil(out)).tolist()), 'edgeOff', nargout=0)
+				#eng.plot_struct(matlab.int8(np.int8(np.ceil(out)).tolist()), 3, nargout=0)
+			else:
+				fig2 = plt.figure()
+				plot_vox(fig2, out, colors, [x,y,z], True)
 		
 		# write summaries to TensorBoard
 		with train_writer.as_default():
@@ -207,9 +264,14 @@ def runstuff(train_dir, use_mlab):
 				
 	out = new_struct.numpy()
 	out[out < 0.1] = 0
-	eng.plotVg_safe(matlab.int8(np.int8(out.numpy()).tolist()), 'edgeOff', nargout=0)
-	#fig1= plt.figure()
-	#plot_vox(fig1, out.numpy(), colors, [x,y,z], True)
+	if use_mlab:
+		eng.plotVg_safe(matlab.int8(np.int8(np.ceil(out)).tolist()), 'edgeOff', nargout=0)
+		#eng.plot_struct(matlab.int8(np.int8(np.ceil(out)).tolist()), 4, nargout=0)
+	else:
+		fig3 = plt.figure()
+		plot_vox(fig3, out, colors, [x,y,z], True)
+
+	input("Press Enter to continue...")
 	
 
 def parse_args():
@@ -217,10 +279,13 @@ def parse_args():
 
   parser = argparse.ArgumentParser("Train segmention model on 3D structures.")
   parser.add_argument("train_dir", help="Directory to put logs and saved model.")
-  parser.add_argument("use_mlab", help="1 or 0, activate matlab session for generating structure.")
+  #parser.add_argument("use_mlab", help="Set as 1 to activate matlab session for generating structure and plotting.")
 
   return parser.parse_args()
 
 if __name__ == '__main__':
 	args = parse_args()
-	runstuff(args.train_dir, args.use_mlab)
+	use_mlab 		= True
+	train_reinforce = True
+	continue_train 	= True
+	runstuff(args.train_dir, use_mlab, train_reinforce, continue_train)

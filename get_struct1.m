@@ -1,4 +1,4 @@
-function [vG, vGc] = get_struct1()
+function [vG, vGc, vGextC, vGextF, vGstayOff] = get_struct1()
     arm_radiusx = 8;
     arm_radiusy = 8;
 
@@ -14,7 +14,7 @@ function [vG, vGc] = get_struct1()
     env = zeros(height*2, height*2, height*2, 'int8');
     origo = [round(height/2) round(height/2) max_radius+thickness+10];
 
-    [vG, vGc] = genstructure(env, origo, max_radius, wrist_radius, height, thickness, arm_height);
+    [vG, vGc, vGextC, vGextF, vGstayOff] = genstructure(env, origo, max_radius, wrist_radius, height, thickness, arm_height);
 
     %save('vG.mat','vG', '-ascii');
     %C = permute(vG,[1 3 2]);
