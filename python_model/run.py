@@ -4,9 +4,6 @@ import argparse
 import time
 import csv
 from functools import partial
-import matlab
-import matlab.engine
-
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -76,12 +73,15 @@ def plot_vox(fig, struct, colors, dims, show=False):
 
 def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True):
 	# Construct model and measurements
-	if use_mlab != train_reinforce:
-		print("WARNING: Training on reinforced structures only work if Matlab is enabled")
-		print("Training to duplicate instead")
-		train_reinforce = False
+	
+
+	#for struct, true_struct in new_dataset:
+		#print(tf.shape(struct))
+		#print(tf.shape(true_struct))
 
 	if use_mlab:
+		import matlab
+		import matlab.engine
 		#eng = matlab.engine.start_matlab()
 		
 		names = matlab.engine.find_matlab()
@@ -95,18 +95,38 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 		struct1 = np.array(struct1og)
 		(x,y,z) = struct1.shape
 		struct1 = tf.convert_to_tensor(struct1, dtype=tf.float32)
+		struct1C = np.array(vGextC)
+		struct1C = tf.convert_to_tensor(struct1C, dtype=tf.float32)
+		struct1F = np.array(vGextF)
+		struct1F = tf.convert_to_tensor(struct1F, dtype=tf.float32)
+		struct1Off = np.array(vGstayOff)
+		struct1Off = tf.convert_to_tensor(struct1Off, dtype=tf.float32)
+
+		#struct1 = tf.stack([struct1, struct1C, struct1F, struct1Off], -1)
+		#dataset = tf.data.Dataset.from_tensor_slices(struct1)
+		
 		eng.plotVg_safe(struct1og, 'edgeOff', nargout=0)
+		
 
 	else:
+		path = os.path.abspath(os.getcwd()) + "/data/reinforce1"
+		new_dataset = tf.data.experimental.load(path)
+		new_dataset = new_dataset.batch(1)
+
+		for struct, true_struct in new_dataset.take(1):
+			(x,y,z) = struct[0].numpy().shape
+		"""
 		x = 20; y = 20; z = 20
 		struct1 = generate_random_struct((x,y,z))
 		struct2 = generate_random_struct((x,y,y))
 		struct3 = generate_random_struct((x,y,z))
 		struct4 = generate_random_struct((x,y,z))
 		dataset = tf.data.Dataset.from_tensor_slices([[struct1], [struct2], [struct3], [struct4]])
+		"""
 
 	print(x,y,z)
-	model = gen_model.Model3D((x,y,z))
+	#model = gen_model.Model3D((x,y,z))
+	model = gen_model.ConvModel3D((x,y,z))
 	optimizer = get_optimizer()
 	#model.compile(optimizer='adam', loss=custom_loss_function)
 
@@ -174,10 +194,10 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 
 	if train_reinforce:
 		train = train_step
-		checkpoint_path = "training_reinforce/cp-{epoch:04d}.ckpt"
+		checkpoint_path = "training_reinforceConv/cp-{epoch:04d}.ckpt"
 	else:
 		train = train_step_same
-		checkpoint_path = "training_duplicate/cp-{epoch:04d}.ckpt"
+		checkpoint_path = "training_duplicateConv/cp-{epoch:04d}.ckpt"
 
 	checkpoint_dir = os.path.dirname(checkpoint_path)
 	cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
@@ -186,17 +206,12 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 	if continue_train:
 		latest = tf.train.latest_checkpoint(checkpoint_dir)
 		model.load_weights(latest)
-
-	colors = np.empty([x,y,z] + [4], dtype=np.float32)
-	alpha = .8
-	for i in range(x):
-		colors[i] = [1-(i/x), 1-((i*i)/(x*x)), (i*i*i)/(x*x*x), alpha]
-
-
+	
+	"""
 	out = model(struct1)
 	out = out.numpy()
 	out[out < 0.1] = 0
-
+	
 	if use_mlab:
 		struct1ml = matlab.int8(np.int8(struct1.numpy()).tolist())
 		eng.plotVg_safe(struct1ml, 'edgeOff', nargout=0)
@@ -206,11 +221,17 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 		eng.plotVg_safe(outml, 'edgeOff', nargout=0)
 		#eng.plot_struct(outml, 2, nargout=0)
 	else:
+
+		colors = np.empty([x,y,z] + [4], dtype=np.float32)
+		alpha = .8
+		for i in range(x):
+			colors[i] = [1-(i/x), 1-((i*i)/(x*x)), (i*i*i)/(x*x*x), alpha]
 		fig0 = plt.figure()
 		plot_vox(fig0, struct1.numpy(), colors, [x,y,z])
 
 		fig = plt.figure()
 		plot_vox(fig, out, colors, [x,y,z], True)
+	"""
 
 	#plt.savefig("demo.png")
 	
@@ -224,16 +245,21 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 
 	step = 0
 	#start_training = start = time.time()
-	for epoch in range(15):
+	for epoch in range(100):
 		# Trains model on structures with a truth structure created from
 		# The direct stiffness method and shifted voxels
 		if train_reinforce:
-			true_struct = eng.reinforce_struct(matlab.int8(np.int8(struct1.numpy()).tolist()), vGextC, vGextF, vGstayOff, 100)
-			#eng.plotVg_safe(true_struct, 'edgeOff', nargout=0)
-			true_struct = np.array(true_struct)
-			true_struct = tf.convert_to_tensor(true_struct, dtype=tf.float32)
-			new_struct = train(struct1, true_struct)
-			struct1 = true_struct
+			if use_mlab:
+				true_struct = eng.reinforce_struct(matlab.int8(np.int8(struct1.numpy()).tolist()), vGextC, vGextF, vGstayOff, 100)
+				#eng.plotVg_safe(true_struct, 'edgeOff', nargout=0)
+				new_struct = train(struct, true_struct)
+				true_struct = np.array(true_struct)
+				true_struct = tf.convert_to_tensor(true_struct, dtype=tf.float32)
+				struct1 = true_struct
+			else:
+				for struct, true_struct in new_dataset:
+					new_struct = train(tf.cast(struct,tf.float32), tf.cast(true_struct,tf.float32))
+				
 
 		else:
 			new_struct = train(struct1)
@@ -285,7 +311,7 @@ def parse_args():
 
 if __name__ == '__main__':
 	args = parse_args()
-	use_mlab 		= True
+	use_mlab 		= False
 	train_reinforce = True
-	continue_train 	= True
+	continue_train 	= False
 	runstuff(args.train_dir, use_mlab, train_reinforce, continue_train)
