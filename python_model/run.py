@@ -274,7 +274,12 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 			else:
 				for struct, true_struct in new_dataset:
 					new_struct = train(tf.cast(struct,tf.float32), tf.cast(true_struct,tf.float32))
-					print("Train loss: %f" % (train_loss.result().numpy()))
+					out = new_struct.numpy()
+					out[out <= 0.1] = 0
+					out[out > 0.1] = 1
+					out_true = true_struct.numpy()
+					check_diff = np.sum(np.abs(out_true - out))
+					print("Difference: %d | Train loss: %f" % (check_diff, train_loss.result().numpy()))
 				
 
 		else:
