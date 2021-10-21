@@ -10,11 +10,15 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 import tensorflow as tf
-from tensorflow.keras import losses, metrics, optimizers
+from tensorflow.keras import losses, metrics, optimizers, layers, Sequential
+from tensorflow.keras.layers.experimental import preprocessing
 
 import gen_model
 
 
+def augment_data(dataset):
+
+	return new_data
 
 def generate_random_struct(dims):
 	struct = tf.random.uniform(shape=dims, minval=0, maxval=2, dtype=tf.int32)
@@ -36,7 +40,7 @@ def generate_random_struct(dims):
 
 def get_optimizer():
 	# Just constant learning rate schedule
-	optimizer = optimizers.Adam(lr=1e-4)
+	optimizer = optimizers.Adam(learning_rate=1e-4)
 	return optimizer
 
 def custom_loss_function(true_struct, new_struct):
@@ -73,8 +77,12 @@ def plot_vox(fig, struct, colors, dims, show=False):
 
 def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True):
 	# Construct model and measurements
-	
+	batch_size = 1
 
+	trainAug = Sequential([
+	layers.RandomFlip(mode="horizontal_and_vertical"),
+	layers.RandomRotation(0.25)
+	])
 	#for struct, true_struct in new_dataset:
 		#print(tf.shape(struct))
 		#print(tf.shape(true_struct))
@@ -111,10 +119,18 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 	else:
 		path = os.path.abspath(os.getcwd()) + "/data/reinforce1"
 		new_dataset = tf.data.experimental.load(path)
-		new_dataset = new_dataset.batch(1)
+		#new_dataset = new_dataset.batch(batch_size)
+
+		new_dataset = (
+			new_dataset
+			.shuffle(batch_size * 100)
+			.batch(batch_size)
+			.map(lambda x, y: (trainAug(x), trainAug(y)))
+		)
 
 		for struct, true_struct in new_dataset.take(1):
 			(x,y,z) = struct[0].numpy().shape
+			print(struct)
 		"""
 		x = 20; y = 20; z = 20
 		struct1 = generate_random_struct((x,y,z))
@@ -239,8 +255,7 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 	print("Summaries are written to '%s'." % train_dir)
 	train_writer = tf.summary.create_file_writer(
 		os.path.join(train_dir, "train"), flush_millis=3000)
-	val_writer = tf.summary.create_file_writer(
-		os.path.join(train_dir, "val"), flush_millis=3000)
+	#val_writer = tf.summary.create_file_writer(os.path.join(train_dir, "val"), flush_millis=3000)
 	summary_interval = 5
 
 	step = 0
@@ -259,6 +274,7 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 			else:
 				for struct, true_struct in new_dataset:
 					new_struct = train(tf.cast(struct,tf.float32), tf.cast(true_struct,tf.float32))
+					print("Train loss: %f" % (train_loss.result().numpy()))
 				
 
 		else:
