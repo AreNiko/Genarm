@@ -142,7 +142,7 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 		alpha = .8
 		for i in range(x):
 			colors[i] = [1-(i/x), 1-((i*i)/(x*x)), (i*i*i)/(x*x*x), alpha]
-			
+
 
 	print(x,y,z)
 	#model = gen_model.Model3D((x,y,z))
@@ -230,7 +230,8 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 	"""
 	out = model(struct1)
 	out = out.numpy()
-	out[out < 0.1] = 0
+	out[out <= 0.1] = 0
+	out[out > 0.1] = 1
 	
 	if use_mlab:
 		struct1ml = matlab.int8(np.int8(struct1.numpy()).tolist())
@@ -294,13 +295,14 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 			print("Epoch %3d. Train loss: %f" % (epoch, train_loss.result().numpy()))
 
 			out = new_struct.numpy()
-			out[out < 0.1] = 0
+			out[out <= 0.1] = 0
+			out[out > 0.1] = 1
 			if use_mlab:
 				eng.plotVg_safe(matlab.int8(np.int8(np.ceil(out)).tolist()), 'edgeOff', nargout=0)
 				#eng.plot_struct(matlab.int8(np.int8(np.ceil(out)).tolist()), 3, nargout=0)
-			else:
-				fig2 = plt.figure()
-				plot_vox(fig2, out, colors, [x,y,z], True)
+			#else:
+				#fig2 = plt.figure()
+				#plot_vox(fig2, out, colors, [x,y,z], True)
 		
 		# write summaries to TensorBoard
 		with train_writer.as_default():
@@ -310,13 +312,14 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 		train_loss.reset_states()
 				
 	out = new_struct.numpy()
-	out[out < 0.1] = 0
+	out[out <= 0.1] = 0
+	out[out > 0.1] = 1
 	if use_mlab:
 		eng.plotVg_safe(matlab.int8(np.int8(np.ceil(out)).tolist()), 'edgeOff', nargout=0)
 		#eng.plot_struct(matlab.int8(np.int8(np.ceil(out)).tolist()), 4, nargout=0)
-	else:
-		fig3 = plt.figure()
-		plot_vox(fig3, out, colors, [x,y,z], True)
+	#else:
+		#fig3 = plt.figure()
+		#plot_vox(fig3, out, colors, [x,y,z], True)
 
 	input("Press Enter to continue...")
 	
