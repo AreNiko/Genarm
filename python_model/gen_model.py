@@ -107,12 +107,12 @@ def ConvStructModel3D(input_shape):
 	x3 = layers.Conv3D(128, 3, strides=(1, 1, 1), padding='same', activation='relu')(x2)
 	x3 = layers.BatchNormalization(momentum=0.8)(x3)
 	x3d = layers.Dense(256)(x3)
-
+	"""
 	x4 = layers.Conv3D(128, 3, strides=(1, 1, 1), padding='same', activation='relu')(x3)
 	x4 = layers.BatchNormalization(momentum=0.8)(x4)
 	x4d = layers.Dense(256)(x4)
-
-	xf = tf.concat([x1d, x2d, x3d, x4d], -1)
+	"""
+	xf = tf.concat([x1d, x2d, x3d], -1)
 	xfd = layers.Conv3D(1, 1, strides=(1, 1, 1), padding='same', activation='relu')(xf)
 	
 	xfd = tf.keras.activations.tanh(xfd)
