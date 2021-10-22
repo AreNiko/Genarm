@@ -57,9 +57,9 @@ def custom_loss_function(true_struct, new_struct):
 	loss = tf.abs(tf.abs(x)-tf.abs(y))
 	print(loss)
 	"""
-
+	(x,y,z) = true_struct.numpy().shape
 	diff = tf.abs(tf.math.subtract(new_struct, true_struct))
-	loss = tf.reduce_sum(diff)
+	loss = tf.reduce_sum(diff)/(x*y*z)
 	return loss
 
 def plot_vox(fig, struct, colors, dims, show=False):
