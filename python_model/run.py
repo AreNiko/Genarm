@@ -138,6 +138,11 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 		struct4 = generate_random_struct((x,y,z))
 		dataset = tf.data.Dataset.from_tensor_slices([[struct1], [struct2], [struct3], [struct4]])
 		"""
+		colors = np.empty([x,y,z] + [4], dtype=np.float32)
+		alpha = .8
+		for i in range(x):
+			colors[i] = [1-(i/x), 1-((i*i)/(x*x)), (i*i*i)/(x*x*x), alpha]
+			
 
 	print(x,y,z)
 	#model = gen_model.Model3D((x,y,z))
@@ -237,10 +242,6 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 		#eng.plot_struct(outml, 2, nargout=0)
 	else:
 
-		colors = np.empty([x,y,z] + [4], dtype=np.float32)
-		alpha = .8
-		for i in range(x):
-			colors[i] = [1-(i/x), 1-((i*i)/(x*x)), (i*i*i)/(x*x*x), alpha]
 		fig0 = plt.figure()
 		plot_vox(fig0, struct1.numpy(), colors, [x,y,z])
 
