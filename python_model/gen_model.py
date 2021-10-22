@@ -29,7 +29,6 @@ def Model3D(input_shape):
 	x = layers.LeakyReLU(alpha=0.2)(x)
 	#x = layers.BatchNormalization(momentum=0.8)(x)
 	x = layers.Dense(zdim)(x)
-	#x = layers.Flatten()(x) 
 	"""
 	x = layers.Reshape((xdim, ydim, zdim,1))(struct) 
 	x = layers.Conv3D(16, 5, strides=(1, 1, 1), padding='same', activation='relu')(x)
@@ -39,36 +38,8 @@ def Model3D(input_shape):
 	#x = layers.Conv3D(zdim, 1, padding='same', activation=None)(x)
 	"""
 	x = tf.keras.activations.tanh(x)
-	#x = tf.math.ceil(x)
-	#x = layers.Flatten()(x) 
-	#x = layers.Reshape((5,5,5))(x) 
-	#x = layers.Dense(zdim)(x)
-	
-
-	
-	#x = tf.cast(x, tf.float32)
 
 	model = models.Model(inputs=struct, outputs=x)
-	"""
-	model = models.Sequential()
-
-	model.add(layers.Input(input_shape))
-	#model.add(layers.Flatten())
-	
-	#model.add(layers.Flatten(input_shape=input_shape))
-	#model.add(layers.Dense(8))
-	#model.add(layers.Dense(16))
-	model.add(layers.Dense(32))
-	model.add(layers.Dense(64))
-	model.add(layers.Dense(128))
-	#model.add(layers.Dense(256))
-	#model.add(layers.Dense(512))
-	model.add(layers.Dense(np.prod(input_shape), activation='tanh'))
-	model.add(layers.Reshape(input_shape))
-	"""
-	#return model
-	#structure = layers.Input(input_shape)
-	#new_struct = model(structure)
 	
 	return model
 
@@ -90,51 +61,62 @@ def ConvModel3D(input_shape):
 	x = layers.Conv2D(64, 5, strides=1, padding='same', activation='relu')(x)
 	x = layers.Conv2D(32, 5, strides=1, padding='same', activation='relu')(x)
 	x = layers.Conv2D(zdim, 1, padding='same', activation=None)(x)
-	#x = layers.BatchNormalization(momentum=0.8)(x
+	#x = layers.BatchNormalization(momentum=0.8)(x)
 	#x = layers.Flatten()(x) 
 	"""
 
 	x = layers.Conv3D(32, 5, strides=(1, 1, 1), padding='same', activation='relu')(struct)
-	x = layers.Conv3D(64, 5, strides=(1, 1, 1), padding='same', activation='relu')(x)
-	x = layers.Conv3D(128, 5, strides=(1, 1, 1), padding='same', activation='relu')(x)
-	x = layers.Conv3D(256, 5, strides=(1, 1, 1), padding='same', activation='relu')(x)
-	x = layers.Conv3D(256, 5, strides=(1, 1, 1), padding='same', activation='relu')(x)
-	x = layers.Conv3D(128, 5, strides=(1, 1, 1), padding='same', activation='relu')(x)
-	x = layers.Conv3D(64, 5, strides=(1, 1, 1), padding='same', activation='relu')(x)
+	x = layers.BatchNormalization(momentum=0.8)(x)
+	#x = layers.Conv3D(64, 5, strides=(1, 1, 1), padding='same', activation='relu')(x)
+	#x = layers.BatchNormalization(momentum=0.8)(x)
+	#x = layers.Conv3D(128, 5, strides=(1, 1, 1), padding='same', activation='relu')(x)
+	#x = layers.BatchNormalization(momentum=0.8)(x)
+	#x = layers.Conv3D(256, 5, strides=(1, 1, 1), padding='same', activation='relu')(x)
+	#x = layers.BatchNormalization(momentum=0.8)(x)
+	#x = layers.Conv3D(256, 5, strides=(1, 1, 1), padding='same', activation='relu')(x)
+	#x = layers.BatchNormalization(momentum=0.8)(x)
+	#x = layers.Conv3D(128, 5, strides=(1, 1, 1), padding='same', activation='relu')(x)
+	#x = layers.BatchNormalization(momentum=0.8)(x)
+	#x = layers.Conv3D(64, 5, strides=(1, 1, 1), padding='same', activation='relu')(x)
+	#x = layers.BatchNormalization(momentum=0.8)(x)
 	x = layers.Conv3D(32, 5, strides=(1, 1, 1), padding='same', activation='relu')(x)
+	x = layers.BatchNormalization(momentum=0.8)(x)
 	x = layers.Conv3D(1, 1, padding='same', activation='relu')(x)
-	#x = layers.Conv3D(zdim, 1, padding='same', activation=None)(x)
 	
 	x = tf.keras.activations.tanh(x)
-	#x = tf.math.ceil(x)
-	#x = layers.Flatten()(x) 
 	x = layers.Reshape((xdim, ydim, zdim))(x) 
-	#x = layers.Dense(zdim)(x)
-	
-
-	
-	#x = tf.cast(x, tf.float32)
 
 	model = models.Model(inputs=struct, outputs=x)
-	"""
-	model = models.Sequential()
+	
+	return model
 
-	model.add(layers.Input(input_shape))
-	#model.add(layers.Flatten())
+def ConvStructModel3D(input_shape):
+	xdim, ydim, zdim = input_shape
+	input_shape = (xdim, ydim, zdim, 1)
+	print(input_shape)
+	struct = layers.Input(input_shape)
+
+	x1 = layers.Conv3D(128, 3, strides=(1, 1, 1), padding='same', activation='relu')(struct)
+	x1 = layers.BatchNormalization(momentum=0.8)(x1)
+	x1d = layers.Dense(256)(x1)
+
+	x2 = layers.Conv3D(128, 3, strides=(1, 1, 1), padding='same', activation='relu')(x1)
+	x2 = layers.BatchNormalization(momentum=0.8)(x2)
+	x2d = layers.Dense(256)(x2)
+
+	x3 = layers.Conv3D(128, 3, strides=(1, 1, 1), padding='same', activation='relu')(x2)
+	x3 = layers.BatchNormalization(momentum=0.8)(x3)
+	x3d = layers.Dense(256)(x3)
+
+	x4 = layers.Conv3D(128, 3, strides=(1, 1, 1), padding='same', activation='relu')(x3)
+	x4 = layers.BatchNormalization(momentum=0.8)(x4)
+	x4d = layers.Dense(256)(x4)
+
+	xf = tf.concat([x1d, x2d, x3d, x4d], -1)
+	xfd = layers.Conv3D(1, 1, strides=(1, 1, 1), padding='same', activation='relu')(xf)
 	
-	#model.add(layers.Flatten(input_shape=input_shape))
-	#model.add(layers.Dense(8))
-	#model.add(layers.Dense(16))
-	model.add(layers.Dense(32))
-	model.add(layers.Dense(64))
-	model.add(layers.Dense(128))
-	#model.add(layers.Dense(256))
-	#model.add(layers.Dense(512))
-	model.add(layers.Dense(np.prod(input_shape), activation='tanh'))
-	model.add(layers.Reshape(input_shape))
-	"""
-	#return model
-	#structure = layers.Input(input_shape)
-	#new_struct = model(structure)
-	
+	x = tf.keras.activations.tanh(x)
+	x = layers.Reshape((xdim, ydim, zdim))(x) 
+	model = models.Model(inputs=struct, outputs=x)
+
 	return model

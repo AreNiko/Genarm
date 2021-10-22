@@ -120,17 +120,16 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 		path = os.path.abspath(os.getcwd()) + "/data/reinforce1"
 		new_dataset = tf.data.experimental.load(path)
 		#new_dataset = new_dataset.batch(batch_size)
-
+		"""
 		new_dataset = (
 			new_dataset
 			.shuffle(batch_size * 100)
 			.batch(batch_size)
 			.map(lambda x, y: (trainAug(x), trainAug(y)))
 		)
-
+		"""
 		for struct, true_struct in new_dataset.take(1):
 			(x,y,z) = struct[0].numpy().shape
-			print(struct)
 		"""
 		x = 20; y = 20; z = 20
 		struct1 = generate_random_struct((x,y,z))
@@ -142,7 +141,7 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 
 	print(x,y,z)
 	#model = gen_model.Model3D((x,y,z))
-	model = gen_model.ConvModel3D((x,y,z))
+	model = gen_model.ConvStructModel3D((x,y,z))
 	optimizer = get_optimizer()
 	#model.compile(optimizer='adam', loss=custom_loss_function)
 
@@ -260,7 +259,7 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 
 	step = 0
 	#start_training = start = time.time()
-	for epoch in range(100):
+	for epoch in range(30):
 		# Trains model on structures with a truth structure created from
 		# The direct stiffness method and shifted voxels
 		if train_reinforce:
