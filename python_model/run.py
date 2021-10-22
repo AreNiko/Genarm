@@ -57,7 +57,7 @@ def custom_loss_function(true_struct, new_struct):
 	loss = tf.abs(tf.abs(x)-tf.abs(y))
 	print(loss)
 	"""
-	print(tf.shape(true_struct))
+	(c, x,y,z) = tf.shape(true_struct)
 	diff = tf.abs(tf.math.subtract(new_struct, true_struct))
 	loss = tf.reduce_sum(diff)/(x*y*z)
 	return loss
