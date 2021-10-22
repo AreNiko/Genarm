@@ -119,7 +119,7 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 	else:
 		path = os.path.abspath(os.getcwd()) + "/data/reinforce1"
 		new_dataset = tf.data.experimental.load(path)
-		#new_dataset = new_dataset.batch(batch_size)
+		new_dataset = new_dataset.batch(batch_size)
 		"""
 		new_dataset = (
 			new_dataset

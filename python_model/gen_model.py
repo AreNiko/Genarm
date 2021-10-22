@@ -115,8 +115,8 @@ def ConvStructModel3D(input_shape):
 	xf = tf.concat([x1d, x2d, x3d, x4d], -1)
 	xfd = layers.Conv3D(1, 1, strides=(1, 1, 1), padding='same', activation='relu')(xf)
 	
-	x = tf.keras.activations.tanh(x)
-	x = layers.Reshape((xdim, ydim, zdim))(x) 
-	model = models.Model(inputs=struct, outputs=x)
+	xfd = tf.keras.activations.tanh(xfd)
+	xfd = layers.Reshape((xdim, ydim, zdim))(xfd) 
+	model = models.Model(inputs=struct, outputs=xfd)
 
 	return model
