@@ -77,7 +77,7 @@ def plot_vox(fig, struct, colors, dims, show=False):
 
 def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True):
 	# Construct model and measurements
-	batch_size = 1
+	batch_size = 3
 
 	trainAug = Sequential([
 	layers.RandomFlip(mode="horizontal_and_vertical"),
