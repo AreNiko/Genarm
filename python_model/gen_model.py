@@ -96,7 +96,7 @@ def ConvStructModel3D(input_shape):
 	print(input_shape)
 	struct = layers.Input(input_shape)
 
-	x1 = layers.Conv3D(32, 5, strides=(1, 1, 1), padding='same', activation='relu')(struct)
+	x1 = layers.Conv3D(128, 5, strides=(1, 1, 1), padding='same', activation='relu')(struct)
 	x1 = layers.BatchNormalization(momentum=0.8)(x1)
 	x1d = layers.Dense(128)(x1)
 
@@ -104,11 +104,11 @@ def ConvStructModel3D(input_shape):
 	x2 = layers.BatchNormalization(momentum=0.8)(x2)
 	x2d = layers.Dense(128)(x2)
 
-	x3 = layers.Conv3D(128, 5, strides=(1, 1, 1), padding='same', activation='relu')(x2)
+	x3 = layers.Conv3D(32, 5, strides=(1, 1, 1), padding='same', activation='relu')(x2)
 	x3 = layers.BatchNormalization(momentum=0.8)(x3)
 	x3d = layers.Dense(128)(x3)
 
-	x4 = layers.Conv3D(128, 5, strides=(1, 1, 1), padding='same', activation='relu')(x3)
+	x4 = layers.Conv3D(16, 5, strides=(1, 1, 1), padding='same', activation='relu')(x3)
 	x4 = layers.BatchNormalization(momentum=0.8)(x4)
 	x4d = layers.Dense(128)(x4)
 
