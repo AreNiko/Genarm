@@ -117,7 +117,7 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 		
 
 	else:
-		path = os.path.abspath(os.getcwd()) + "/data/reinforce1"
+		path = os.path.abspath(os.getcwd()) + "/data/reinforce1/001"
 		new_dataset = tf.data.experimental.load(path)
 		new_dataset = new_dataset.batch(batch_size)
 		"""
@@ -148,6 +148,8 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 	#model = gen_model.Model3D((x,y,z))
 	model = gen_model.ConvStructModel3D((x,y,z))
 	optimizer = get_optimizer()
+
+	mse = losses.MeanSquaredError()
 	#model.compile(optimizer='adam', loss=custom_loss_function)
 
 	train_loss = metrics.Mean()
@@ -170,8 +172,8 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 			new_struct = model(struct, training=True)
 			
 			# Calculate loss and accuracy of prediction
-			loss = custom_loss_function(true_struct, new_struct)
-			#loss = mse(true_struct, new_struct)
+			#loss = custom_loss_function(true_struct, new_struct)
+			loss = mse(true_struct, new_struct)
 
 		#print(loss.numpy())
 		grad = g.gradient(loss, model.trainable_weights)
