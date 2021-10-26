@@ -8,6 +8,7 @@ from functools import partial
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import pickle
 
 import tensorflow as tf
 from tensorflow.keras import losses, metrics, optimizers, layers, Sequential
@@ -262,6 +263,8 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 	summary_interval = 5
 
 	step = 0
+	diff_vals = []
+	loss_vals = []
 	#start_training = start = time.time()
 	for epoch in range(30):
 		# Trains model on structures with a truth structure created from
@@ -274,7 +277,11 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 				true_struct = np.array(true_struct)
 				true_struct = tf.convert_to_tensor(true_struct, dtype=tf.float32)
 				struct1 = true_struct
+				print("Difference: %d | Train loss: %f" % (check_diff, train_loss.result().numpy()))
 			else:
+				avg_diff = 0
+				avg_loss = 0
+				datlen = 0
 				for struct, true_struct in new_dataset:
 					new_struct = train(tf.cast(struct,tf.float32), tf.cast(true_struct,tf.float32))
 					out = new_struct.numpy()
@@ -282,7 +289,17 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 					out[out > 0.1] = 1
 					out_true = true_struct.numpy()
 					check_diff = np.sum(np.abs(out_true - out))
+					avg_diff += check_diff 
+					avg_loss += train_loss.result().numpy()
+					datlen += 1
 					print("Difference: %d | Train loss: %f" % (check_diff, train_loss.result().numpy()))
+
+				avg_diff /= datlen
+				avg_loss /= datlen
+				diff_vals.append([epoch, avg_diff])
+				loss_vals.append([epoch, avg_loss])
+				print("Avg Difference: %d | Avg Train loss: %f" % (avg_diff, avg_loss))
+
 				
 
 		else:
@@ -312,7 +329,13 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 
 		# reset metrics
 		train_loss.reset_states()
-				
+	
+	with open("loss.txt", "wb") as fp:
+		pickle.dump(loss_vals, fp)
+
+	with open("diff.txt", "wb") as fp:
+		pickle.dump(diff_vals, fp)
+
 	out = new_struct.numpy()
 	out[out <= 0.1] = 0
 	out[out > 0.1] = 1
