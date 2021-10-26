@@ -39,8 +39,8 @@ def gen_data():
 		#dat[i] = np.array(struct1, np.array(true_struct))
 		struct1 = true_struct
 
-	structs = np.array(structs)
-	rein = np.array(rein)
+	structs = np.array(structs, dtype=np.int8)
+	rein = np.array(rein, dtype=np.int8)
 	dataset = tf.data.Dataset.from_tensor_slices((structs, rein))
 	tf.data.experimental.save(dataset, path)
 	#new_dataset = tf.data.experimental.load(path)
