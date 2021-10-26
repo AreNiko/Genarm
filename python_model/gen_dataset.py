@@ -18,10 +18,10 @@ def gen_data():
 
 	#path = "C:/Users/nikol/Documents/thesis/genarm/python_model/data/reinforce1"
 
-	path = os.path.abspath(os.getcwd()) + "/data/reinforce1"
+	path = os.path.abspath(os.getcwd()) + "/data/reinforce1/001"
 
 	struct1og, vgc, vGextC, vGextF, vGstayOff = eng.get_struct1(nargout=5)
-	struct1 = np.array(struct1og)
+	struct1 = np.int8(np.array(struct1og))
 	(x,y,z) = struct1.shape
 	struct1C = np.array(vGextC)
 	struct1F = np.array(vGextF)
@@ -31,8 +31,8 @@ def gen_data():
 	rein = []
 	for i in range(datasize):
 		print(i)
-		true_struct = np.int8(np.array(eng.reinforce_struct(matlab.int8(np.int8(struct1).tolist()), vGextC, 
-													vGextF, vGstayOff, random.randint(50, 750))))
+		true_struct = np.int8(np.array(eng.reinforce_struct(matlab.int8(struct1.tolist()), vGextC, 
+													vGextF, vGstayOff, 200)))
 		
 		structs.append(struct1)
 		rein.append(true_struct)
