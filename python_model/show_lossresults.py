@@ -12,14 +12,14 @@ def plot_results(diff, loss):
 	ax1 = fig.add_subplot(1, 2, 1)
 	ax1.plot(diff[:,0], diff[:,1])
 	ax1.set_title("Average Difference")
-	ax1.xlabel("Epochs")
-	ax1.ylabel("Diff")
+	ax1.set_xlabel("Epochs")
+	ax1.set_ylabel("Diff")
 
 	ax2 = fig.add_subplot(1, 2, 2)
 	ax2.plot(loss[:,0], loss[:,1])
 	ax2.set_title("Average loss")
-	ax2.xlabel("Epochs")
-	ax2.ylabel("loss")
+	ax2.set_xlabel("Epochs")
+	ax2.set_ylabel("loss")
 	plt.show()
 
 if __name__ == '__main__':
