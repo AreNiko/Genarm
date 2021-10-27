@@ -263,8 +263,10 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 	summary_interval = 5
 
 	step = 0
-	diff_vals = []
-	loss_vals = []
+	avg_diff_vals = []
+	avg_loss_vals = []
+	step_diff_vals = []
+	step_loss_vals = []
 	#start_training = start = time.time()
 	for epoch in range(30):
 		# Trains model on structures with a truth structure created from
@@ -277,6 +279,7 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 				true_struct = np.array(true_struct)
 				true_struct = tf.convert_to_tensor(true_struct, dtype=tf.float32)
 				struct1 = true_struct
+				step += 1
 				print("Difference: %d | Train loss: %f" % (check_diff, train_loss.result().numpy()))
 			else:
 				avg_diff = 0
@@ -292,20 +295,24 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 					avg_diff += check_diff 
 					avg_loss += train_loss.result().numpy()
 					datlen += 1
+					step += 1
+					step_diff_vals.append([step, check_diff])
+					step_loss_vals.append([step, train_loss.result().numpy()])
 					print("Difference: %d | Train loss: %f" % (check_diff, train_loss.result().numpy()))
 
 				avg_diff /= datlen
 				avg_loss /= datlen
-				diff_vals.append([epoch, avg_diff])
-				loss_vals.append([epoch, avg_loss])
+				avg_diff_vals.append([epoch, avg_diff])
+				avg_loss_vals.append([epoch, avg_loss])
 				print("Avg Difference: %d | Avg Train loss: %f" % (avg_diff, avg_loss))
 
 				
 
 		else:
 			new_struct = train(struct1)
+			step += 1
 
-		step += 1
+		
 
 		# summaries to terminal
 		if epoch % summary_interval == 0:
@@ -330,11 +337,17 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 		# reset metrics
 		train_loss.reset_states()
 	
-	with open("loss.txt", "wb") as fp:
-		pickle.dump(loss_vals, fp)
+	with open("avg_loss.txt", "wb") as fp:
+		pickle.dump(avg_loss_vals, fp)
 
-	with open("diff.txt", "wb") as fp:
-		pickle.dump(diff_vals, fp)
+	with open("avg_diff.txt", "wb") as fp:
+		pickle.dump(avg_diff_vals, fp)
+
+	with open("step_loss.txt", "wb") as fp:
+		pickle.dump(step_loss_vals, fp)
+
+	with open("step_diff.txt", "wb") as fp:
+		pickle.dump(step_diff_vals, fp)
 
 	out = new_struct.numpy()
 	out[out <= 0.1] = 0
