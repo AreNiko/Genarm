@@ -7,24 +7,38 @@ def get_data(filename):
 		out = pickle.load(fp)
 	return np.array(out)
 
-def plot_results(diff, loss):
+def plot_results(avgloss,avgdiff,steploss,stepdiff):
 	fig = plt.figure()
-	ax1 = fig.add_subplot(1, 2, 1)
-	ax1.plot(diff[:,0], diff[:,1])
+	ax1 = fig.add_subplot(2, 2, 1)
+	ax1.plot(avgdiff[:,0], avgdiff[:,1])
 	ax1.set_title("Average Difference")
 	ax1.set_xlabel("Epochs")
 	ax1.set_ylabel("Diff")
 
 	ax2 = fig.add_subplot(1, 2, 2)
-	ax2.plot(loss[:,0], loss[:,1])
+	ax2.plot(avgloss[:,0], avgloss[:,1])
 	ax2.set_title("Average loss")
+	ax2.set_xlabel("Epochs")
+	ax2.set_ylabel("loss")
+
+	ax1 = fig.add_subplot(2, 2, 3)
+	ax1.plot(stepdiff[:,0], stepdiff[:,1])
+	ax1.set_title("Stepwise Difference")
+	ax1.set_xlabel("Epochs")
+	ax1.set_ylabel("Diff")
+
+	ax2 = fig.add_subplot(1, 2, 4)
+	ax2.plot(steploss[:,0], steploss[:,1])
+	ax2.set_title("Stepwise loss")
 	ax2.set_xlabel("Epochs")
 	ax2.set_ylabel("loss")
 	plt.show()
 
 if __name__ == '__main__':
-	loss = get_data("loss.txt")
-	diff = get_data("diff.txt")
-	print(loss)
-	print(diff)
-	plot_results(diff, loss)
+
+	avgloss = get_data("avg_loss.txt")
+	avgdiff = get_data("avg_diff.txt")
+
+	steploss = get_data("step_loss.txt")
+	stepdiff = get_data("step_diff.txt")
+	plot_results(avgloss,avgdiff,steploss,stepdiff)
