@@ -268,7 +268,7 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 	step_diff_vals = []
 	step_loss_vals = []
 	#start_training = start = time.time()
-	for epoch in range(30):
+	for epoch in range(10):
 		# Trains model on structures with a truth structure created from
 		# The direct stiffness method and shifted voxels
 		if train_reinforce:
