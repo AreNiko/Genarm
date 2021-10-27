@@ -110,9 +110,16 @@ def ConvStructModel3D(input_shape):
 	
 
 	x1d = layers.Dense(128)(x1)
+	x1d = layers.Dense(128)(x1d)
+
 	x2d = layers.Dense(128)(x2)
+	x2d = layers.Dense(128)(x2d)
+
 	x3d = layers.Dense(128)(x3)
+	x3d = layers.Dense(128)(x3d)
+
 	x4d = layers.Dense(128)(x4)
+	x4d = layers.Dense(128)(x4d)
 
 	xf = tf.concat([x1d, x2d, x3d, x4d], -1)
 	xfd = layers.Conv3D(1, 1, strides=(1, 1, 1), padding='same', activation='relu')(xf)

@@ -44,7 +44,7 @@ def get_optimizer():
 	optimizer = optimizers.Adam(learning_rate=1e-4)
 	return optimizer
 
-def custom_loss_function(true_struct, new_struct):
+def custom_loss_function(true_struct, new_struct, struct):
 	# Apply direct stiffness method as loss function
 	#(E, N,_) = eng.vox2mesh18(x);
 	#(sE, dN) = eng.FEM_truss(N,E, extF,extC)
@@ -58,8 +58,9 @@ def custom_loss_function(true_struct, new_struct):
 	loss = tf.abs(tf.abs(x)-tf.abs(y))
 	print(loss)
 	"""
-
-	diff = tf.abs(tf.math.subtract(new_struct, true_struct))
+	true_struct2 = tf.math.subtract(struct, true_struct)
+	new_struct2 = tf.math.subtract(struct, new_struct)
+	diff = tf.abs(tf.math.subtract(new_struct2, true_struct2))
 	loss = tf.reduce_sum(diff)
 	return loss
 
@@ -173,8 +174,8 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 			new_struct = model(struct, training=True)
 			
 			# Calculate loss and accuracy of prediction
-			#loss = custom_loss_function(true_struct, new_struct)
-			loss = mse(true_struct, new_struct)
+			loss = custom_loss_function(true_struct, new_struct, struct)
+			#loss = mse(true_struct, new_struct)
 
 		#print(loss.numpy())
 		grad = g.gradient(loss, model.trainable_weights)
