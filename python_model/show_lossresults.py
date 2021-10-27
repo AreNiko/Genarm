@@ -5,7 +5,7 @@ import pickle
 def get_data(filename):
 	with open(filename, "rb") as fp:
 		out = pickle.load(fp)
-	return out
+	return np.array(out)
 
 def plot_results(diff, loss):
 	fig = plt.figure()
