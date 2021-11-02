@@ -1,8 +1,6 @@
 import glob
 import os
 import argparse
-import time
-import csv
 from functools import partial
 
 import numpy as np
@@ -60,8 +58,22 @@ def custom_loss_function(true_struct, new_struct, struct):
 	"""
 	true_struct2 = tf.math.subtract(struct, true_struct)
 	new_struct2 = tf.math.subtract(struct, new_struct)
-	diff = tf.abs(tf.math.subtract(new_struct2, true_struct2))
-	loss = tf.reduce_sum(diff)
+	#diff = tf.abs(tf.math.subtract(new_struct2, true_struct2))
+	#loss = tf.reduce_sum(diff)
+	loss = tf.losses.mean_squared_error(true_struct2, new_struct2) 
+	return loss
+
+def truss_loss_function(new_struct, struct, extF, extC):
+	# Apply direct stiffness method as loss function
+	#(E, N,_) = eng.vox2mesh18(new_struct)
+	#(sE, dN) = eng.FEM_truss(N,E,extF,extC)
+	sE, dN = eng.Struct_bend(struct, extC, extF)
+	sE2, dN2 = eng.Struct_bend(new_struct, extC, extF)
+	loss = tf.losses.mean_squared_error(dN, dN2) + tf.losses.mean_squared_error(new_struct, struct)
+	#(E2, N2,_) = eng.vox2mesh18(struct)
+	#(sE2, dN2) = eng.FEM_truss(N2,E2,extF,extC)
+	#loss = max(abs(dN))
+
 	return loss
 
 def plot_vox(fig, struct, colors, dims, show=False):
@@ -187,6 +199,35 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 
 		return new_struct
 
+	def train_matlab(struct, extF, extC):
+		"""Updates model parameters, as well as `train_loss` and `train_accuracy`
+
+		Args:
+			3D matrix: float tensor of shape [batch_size, height, width, depth]
+
+		Returns:
+			3D matrix [batch_size, height, width, depth] with probabilties
+		"""
+
+		# TODO: Implement
+		with tf.GradientTape() as g:
+
+			new_struct = model(struct, training=True)
+			
+			# Calculate loss and accuracy of prediction
+			loss = truss_loss_function(new_struct, struct, extF, extC)
+			#loss = mse(true_struct, new_struct)
+
+		#print(loss.numpy())
+		grad = g.gradient(loss, model.trainable_weights)
+		# Calculate gradient and update model
+		optimizer.apply_gradients(zip(grad, model.trainable_weights))
+		
+		# Update loss and accuracy
+		train_loss.update_state(loss)
+
+		return new_struct
+
 	def train_step_same(struct):
 		"""Updates model parameters, as well as `train_loss` and `train_accuracy`
 
@@ -231,32 +272,6 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 		latest = tf.train.latest_checkpoint(checkpoint_dir)
 		model.load_weights(latest)
 	
-	"""
-	out = model(struct1)
-	out = out.numpy()
-	out[out <= 0.1] = 0
-	out[out > 0.1] = 1
-	
-	if use_mlab:
-		struct1ml = matlab.int8(np.int8(struct1.numpy()).tolist())
-		eng.plotVg_safe(struct1ml, 'edgeOff', nargout=0)
-		#eng.plot_struct(struct1ml, 1, nargout=0)
-
-		outml = matlab.int8(np.int8(out).tolist())
-		eng.plotVg_safe(outml, 'edgeOff', nargout=0)
-		#eng.plot_struct(outml, 2, nargout=0)
-	else:
-
-		fig0 = plt.figure()
-		plot_vox(fig0, struct1.numpy(), colors, [x,y,z])
-
-		fig = plt.figure()
-		plot_vox(fig, out, colors, [x,y,z], True)
-	"""
-
-	#plt.savefig("demo.png")
-	
-	
 	print("Summaries are written to '%s'." % train_dir)
 	train_writer = tf.summary.create_file_writer(
 		os.path.join(train_dir, "train"), flush_millis=3000)
@@ -274,12 +289,12 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 		# The direct stiffness method and shifted voxels
 		if train_reinforce:
 			if use_mlab:
-				true_struct = eng.reinforce_struct(matlab.int8(np.int8(struct1.numpy()).tolist()), vGextC, vGextF, vGstayOff, 100)
+				#true_struct = eng.reinforce_struct(matlab.int8(np.int8(struct1.numpy()).tolist()), vGextC, vGextF, vGstayOff, 100)
 				#eng.plotVg_safe(true_struct, 'edgeOff', nargout=0)
-				new_struct = train(struct, true_struct)
-				true_struct = np.array(true_struct)
-				true_struct = tf.convert_to_tensor(true_struct, dtype=tf.float32)
-				struct1 = true_struct
+				new_struct = train_matlab(struct, vGextF, vGextC)
+				#true_struct = np.array(true_struct)
+				#true_struct = tf.convert_to_tensor(true_struct, dtype=tf.float32)
+				#struct1 = true_struct
 				step += 1
 				print("Difference: %d | Train loss: %f" % (check_diff, train_loss.result().numpy()))
 			else:
@@ -374,7 +389,7 @@ def parse_args():
 
 if __name__ == '__main__':
 	args = parse_args()
-	use_mlab 		= False
+	use_mlab 		= True
 	train_reinforce = True
 	continue_train 	= False
 	runstuff(args.train_dir, use_mlab, train_reinforce, continue_train)
