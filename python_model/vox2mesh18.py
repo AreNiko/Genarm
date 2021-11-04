@@ -11,60 +11,61 @@ def vox2mesh18(vG):
         vG = addMargin(vG,1)
         marginsAreAdded = 1
     """
-    
-    dimX,dimY,dimZ = np.size(vG)
-    E = np.zeros((np.sum(vG)*18,2))
+    print(vG.shape)
+    (dimX,dimY,dimZ) = vG.shape
+    print(dimX,dimY,dimZ)
+    E = np.zeros((np.sum(vG)*18,3))
     N = np.zeros((np.sum(vG), 3))
-    vGvokselNr = np.zeros(dimX,dimY,dimZ)
+    vGvokselNr = np.zeros((dimX,dimY,dimZ))
 
-    i = 1
-    j = 1
-    for z in range(2,dimZ-1):
-        for y in range(2,dimY-1):
-            for x in range(2,dimX-1):
+    i = 0
+    j = 0
+    for z in range(1,dimZ-1):
+        for y in range(1,dimY-1):
+            for x in range(1,dimX-1):
                 if vG[x,y,z] == 1: # jeg er en voxel
                     N[j,:] = [x, y, z]  # legger inn node coordinat
                     vGvokselNr[x,y,z] = j
                     j = j + 1
 
                     if vG[x,y,z-1] == 1: # Fins en vox rett ned
-                        E[i,1] = vGvokselNr[x,y,z]
-                        E[i,2] = vGvokselNr[x,y,z-1]
+                        E[i,0] = vGvokselNr[x,y,z]
+                        E[i,1] = vGvokselNr[x,y,z-1]
                         i = i + 1
 
                     if vG[x-1,y,z-1] == 1: # Fins en vox ned/bak i x kjørertning
-                        E[i,1] = vGvokselNr[x,y,z]
-                        E[i,2] = vGvokselNr[x-1,y,z-1]
+                        E[i,0] = vGvokselNr[x,y,z]
+                        E[i,1] = vGvokselNr[x-1,y,z-1]
                         i = i + 1
 
                     if vG[x,y+1,z-1] == 1: # Fins en vox ned/venstre i x kjørertning
-                        E[i,1] = vGvokselNr[x,y,z]
-                        E[i,2] = vGvokselNr[x,y+1,z-1]
+                        E[i,0] = vGvokselNr[x,y,z]
+                        E[i,1] = vGvokselNr[x,y+1,z-1]
                         i = i + 1
 
                     if vG[x-1,y,z] == 1: # Fins en vox samme plan bak i x kjørertning
-                        E[i,1] = vGvokselNr[x,y,z]
-                        E[i,2] = vGvokselNr[x-1,y,z]
+                        E[i,0] = vGvokselNr[x,y,z]
+                        E[i,1] = vGvokselNr[x-1,y,z]
                         i = i + 1
                     if vG[x,y-1,z] == 1: # Fins en vox samme plan høyre i x kjørertning
-                        E[i,1] = vGvokselNr[x,y,z]
-                        E[i,2] = vGvokselNr[x,y-1,z]
+                        E[i,0] = vGvokselNr[x,y,z]
+                        E[i,1] = vGvokselNr[x,y-1,z]
                         i = i + 1
 
                     if vG[x-1,y-1,z] == 1: # Fins en vox samme plan bak/høyre i x kjørertning
-                        E[i,1] = vGvokselNr[x,y,z]
-                        E[i,2] = vGvokselNr[x-1,y-1,z]
+                        E[i,0] = vGvokselNr[x,y,z]
+                        E[i,1] = vGvokselNr[x-1,y-1,z]
                         i = i + 1
 
                     if vG[x+1,y-1,z] == 1: # Fins en vox samme plan forran/høyre i x kjørertning
-                        E[i,1] = vGvokselNr[x,y,z]
-                        E[i,2] = vGvokselNr[x+1,y-1,z]
+                        E[i,0] = vGvokselNr[x,y,z]
+                        E[i,1] = vGvokselNr[x+1,y-1,z]
                         i = i + 1
 
-    E = E[1:i-1,:]
+    E = E[0:i-1,:]
 
-    if marginsAreAdded:
-        N = N - 1
+    #if marginsAreAdded:
+    #    N = N - 1
     return E,N,vGvokselNr
 """
 
