@@ -7,6 +7,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import pickle
+import matlab
+import matlab.engine
 
 import tensorflow as tf
 from tensorflow.keras import losses, metrics, optimizers, layers, Sequential
@@ -63,19 +65,6 @@ def custom_loss_function(true_struct, new_struct, struct):
 	loss = tf.losses.mean_squared_error(true_struct2, new_struct2) 
 	return loss
 
-def truss_loss_function(new_struct, struct, extF, extC):
-	# Apply direct stiffness method as loss function
-	#(E, N,_) = eng.vox2mesh18(new_struct)
-	#(sE, dN) = eng.FEM_truss(N,E,extF,extC)
-	sE, dN = eng.Struct_bend(struct, extC, extF)
-	sE2, dN2 = eng.Struct_bend(new_struct, extC, extF)
-	loss = tf.losses.mean_squared_error(dN, dN2) + tf.losses.mean_squared_error(new_struct, struct)
-	#(E2, N2,_) = eng.vox2mesh18(struct)
-	#(sE2, dN2) = eng.FEM_truss(N2,E2,extF,extC)
-	#loss = max(abs(dN))
-
-	return loss
-
 def plot_vox(fig, struct, colors, dims, show=False):
 	ax = fig.add_subplot(111, projection='3d')
 	ax.voxels(np.rot90(struct, k=-1, axes=(0, 2)), facecolors=colors, edgecolors='grey')
@@ -91,6 +80,7 @@ def plot_vox(fig, struct, colors, dims, show=False):
 
 def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True):
 	# Construct model and measurements
+	collist = matlab.double([0, 0.68, 0.7647])
 	batch_size = 1
 
 	trainAug = Sequential([
@@ -100,38 +90,37 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 	#for struct, true_struct in new_dataset:
 		#print(tf.shape(struct))
 		#print(tf.shape(true_struct))
+		
+	names = matlab.engine.find_matlab()
+	#print(names)
+	if not names:
+		eng = matlab.engine.start_matlab()
+	else:
+		eng = matlab.engine.connect_matlab(names[0])
+
 
 	if use_mlab:
-		import matlab
-		import matlab.engine
-		#eng = matlab.engine.start_matlab()
 		
-		names = matlab.engine.find_matlab()
-		print(names)
-		if not names:
-			eng = matlab.engine.start_matlab()
-		else:
-			eng = matlab.engine.connect_matlab(names[0])
 		
-		struct1og, vgc, vGextC, vGextF, vGstayOff = eng.get_struct1(nargout=5)
-		struct1 = np.array(struct1og)
-		(x,y,z) = struct1.shape
-		struct1 = tf.convert_to_tensor(struct1, dtype=tf.float32)
-		struct1C = np.array(vGextC)
-		struct1C = tf.convert_to_tensor(struct1C, dtype=tf.float32)
-		struct1F = np.array(vGextF)
-		struct1F = tf.convert_to_tensor(struct1F, dtype=tf.float32)
-		struct1Off = np.array(vGstayOff)
-		struct1Off = tf.convert_to_tensor(struct1Off, dtype=tf.float32)
+		structog, vgc, vGextC, vGextF, vGstayOff = eng.get_struct1(nargout=5)
+		struct = np.array(structog)
+		(x,y,z) = struct.shape
+		struct = tf.convert_to_tensor(struct, dtype=tf.float32)
+		structC = np.array(vGextC)
+		structC = tf.convert_to_tensor(structC, dtype=tf.float32)
+		structF = np.array(vGextF)
+		structF = tf.convert_to_tensor(structF, dtype=tf.float32)
+		structOff = np.array(vGstayOff)
+		structOff = tf.convert_to_tensor(structOff, dtype=tf.float32)
 
-		#struct1 = tf.stack([struct1, struct1C, struct1F, struct1Off], -1)
-		#dataset = tf.data.Dataset.from_tensor_slices(struct1)
-		
-		eng.plotVg_safe(struct1og, 'edgeOff', nargout=0)
+		#struct = tf.stack([struct, structC, structF, structOff], -1)
+		new_dataset = tf.data.Dataset.from_tensors(struct)
+		new_dataset = new_dataset.batch(batch_size)
+		eng.plotVg_safe(structog, 'edgeOff', nargout=0)
 		
 
 	else:
-		path = os.path.abspath(os.getcwd()) + "/data/reinforce1/001"
+		path = os.path.abspath(os.getcwd()) + "/data/reinforce1/002"
 		new_dataset = tf.data.experimental.load(path)
 		new_dataset = new_dataset.batch(batch_size)
 		"""
@@ -256,6 +245,20 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 		train_loss.update_state(loss)
 
 		return new_struct
+	
+	def truss_loss_function(new_struct, struct, extF, extC):
+		# Apply direct stiffness method as loss function
+		#(E, N,_) = eng.vox2mesh18(new_struct)
+		#(sE, dN) = eng.FEM_truss(N,E,extF,extC)
+		sE, dN = eng.Struct_bend(matlab.int8(np.int8(np.ceil(new_struct[0])).tolist()), extC, extF, nargout=2)
+		sE2, dN2 = eng.Struct_bend(matlab.int8(np.int8(np.ceil(struct[0])).tolist()), extC, extF, nargout=2)
+		print(np.array(dN))		
+		loss = (np.array(dN2).max()-np.array(dN).max())*tf.losses.mean_squared_error(np.array(new_struct), np.array(struct))
+		#(E2, N2,_) = eng.vox2mesh18(struct)
+		#(sE2, dN2) = eng.FEM_truss(N2,E2,extF,extC)
+		#loss = max(abs(dN))
+
+		return loss
 
 	if train_reinforce:
 		train = train_step
@@ -283,30 +286,33 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 	avg_loss_vals = []
 	step_diff_vals = []
 	step_loss_vals = []
+	
 	#start_training = start = time.time()
 	for epoch in range(100):
 		# Trains model on structures with a truth structure created from
 		# The direct stiffness method and shifted voxels
 		if train_reinforce:
 			if use_mlab:
-				#true_struct = eng.reinforce_struct(matlab.int8(np.int8(struct1.numpy()).tolist()), vGextC, vGextF, vGstayOff, 100)
+				#true_struct = eng.reinforce_struct(matlab.int8(np.int8(struct.numpy()).tolist()), vGextC, vGextF, vGstayOff, 100)
 				#eng.plotVg_safe(true_struct, 'edgeOff', nargout=0)
-				new_struct = train_matlab(struct, vGextF, vGextC)
-				#true_struct = np.array(true_struct)
-				#true_struct = tf.convert_to_tensor(true_struct, dtype=tf.float32)
-				#struct1 = true_struct
+				for inpu in new_dataset.take(1):
+					new_struct = train_matlab(inpu, vGextF, vGextC)
+				out = new_struct.numpy()
+				out[out <= 0.05] = 0
+				out[out > 0.05] = 1
+				eng.plotVg_safe(matlab.int8(np.int8(np.ceil(out)).tolist()), 'edgeOff', 'col',collist, nargout=0)
 				step += 1
 				print("Difference: %d | Train loss: %f" % (check_diff, train_loss.result().numpy()))
 			else:
 				avg_diff = 0
 				avg_loss = 0
 				datlen = 0
-				for struct, true_struct in new_dataset:
-					new_struct = train(tf.cast(struct,tf.float32), tf.cast(true_struct,tf.float32))
-					out = new_struct.numpy()
-					out[out <= 0.1] = 0
-					out[out > 0.1] = 1
-					out_true = true_struct.numpy()
+				for inpu, true_struct in new_dataset:
+					new_struct = train(tf.cast(inpu,tf.float32), tf.cast(true_struct,tf.float32))
+					out = new_struct[0].numpy()
+					out[out <= 0.05] = 0
+					out[out > 0.05] = 1
+					out_true = true_struct[0].numpy()
 					check_diff = np.sum(np.abs(out_true - out))
 					avg_diff += check_diff 
 					avg_loss += train_loss.result().numpy()
@@ -314,7 +320,8 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 					step += 1
 					step_diff_vals.append([step, check_diff])
 					step_loss_vals.append([step, train_loss.result().numpy()])
-					print("Difference: %d | Train loss: %f" % (check_diff, train_loss.result().numpy()))
+					eng.plotVg_safe(matlab.int8(np.int8(np.ceil(out)).tolist()), 'edgeOff', 'col',collist, nargout=0)
+					print("Difference: %d | Train loss: %f" % (check_diff, train_loss.result().numpy()))	
 
 				avg_diff /= datlen
 				avg_loss /= datlen
@@ -325,7 +332,7 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 				
 
 		else:
-			new_struct = train(struct1)
+			new_struct = train(struct)
 			step += 1
 
 		
@@ -337,10 +344,10 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 			print("Epoch %3d. Train loss: %f" % (epoch, train_loss.result().numpy()))
 
 			out = new_struct.numpy()
-			out[out <= 0.1] = 0
-			out[out > 0.1] = 1
+			out[out <= 0.05] = 0
+			out[out > 0.05] = 1
 			if use_mlab:
-				eng.plotVg_safe(matlab.int8(np.int8(np.ceil(out)).tolist()), 'edgeOff', nargout=0)
+				eng.plotVg_safe(matlab.int8(np.int8(np.ceil(out)).tolist()), 'edgeOff', 'col',collist, nargout=0)
 				#eng.plot_struct(matlab.int8(np.int8(np.ceil(out)).tolist()), 3, nargout=0)
 			#else:
 				#fig2 = plt.figure()
@@ -365,17 +372,18 @@ def runstuff(train_dir, use_mlab=True, train_reinforce=True, continue_train=True
 	with open("step_diff.txt", "wb") as fp:
 		pickle.dump(step_diff_vals, fp)
 
-	out = new_struct.numpy()
-	out[out <= 0.1] = 0
-	out[out > 0.1] = 1
+	out = new_struct[0].numpy()
+	out[out <= 0.05] = 0
+	out[out > 0.05] = 1
 	if use_mlab:
-		eng.plotVg_safe(matlab.int8(np.int8(np.ceil(out)).tolist()), 'edgeOff', nargout=0)
+		eng.plotVg_safe(matlab.int8(np.int8(np.ceil(out)).tolist()), 'edgeOff', 'col',collist, nargout=0)
 		#eng.plot_struct(matlab.int8(np.int8(np.ceil(out)).tolist()), 4, nargout=0)
+		input("Press Enter to continue...")
 	#else:
 		#fig3 = plt.figure()
 		#plot_vox(fig3, out, colors, [x,y,z], True)
 
-	input("Press Enter to continue...")
+	
 	
 
 def parse_args():
@@ -391,5 +399,5 @@ if __name__ == '__main__':
 	args = parse_args()
 	use_mlab 		= True
 	train_reinforce = True
-	continue_train 	= False
+	continue_train 	= True
 	runstuff(args.train_dir, use_mlab, train_reinforce, continue_train)
