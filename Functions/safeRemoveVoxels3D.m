@@ -16,10 +16,10 @@ while noRemoved < noVoxToRemove && n < size(NstressSorted,1)
     neigh = vG(xP-1,yP,zP)+vG(xP,yP-1,zP)+vG(xP,yP,zP-1)+vG(xP+1,yP,zP)+vG(xP,yP+1,zP)+vG(xP,yP,zP+1);
     %neigh = sum(vG(xP-1:xP+1, yP-1:yP+1, zP-1:zP+1),'all');
     % test nr. 1 - er proposedVoxel ikke i kontakt med luft - Vi vil ikke lage nye hull
-    if neigh == 6 % alle nabo voksler er tilstede, vi er inne i beam
-        vG(xP,yP,zP) = 1; % Ombestemmer oss og setter proposedVoxel tilbake
-        noRemoved = noRemoved-1;
-    end
+    %if neigh == 6 % alle nabo voksler er tilstede, vi er inne i beam
+    %    vG(xP,yP,zP) = 1; % Ombestemmer oss og setter proposedVoxel tilbake
+    %    noRemoved = noRemoved-1;
+    %end
     
     % test nr. 2 - sjekker alle nabonodene for å se om noen er løse
     

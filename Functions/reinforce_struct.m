@@ -1,4 +1,4 @@
-function vG = reinforce_struct(vG, vGextC, vGextF, vGstayOff, noVoxToRemove)
+function [vG, sE, dN] = reinforce_struct(vG, vGextC, vGextF, vGstayOff, noVoxToRemove)
 
     [E,N, ~] = vox2mesh18(vG);
     radius = 0.003; E(:,3) = pi*radius^2;
@@ -7,11 +7,13 @@ function vG = reinforce_struct(vG, vGextC, vGextF, vGstayOff, noVoxToRemove)
     extF = vGextF2extF(vGextF,vG);
 
     extF = extF.* [0 10 0];
-        
+    
     extC(:,3) = 0;
 
-    [sE, dN] = FEM_truss(N, E, extF,extC); 
-    
+    [sE, dN] = FEM_truss(N, E, extF, extC); 
+    %disp(dN)
+    %disp(max(abs(dN),[],'all'))
+    %pause
     Nstress = edgeStress2nodeStress(N, E, sE);
     NairStress = nodeStress2airNodeStress(Nstress,vG);
     Nstress = cutStayOffNodes(Nstress, vGstayOff);

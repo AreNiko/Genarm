@@ -3,7 +3,7 @@ setUp3dView;
 % inputs
 %variables:
     %arm_radiusx:   Radius of wanted arm in x direction
-    %arm_radiusy:   Radius of wanted arm in y directiondirec
+    %arm_radiusy:   Radius of wanted arm in y direction
     %wrist_radius:  Wanted radius of wrist
     %height:        Wanted length/height of prosthesis
     %thickness:     Thickness of shell around scanned arm
@@ -16,12 +16,13 @@ setUp3dView;
     %Temporary test arm variables:
         %arm_height: Length/height of test arm
 % Dimension
-arm_radiusx = 16;
-arm_radiusy = 16;
 
-wrist_radius = 12; % Radius of my arm is about 30 mm 
-arm_height = 15;
-thickness = 7;
+arm_radiusx = 18;
+arm_radiusy = 18;
+
+wrist_radius = 14; % Radius of my arm is about 30 mm 
+arm_height = 17;
+thickness = 9;
 
 height = 100; % Average forearm length is 46 cm, so 460 mm
 
@@ -37,7 +38,7 @@ weight_hand = 0.58*1000; % 0.58 kg of hand converted to grams
 weight_want = 1.87*1000/3.1; % Average weight of an the forearm 1.87 kg converted to grams
 figcount = 0;
 gt = 1000;
-noVoxToRemove = 200;
+noVoxToRemove = 100;
 addrm = 0;
 [vG_work1, figcount] = genarm(env, origo, arm_radiusx, arm_radiusy, wrist_radius, height, thickness, gt, noVoxToRemove, weight_hand, weight_want, arm_height, addrm, 0, figcount);
 

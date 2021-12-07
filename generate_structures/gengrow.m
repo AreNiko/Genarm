@@ -289,13 +289,6 @@ function [vG, figcount] = gengrow(env, origo, arm_radiusx, arm_radiusy, wrist_ra
 
         saveFigToAnimGif('tree_growing.gif', step_count==1);
 
-        [px,py] = gradient(vG_work(:,:,z(1)));
-        figure(figcount+1);
-        contour(x,y,z)
-        hold on
-        quiver(x,y,px,py)
-        hold off
-
         amount_t1 = sum(vG_work,'all');
         fprintf('Amount of nodes: %d', amount_t1);
         %{

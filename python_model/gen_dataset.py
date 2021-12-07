@@ -18,30 +18,45 @@ def gen_data():
 
 	#path = "C:/Users/nikol/Documents/thesis/genarm/python_model/data/reinforce1"
 
-	path = os.path.abspath(os.getcwd()) + "/data/reinforce1/001"
+	path = os.path.abspath(os.getcwd()) + "/data/reinforce_all/003"
 
-	struct1og, vgc, vGextC, vGextF, vGstayOff = eng.get_struct1(nargout=5)
-	struct1 = np.array(struct1og, dtype=np.int8)
-	(x,y,z) = struct1.shape
-	struct1C = np.array(vGextC, dtype=np.int8)
-	struct1F = np.array(vGextF, dtype=np.int8)
-	struct1Off = np.array(vGstayOff, dtype=np.int8)
-	datasize = 20
+	
+	datasize = 500
 	structs = []
 	rein = []
-	for i in range(datasize):
+	struct1C_list = []
+	struct1F_list = []
+	struct1off_list = []
+	collist = matlab.double([0, 0.68, 0.7647])
+	for i in range(20):
 		print(i)
-		true_struct = np.array(eng.reinforce_struct(matlab.int8(struct1.tolist()), vGextC, 
-													vGextF, vGstayOff, 200), dtype=np.int8)
-		
-		structs.append(struct1)
-		rein.append(true_struct)
-		#dat[i] = np.array(struct1, np.array(true_struct))
-		struct1 = true_struct
+		radii = np.random.randint(10, 14)
+		wrist_rad = radii - np.random.randint(1, 3)
+		struct1og, vGc, vGextC, vGextF, vGstayOff = eng.get_struct1(radii,radii,wrist_rad,np.random.randint(40,100), nargout=5)
+		struct1 = np.array(struct1og, dtype=np.int8)
+		(x,y,z) = struct1.shape
+		struct1C = np.array(vGextC, dtype=np.int8)
+		struct1F = np.array(vGextF, dtype=np.int8)
+		struct1Off = np.array(vGstayOff, dtype=np.int8)
+		for j in range(50):
+			true_struct = np.array(eng.reinforce_struct(matlab.int8(struct1.tolist()), vGextC, 
+														vGextF, vGstayOff, 250), dtype=np.int8)
+			eng.clf(nargout=0)
+			eng.plotVg_safe(matlab.int8(np.int8(np.ceil(true_struct)).tolist()), 'edgeOff', 'col',collist, nargout=0)
+			structs.append(struct1)
+			rein.append(true_struct)
+			struct1C_list.append(struct1C)
+			struct1F_list.append(struct1F)
+			struct1off_list.append(struct1Off)
+			#dat[i] = np.array(struct1, np.array(true_struct))
+			struct1 = true_struct
 
 	structs = np.array(structs, dtype=np.int8)
 	rein = np.array(rein, dtype=np.int8)
-	dataset = tf.data.Dataset.from_tensor_slices((structs, rein))
+	struct1C_list = np.array(struct1C_list, dtype=np.int8)
+	struct1F_list = np.array(struct1F_list, dtype=np.int8)
+	struct1off_list = np.array(struct1off_list, dtype=np.int8)
+	dataset = tf.data.Dataset.from_tensor_slices((structs, struct1C_list, struct1F_list, struct1off_list, rein))
 	tf.data.experimental.save(dataset, path)
 	#new_dataset = tf.data.experimental.load(path)
 

@@ -155,7 +155,7 @@ function [vG, figcount] = genarm(env, origo, arm_radiusx, arm_radiusy, wrist_rad
         hold on;plotMeshCext(N,extC,1);
         hold on;plotMeshFext(N,extF, 0.01);
         %}
-        [sE, dN] = FEM_truss(N,E, extF,extC); % The most taxing process 
+        [sE, dN] = FEM_truss2(N,E, extF,extC); % The most taxing process 
         
         %visuellScale = 100;
         %figure(figcount+1);clf;plotMesh(N-visuellScale*dN,E,'lTykk',0.01); % Mesh med nodeforflytninger
@@ -185,7 +185,6 @@ function [vG, figcount] = genarm(env, origo, arm_radiusx, arm_radiusy, wrist_rad
         vG_work = gravitate2D(vG_work, vGstayOff); vG_work = gravitate2D(vG_work, vGstayOff);
         
         current_weight = PLAdens*(plainfill*(nnz(vG_work)+nnz(vG(:,:,1:b_layer-3)) - nnz(vGc))*(nozzwidth/2)^2)*pi + weight_hand; 
-        
         if idx == 0
             x_bendp = [x_bendp max(abs(dN), [], 'all')];
         elseif idx == 1

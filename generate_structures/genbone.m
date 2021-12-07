@@ -67,6 +67,7 @@ function [vG, figcount] = genbone(env, origo, b_layer, f_layer, max_radius, wris
             vG_work1(x(i)-radi:x(i)+radi,y(i)-radi:y(i)+radi,z(i)-radi:z(i)+radi) = 1;
         end
     end
+    vG = vG_work1;
     %{
     %while amount_t1 < wanted_nrnodes
     while length(don) > sum(don)
@@ -229,5 +230,5 @@ function [vG, figcount] = genbone(env, origo, b_layer, f_layer, max_radius, wris
         end
     end
     %}
-    vG = vG_work1;
+    
 end
