@@ -123,6 +123,12 @@ function [vG, figcount] = genarm(env, origo, arm_radiusx, arm_radiusy, wrist_rad
 
         saveFigToAnimGif('roboarm-strengthen.gif', i==1);
         
+        figure(figcount+1);clf;plotVg_safe(vG_work(:,origo(2):end,:),'edgeOff');
+        hold on;plotVg_safe(vGstayOff(:,origo(2):end,:),'edgeOff','col',[0.9 0.9 0.5]);
+        hold on;plotVg_safe(vGextF(:,origo(2):end,:),'edgeOff','col',[0.5 0.5 0.5]);
+        title("Generation: " + i + " Dissection");
+        sun1;
+        
         [E,N, ~] = vox2mesh18(vG_work);
         radius = 0.003; E(:,3) = pi*radius^2;
         %fprintf("%d %d \n", size(E), size(N))
@@ -202,7 +208,8 @@ function [vG, figcount] = genarm(env, origo, arm_radiusx, arm_radiusy, wrist_rad
         elseif idx == 7
             yx_bend = [yx_bend max(abs(dN), [], 'all')];
         end
-        figure(figcount+1);clf;t = tiledlayout(2,4); % Requires R2019b or later
+        figure(figcount+2);clf;t = tiledlayout(2,4); % Requires R2019b or later
+        title("Generation: " + i + " Bending");
         ax1 = nexttile; plot(ax1, 1:length(x_bendp), x_bendp);title(ax1,'Max bend with +x push')
         ax2 = nexttile; plot(ax2, 1:length(xy_bendp), xy_bendp);title(ax2,'Max bend with +x +y push')
         ax3 = nexttile; plot(ax3, 1:length(y_bendp), y_bendp);title(ax3,'Max bend with +y push')
@@ -228,7 +235,7 @@ function [vG, figcount] = genarm(env, origo, arm_radiusx, arm_radiusy, wrist_rad
     if thickness > 4
         vG_work = outerFillet(vG_work,thickness);
     end
-    figcount=figcount+2;figure(figcount);clf;plotVg_safe(vG_work, 'edgeOff');
+    figcount=figcount+3;figure(figcount);clf;plotVg_safe(vG_work, 'edgeOff');
     sun1;
     vG = vG_work;
 end

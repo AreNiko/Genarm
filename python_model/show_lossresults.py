@@ -38,11 +38,20 @@ def multiple_plot_results(avgloss,avgdiff,steploss,stepdiff):
 	ax4.set_ylabel("loss")
 	ax4.set_yscale('log')
 
+def compare_plots(data1, data2, legen, titl, ax1, ax2):
+	plt.plot(data1[:,0], data1[:,1])
+	plt.plot(data2[:,0], data2[:,1])
+	plt.legend(legen)
+	plt.title(titl)
+	plt.xlabel(ax1)
+	plt.ylabel(ax2)
+	plt.show()
 
-def plot_results(data, title, stepwise=False, loss=False):
-	plt.figure()
+def plot_results(data, title, fig, legds, stepwise=False, loss=False):
+	plt.figure(fig)
 	plt.plot(data[:,0], data[:,1])
 	plt.title(title)
+	plt.legend(legds)
 	if stepwise:
 		plt.xlabel("Steps")
 	else:
@@ -56,7 +65,9 @@ def plot_results(data, title, stepwise=False, loss=False):
 def parse_args():
 	"""Parse command line argument."""
 	parser = argparse.ArgumentParser("Train segmention model on 3D structures.")
-	parser.add_argument("test_number", help="logs the result files to specific runs")
+	parser.add_argument("test_number_start", help="logs the result files to specific runs")
+	parser.add_argument("test_number_end", help="logs the result files to specific runs")
+	parser.add_argument("mode", help="Look at the training or test results")
 
 	return parser.parse_args()
 
@@ -65,9 +76,30 @@ if __name__ == '__main__':
 
 	#avgloss = get_data("results/" + args.test_number + "/avg_train_loss.txt")
 	#avgdiff = get_data("results/" + args.test_number + "/avg_train_diff.txt")
-
-	steploss = get_data("results/" + args.test_number + "/step_loss.txt")
-	stepdiff = get_data("results/" + args.test_number + "/step_diff.txt")
+	legds = []
+	if args.mode == 'train':
+		folder = "results/"
+		file_name1 = "/step_loss.txt"
+		file_name2 = "/step_diff.txt"
+		for i in range(int(args.test_number_start), int(args.test_number_end)+1):
+			print(folder + "0" + str(i) + file_name1)
+			steploss = get_data(folder + "0" + str(i) + file_name1)
+			stepdiff = get_data(folder + "0" + str(i) + file_name2)
+			legds.append("0"+str(i))
+			plot_results(steploss, "Training Stepwise Loss", 1, legds, True, True)
+			plot_results(stepdiff, "Training Stepwise Differences", 2, legds, True)
+	else:
+		folder = "test_results/"
+		file_name1 = "/generative_loss.txt"
+		file_name2 = "/3Dconvmodel_loss.txt"
+		data1 = get_data(folder + args.test_number + file_name1)
+		data2 = get_data(folder + args.test_number + file_name2)
+		legen = ['Generative loss', '3Dconv loss']
+		titl = 'Generative vs 3Dconv'
+		ax1 = 'epoch'
+		ax2 = 'loss'
+		compare_plots(data1, data2, legen, titl, ax1, ax2)
+	
 
 	#steploss2 = get_data("results/002/step_loss.txt")
 	#stepdiff2 = get_data("results/002/step_diff.txt")
@@ -77,8 +109,7 @@ if __name__ == '__main__':
 
 	#multiple_plot_results(avgloss,avgdiff,steploss,stepdiff)
 	
-	plot_results(steploss, "Training Stepwise Loss", True, True)
-	plot_results(stepdiff, "Training Stepwise Differences", True)
+	
 
 	#plot_results(steploss2, "Training Stepwise Loss", True, True)
 	#plot_results(stepdiff2, "Training Stepwise Differences", True)

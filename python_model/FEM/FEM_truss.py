@@ -123,10 +123,11 @@ def FEM_truss(E,N,extF,extC):
 	#		if np.abs(KK[i,j]) < 0.1:
 	#			KK[i,j] = 0
 	#print(KK)
+	
 	print(KK.getformat())
 	start1 = time.time()
 	
-	for i in c[:,0]:
+	for i in reversed(c[:,0]):
 		delete_row_csr(KK, i)
 		#delete_row_lil(KK, i)
 	KK = KK.transpose()
@@ -138,14 +139,28 @@ def FEM_truss(E,N,extF,extC):
 		extF = np.delete(extF, i)
 	KK = KK.transpose()
 	KK = KK.tocsr()
-	
-	#KK[c[:,0],:] = 0
-	#KK[:,c[:,0]] = 0
-	#extF[c[:,0]] = 0
-	#KK = KK.tocsr()
+
 	stop1 = time.time() - start1
 	print("How long it fucking takes to delete all these elements: %f" % (stop1))
+	"""
+	KK[c[:,0],:] = 0
+	KK[:,c[:,0]] = 0
+	extF[c[:,0]] = 0
+
+	mask = np.concatenate(([True], KK.indptr[1:] != KK.indptr[:-1]))
+	KK = csr_matrix((KK.data, KK.indices, KK.indptr[mask]))
+
+	KK = KK.transpose()
+
+	mask = np.concatenate(([True], KK.indptr[1:] != KK.indptr[:-1]))
+	KK = csr_matrix((KK.data, KK.indices, KK.indptr[mask]))
+
+	KK = KK.transpose()
 	
+	print(KK)
+	print(KK.getformat())
+	"""
+	#KK = KK.tocsr()
 	#print(KK)
 	print("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT")
 	try:

@@ -22,8 +22,8 @@ def run_test():
 	else:
 		eng = matlab.engine.connect_matlab(names[0])
 	
-	structog, _, vGextC, vGextF, vGstayOff = eng.get_struct1(14,14,8,100, nargout=5)
-	#structog, vGextC, vGextF, vGstayOff = eng.get_struct2(nargout=4)
+	#structog, _, vGextC, vGextF, vGstayOff = eng.get_struct1(14,14,8,100, nargout=5)
+	structog, vGextC, vGextF, vGstayOff = eng.get_struct2(nargout=4)
 	struct = np.array(structog)
 	(x,y,z) = struct.shape
 	structC = np.array(vGextC)

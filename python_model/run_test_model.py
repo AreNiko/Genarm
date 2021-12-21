@@ -15,10 +15,10 @@ from tensorflow.keras import losses, metrics, optimizers, layers, Sequential
 from tensorflow.keras.layers.experimental import preprocessing
 
 import gen_model
-from vox2mesh18_tensor import vox2mesh18
-from FEM_truss import FEM_truss
-from vGextC2extC import vGextC2extC
-from vGextF2extF import vGextF2extF
+from FEM.vox2mesh18 import vox2mesh18
+from FEM.FEM_truss import FEM_truss
+from FEM.vGextC2extC import vGextC2extC
+from FEM.vGextF2extF import vGextF2extF
 
 def get_data(filename):
 	with open(filename, "rb") as fp:
@@ -98,9 +98,10 @@ def runstuff(train_dir, test_number):
 	new_dataset = tf.data.Dataset.from_tensors((struct,structCten,structFten,structOfften))
 	new_dataset = new_dataset.batch(batch_size)
 	eng.plotVg_safe(structog, 'edgeOff', nargout=0)
-
-	model = gen_model.ConvModel3D((xstruct,ystruct,zstruct), (xC,yC,zC), (xF,yF,zF), (xoff,yoff,zoff))
-	#model = gen_model.ConvStructModel3D((x,y,z))
+	
+	"""
+	#model = gen_model.ConvModel3D((xstruct,ystruct,zstruct), (xC,yC,zC), (xF,yF,zF), (xoff,yoff,zoff))
+	model = gen_model.ConvStructModel3D((xstruct,ystruct,zstruct,4))
 	optimizer = get_optimizer()
 	mse = losses.MeanSquaredError()
 	train_loss = metrics.Mean()
@@ -114,21 +115,25 @@ def runstuff(train_dir, test_number):
 	cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
                                                  save_weights_only=True,
                                                  verbose=1)
-	
-	def bend_function(struct, vGextC, vGextF):
-		sE, dN = eng.Struct_bend(convert_to_matlabint8(struct[0]), convert_to_matlabint8(vGextC[0]), convert_to_matlabint8(vGextF[0]), nargout=2)
-		return np.max(np.abs(np.array(dN))), np.sum(np.abs(np.array(dN)))
-
 	try:
 		latest = tf.train.latest_checkpoint(checkpoint_dir)
 		model.load_weights(latest)
 	except AttributeError:
 		print("No trained weights to test on")
+	"""
+
+	model = tf.keras.models.load_model('models/' + test_number + '/Genmodel')
+
+	def bend_function(struct, vGextC, vGextF):
+		sE, dN = eng.Struct_bend(convert_to_matlabint8(struct[0]), convert_to_matlabint8(vGextC[0]), convert_to_matlabint8(vGextF[0]), nargout=2)
+		return np.max(np.abs(np.array(dN))), np.sum(np.abs(np.array(dN)))
+	
+	
 	
 	
 	print("Summaries are written to '%s'." % train_dir)
 	train_writer = tf.summary.create_file_writer(
-		os.path.join(train_dir, "train"), flush_millis=3000)
+		os.path.join(train_dir, "test"), flush_millis=3000)
 
 	summary_interval_step = 50
 	summary_interval = 1
@@ -141,7 +146,8 @@ def runstuff(train_dir, test_number):
 		print('Original max bending: %f | sum bending: %f' % (lossog[0], lossog[1])) 
 		for epoch in range(300):
 			print("Epoch: ", epoch)
-			new_struct = model([struct, structC, structF, structOff], training=False)
+			inpus = tf.stack([struct, structC, structF, structOff], axis=4)
+			new_struct = model(inpus, training=False)
 			
 			# Trains model on structures with a truth structure created from
 			# The direct stiffness method and shifted vox
@@ -160,7 +166,7 @@ def runstuff(train_dir, test_number):
 
 			eng.clf(nargout=0)
 			eng.plotVg_safe(matlab.int8(np.int8(np.ceil(out[0])).tolist()), 'edgeOff', 'col',collist, nargout=0)
-			eng.saveFigToAnimGif('3Dconvoxnet_testing008.gif', epoch==0, nargout=0)
+			eng.saveFigToAnimGif('3Dconvoxnet_testing' + test_number + '.gif', epoch==0, nargout=0)
 			struct = out
 	
 	with open("test_results/" + test_number + "/3Dconvmodel_loss.txt", "wb") as fp:

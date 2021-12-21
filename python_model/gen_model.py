@@ -62,27 +62,27 @@ def ConvModel3D(input_shape, structC, structF, vGstayOff):
 	forces = layers.Input(f_shape)
 	stayoff = layers.Input(stayoff_shape)
 
-	#x1 = layers.Conv3D(64, 5, strides=(1, 1, 1), padding='same', activation='relu')(struct)
-	x1 = layers.Conv3D(64, 5, strides=(1, 1, 1), padding='same')(struct)			# Without ReLu activation function
+	x1 = layers.Conv3D(64, 10, strides=(1, 1, 1), padding='same', activation='relu')(struct)
+	#x1 = layers.Conv3D(64, 5, strides=(1, 1, 1), padding='same')(struct)			# Without ReLu activation function
 	#x1 = tf.keras.layers.MaxPool3D((2, 2, 2), padding='same')(x1)
 	x1 = layers.BatchNormalization(momentum=0.8)(x1)
 	
-	#x2 = layers.Conv3D(64, 5, strides=(1, 1, 1), padding='same', activation='relu')(x1)
-	x2 = layers.Conv3D(64, 5, strides=(1, 1, 1), padding='same')(x1)			# Without ReLu activation function
+	x2 = layers.Conv3D(64, 10, strides=(1, 1, 1), padding='same', activation='relu')(x1)
+	#x2 = layers.Conv3D(64, 5, strides=(1, 1, 1), padding='same')(x1)			# Without ReLu activation function
 	#x2 = layers.Conv3D(1, 1, strides=(1, 1, 1), padding='same', activation='relu')(x2)
 	#x2 = layers.Conv3D(1, 1, strides=(1, 1, 1), padding='same')(x2)			# Without ReLu activation function
 	#x2 = tf.keras.layers.MaxPool3D((2, 2, 2), padding='same')(x2)
 	x2 = layers.BatchNormalization(momentum=0.8)(x2)
 	
-	#x3 = layers.Conv3D(64, 5, strides=(1, 1, 1), padding='same', activation='relu')(x2)
-	x3 = layers.Conv3D(64, 5, strides=(1, 1, 1), padding='same')(x2)			# Without ReLu activation function
+	x3 = layers.Conv3D(64, 10, strides=(1, 1, 1), padding='same', activation='relu')(x2)
+	#x3 = layers.Conv3D(64, 5, strides=(1, 1, 1), padding='same')(x2)			# Without ReLu activation function
 	#x3 = layers.Conv3D(1, 1, strides=(1, 1, 1), padding='same', activation='relu')(x3)
 	#x3 = layers.Conv3D(1, 1, strides=(1, 1, 1), padding='same')(x3)			# Without ReLu activation function
 	#x3 = tf.keras.layers.MaxPool3D((2, 2, 2), padding='same')(x3)
 	x3 = layers.BatchNormalization(momentum=0.8)(x3)
 	
-	#x4 = layers.Conv3D(64, 5, strides=(1, 1, 1), padding='same', activation='relu')(x3)
-	x4 = layers.Conv3D(64, 5, strides=(1, 1, 1), padding='same')(x3)			# Without ReLu activation function
+	x4 = layers.Conv3D(64, 10, strides=(1, 1, 1), padding='same', activation='relu')(x3)
+	#x4 = layers.Conv3D(64, 5, strides=(1, 1, 1), padding='same')(x3)			# Without ReLu activation function
 	#x4 = layers.Conv3D(1, 1, strides=(1, 1, 1), padding='same', activation='relu')(x4)
 	#x4 = layers.Conv3D(1, 1, strides=(1, 1, 1), padding='same')(x4)			# Without ReLu activation function
 	#x4 = tf.keras.layers.MaxPool3D((2, 2, 2), padding='same')(x4) 	
@@ -132,12 +132,15 @@ def ConvModel3D(input_shape, structC, structF, vGstayOff):
 	return model
 
 def ConvStructModel3D(input_shape):
-	xdim, ydim, zdim = input_shape
-	input_shape = (xdim, ydim, zdim, 1)
+	xdim, ydim, zdim, channels = input_shape
+	#input_shape = (xdim, ydim, zdim, 1)
 	print(input_shape)
 	struct = layers.Input(input_shape)
 
-	x1 = layers.Conv3D(128, 5, strides=(1, 1, 1), padding='same', activation='relu')(struct)
+	x = layers.Conv3D(256, 5, strides=(1, 1, 1), padding='same', activation='relu')(struct)
+	x = layers.BatchNormalization(momentum=0.8)(x)
+
+	x1 = layers.Conv3D(128, 5, strides=(1, 1, 1), padding='same', activation='relu')(x)
 	x1 = layers.BatchNormalization(momentum=0.8)(x1)
 	
 	x2 = layers.Conv3D(64, 5, strides=(1, 1, 1), padding='same', activation='relu')(x1)
@@ -149,6 +152,11 @@ def ConvStructModel3D(input_shape):
 	x4 = layers.Conv3D(16, 5, strides=(1, 1, 1), padding='same', activation='relu')(x3)
 	x4 = layers.BatchNormalization(momentum=0.8)(x4)
 	
+	#x5 = layers.Conv3D(32, 5, strides=(1, 1, 1), padding='same', activation='relu')(x4)
+	#x5 = layers.BatchNormalization(momentum=0.8)(x5)
+
+	xd = layers.Dense(128)(x)
+	xd = layers.Dense(128)(xd)
 
 	x1d = layers.Dense(128)(x1)
 	x1d = layers.Dense(128)(x1d)
@@ -162,7 +170,10 @@ def ConvStructModel3D(input_shape):
 	x4d = layers.Dense(128)(x4)
 	x4d = layers.Dense(128)(x4d)
 
-	xf = tf.concat([x1d, x2d, x3d, x4d], -1)
+	#x5d = layers.Dense(128)(x5)
+	#x5d = layers.Dense(128)(x5d)
+
+	xf = tf.concat([xd, x1d, x2d, x3d, x4d], -1)
 	xfd = layers.Conv3D(1, 1, strides=(1, 1, 1), padding='same', activation='relu')(xf)
 	
 	xfd = tf.keras.activations.tanh(xfd)
