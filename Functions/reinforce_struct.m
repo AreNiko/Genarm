@@ -5,8 +5,8 @@ function [vG, sE, dN] = reinforce_struct(vG, vGextC, vGextF, vGstayOff, noVoxToR
 
     extC = vGextC2extC(vGextC,vG);
     extF = vGextF2extF(vGextF,vG);
-
-    extF = extF.* [0 10 0];
+    randirect = randi([0,360]);
+    extF = extF.* [100*cosd(randirect) 100*sind(randirect) 0];
     
     extC(:,3) = 0;
 
@@ -28,3 +28,10 @@ function [vG, sE, dN] = reinforce_struct(vG, vGextC, vGextF, vGstayOff, noVoxToR
 
     vG = gravitate2D(vG, vGstayOff); vG = gravitate2D(vG, vGstayOff);
     
+    figure(1);clf;plotVg_safe(vG,'edgeOff');
+    hold on;plotVg_safe(vGstayOff,'edgeOff','col',[0.9 0.9 0.5]);
+    hold on;plotVg_safe(vGextF,'edgeOff','col',[0.5 0.5 0.5]);
+    hold on;plotVg_safe(vGextC,'edgeOff','col',[0.6 0.6 0.8]);
+    title("Stay off (gul), extF (grå), låst (blå)");
+    sun1;
+   

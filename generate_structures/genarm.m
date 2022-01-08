@@ -117,18 +117,20 @@ function [vG, figcount] = genarm(env, origo, arm_radiusx, arm_radiusy, wrist_rad
         figure(figcount);clf;plotVg_safe(vG_work,'edgeOff');
         hold on;plotVg_safe(vGstayOff,'edgeOff','col',[0.9 0.9 0.5]);
         hold on;plotVg_safe(vGextF,'edgeOff','col',[0.5 0.5 0.5]);
-        %hold on;plotVg_safe(vGextC,'edgeOff','col',[0.6 0.6 0.8]);
+        hold on;plotVg_safe(vGextC,'edgeOff','col',[0.6 0.6 0.8]);
         title("Generation: " + i + " Stay off (gul), extF (grå), låst (blå)");
         sun1;
 
         saveFigToAnimGif('roboarm-strengthen.gif', i==1);
         
-        figure(figcount+1);clf;plotVg_safe(vG_work(:,origo(2):end,:),'edgeOff');
-        hold on;plotVg_safe(vGstayOff(:,origo(2):end,:),'edgeOff','col',[0.9 0.9 0.5]);
-        hold on;plotVg_safe(vGextF(:,origo(2):end,:),'edgeOff','col',[0.5 0.5 0.5]);
+        figure(figcount+1);clf;plotVg_safe(vG_work(:,origo(2):end,:));
+        hold on;plotVg_safe(vGstayOff(:,origo(2):end,:),'col',[0.9 0.9 0.5]);
+        hold on;plotVg_safe(vGextF(:,origo(2):end,:),'col',[0.5 0.5 0.5]);
+        hold on;plotVg_safe(vGextC(:,origo(2):end,:),'col',[0.6 0.6 0.8]);
         title("Generation: " + i + " Dissection");
         sun1;
-        
+        saveFigToAnimGif('roboarm-half-strengthen.gif', i==1);
+
         [E,N, ~] = vox2mesh18(vG_work);
         radius = 0.003; E(:,3) = pi*radius^2;
         %fprintf("%d %d \n", size(E), size(N))
@@ -178,13 +180,13 @@ function [vG, figcount] = genarm(env, origo, arm_radiusx, arm_radiusy, wrist_rad
                     vG_work = safeRemoveVoxels3D(vG_work, NstressSorted, wanted_nrnodes-amount_t1);
                 end
             else
-                vG_work = safeRemoveVoxels3D(vG_work, NstressSorted, noVoxToRemove);
+                [vG_work, reduce] = safeRemoveVoxels3D(vG_work, NstressSorted, noVoxToRemove);
             end
         else
-            vG_work = safeRemoveVoxels3D(vG_work, NstressSorted, noVoxToRemove);
+             [vG_work, reduce] = safeRemoveVoxels3D(vG_work, NstressSorted, noVoxToRemove);
         end
   
-        for n=1:noVoxToRemove
+        for n=1:reduce
            vG_work( NairStressSorted(n,1), NairStressSorted(n,2), NairStressSorted(n,3) ) = 1;
         end
 
@@ -192,25 +194,25 @@ function [vG, figcount] = genarm(env, origo, arm_radiusx, arm_radiusy, wrist_rad
         
         current_weight = PLAdens*(plainfill*(nnz(vG_work)+nnz(vG(:,:,1:b_layer-3)) - nnz(vGc))*(nozzwidth/2)^2)*pi + weight_hand; 
         if idx == 0
-            x_bendp = [x_bendp max(abs(dN), [], 'all')];
+            x_bendp = [x_bendp max(sum(abs(dN),2), [], 'all')];
         elseif idx == 1
-            xy_bendp = [xy_bendp max(abs(dN), [], 'all')];
+            xy_bendp = [xy_bendp max(sum(abs(dN),2), [], 'all')];
         elseif idx == 2
-            y_bendp = [y_bendp max(abs(dN), [], 'all')];
+            y_bendp = [y_bendp max(sum(abs(dN),2), [], 'all')];
         elseif idx == 3
-            xy_bend = [xy_bend max(abs(dN), [], 'all')];
+            xy_bend = [xy_bend max(sum(abs(dN),2), [], 'all')];
         elseif idx == 4
-            x_bendm = [x_bendm max(abs(dN), [], 'all')];
+            x_bendm = [x_bendm max(sum(abs(dN),2), [], 'all')];
         elseif idx == 5
-            xy_bendm = [xy_bendm max(abs(dN), [], 'all')];
+            xy_bendm = [xy_bendm max(sum(abs(dN),2), [], 'all')];
         elseif idx == 6
-            y_bendm = [y_bendm max(abs(dN), [], 'all')];
+            y_bendm = [y_bendm max(sum(abs(dN),2), [], 'all')];
         elseif idx == 7
-            yx_bend = [yx_bend max(abs(dN), [], 'all')];
+            yx_bend = [yx_bend max(sum(abs(dN),2), [], 'all')];
         end
         figure(figcount+2);clf;t = tiledlayout(2,4); % Requires R2019b or later
         title("Generation: " + i + " Bending");
-        ax1 = nexttile; plot(ax1, 1:length(x_bendp), x_bendp);title(ax1,'Max bend with +x push')
+        ax1 = nexttile; plot(ax1, 1:length(x_bendp), x_bendp);title(ax1,'Max bend with +x push');
         ax2 = nexttile; plot(ax2, 1:length(xy_bendp), xy_bendp);title(ax2,'Max bend with +x +y push')
         ax3 = nexttile; plot(ax3, 1:length(y_bendp), y_bendp);title(ax3,'Max bend with +y push')
         ax4 = nexttile; plot(ax4, 1:length(xy_bend), xy_bend);title(ax4,'Max bend with -x +y push')
@@ -218,8 +220,8 @@ function [vG, figcount] = genarm(env, origo, arm_radiusx, arm_radiusy, wrist_rad
         ax6 = nexttile; plot(ax6, 1:length(xy_bendm), xy_bendm);title(ax6,'Max bend with -x -y push')
         ax7 = nexttile; plot(ax7, 1:length(y_bendm), y_bendm);title(ax7,'Max bend with -y push')
         ax8 = nexttile; plot(ax8, 1:length(yx_bend), yx_bend);title(ax8,'Max bend with +x -y push')
-        t.Padding = 'compact';
-        t.TileSpacing = 'compact';
+        %t.Padding = 'compact';
+        %t.TileSpacing = 'compact';
 
         islands = bwconncomp(vG_work).NumObjects;
         fprintf('Number of isolated structures: %d\n', islands);

@@ -28,7 +28,7 @@ def gen_data():
 	struct1F_list = []
 	struct1off_list = []
 	collist = matlab.double([0, 0.68, 0.7647])
-	for i in range(5):
+	for i in range(200):
 		print(i)
 		radii = np.random.randint(10, 14)
 		wrist_rad = radii - np.random.randint(1, 3)
@@ -38,18 +38,24 @@ def gen_data():
 		struct1C = np.array(vGextC, dtype=np.int8)
 		struct1F = np.array(vGextF, dtype=np.int8)
 		struct1Off = np.array(vGstayOff, dtype=np.int8)
-		for j in range(200):
+		for j in range(100):
 			true_struct = np.array(eng.reinforce_struct(matlab.int8(struct1.tolist()), vGextC, 
-														vGextF, vGstayOff, 250), dtype=np.int8)
+														vGextF, vGstayOff, 50), dtype=np.int8)
+			"""
+			eng.figure(matlab.double(1), nargout=1)
 			eng.clf(nargout=0)
-			eng.plotVg_safe(matlab.int8(np.int8(np.ceil(true_struct)).tolist()), 'edgeOff', 'col',collist, nargout=0)
-			structs.append(struct1)
-			rein.append(true_struct)
-			struct1C_list.append(struct1C)
-			struct1F_list.append(struct1F)
-			struct1off_list.append(struct1Off)
-			#dat[i] = np.array(struct1, np.array(true_struct))
-			struct1 = true_struct
+			eng.plotVg_safe(matlab.int8(np.int8(np.ceil(true_struct)).tolist()), 'edgeOff', nargout=0)
+			eng.plotVg_safe(matlab.int8(np.int8(np.ceil(vGextC)).tolist()), 'edgeOff', 'col',matlab.double([0.6, 0.6, 0.8]), nargout=0)
+			eng.plotVg_safe(matlab.int8(np.int8(np.ceil(vGextF)).tolist()), 'edgeOff', 'col',matlab.double([0.5, 0.5, 0.5]), nargout=0)
+			eng.plotVg_safe(matlab.int8(np.int8(np.ceil(vGstayOff)).tolist()), 'edgeOff', 'col',matlab.double([0.9, 0.9, 0.5]), nargout=0)
+			"""
+		structs.append(struct1)
+		rein.append(true_struct)
+		struct1C_list.append(struct1C)
+		struct1F_list.append(struct1F)
+		struct1off_list.append(struct1Off)
+		#dat[i] = np.array(struct1, np.array(true_struct))
+		struct1 = true_struct
 
 	structs = np.array(structs, dtype=np.int8)
 	rein = np.array(rein, dtype=np.int8)

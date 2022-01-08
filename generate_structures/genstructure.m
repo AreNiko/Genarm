@@ -7,7 +7,7 @@ function [vG, vGc, vGextC, vGextF, vGstayOff] = genstructure(env, origo, max_rad
     %figcount=figcount+1;figure(figcount);clf;plotVg_safe(vG, 'edgeOff');
     %stayoff_shell1 = outerShell(vG, 1);
     %figure(2);clf;plotMesh(N,E);
-    % INSERT CALCULATES FOR FINDING THE LARGEST POSSIBLE radius    % Use the largest possible width distance as the radius of the arm 
+    % INSERT CALCULATIONS FOR FINDING THE LARGEST POSSIBLE radius    % Use the largest possible width distance as the radius of the arm 
     % Placeholder for arm connection point
 
     vGc = env;
@@ -33,14 +33,15 @@ function [vG, vGc, vGextC, vGextF, vGstayOff] = genstructure(env, origo, max_rad
     
     vG(origo(1) + (max_radius+thickness):end,:,:) = 0;
     
-    %vGc_1more = outerShell(vGc, ceil(thickness/2)+2);
+    vGc_1more = outerShell(vGc, ceil(thickness/2));
+    vGc_stayoff = outerShell(vGc, 5);
     
     f_layer = origo(3) + arm_height + height - thickness;
     b_layer = origo(3) + arm_height + max_radius - thickness;
-    
-    %vGextC = vGc + vGc_1more.*vG;
-    vGextC = zeros(size(vG),'int8');
-    vGextC(:,:,1:b_layer+1) = vG(:,:,1:b_layer+1);
+    disp(sum(vGc_1more.*vG,'all'))
+    vGextC = vGc + vGc_1more.*vG;
+    %vGextC = zeros(size(vG),'int8');
+    %vGextC(:,:,1:b_layer+1) = vG(:,:,1:b_layer+1);
 
     %%%%%%%%%%% Definerer kraft voksler - grå
     vGextF = zeros(size(vG),'int8');
@@ -54,6 +55,6 @@ function [vG, vGc, vGextC, vGextF, vGstayOff] = genstructure(env, origo, max_rad
     %%%%%%%%%%% Definerer stayOff voksler - gule
     vGstayOff = zeros(size(vG),'int8');
     vGstayOff = vGcylinder(vGstayOff,[origo(1),origo(2),f_layer+1],1, wrist_radius+1,thickness); % Hand connection point
-    
+    %vGstayOff = vGstayOff + vGc_stayoff;
     vGstayOff(vGstayOff>1) = 1;
 end

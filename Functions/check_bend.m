@@ -10,4 +10,4 @@ function [sE, dN] = check_bend(vG, vGextC, vGextF)
     
     extC(:,3) = 0;
 
-    [sE, dN] = FEM_truss(N, E, extF, extC); 
+    [sE, dN] = FEM_truss(N, E, extF, extC);

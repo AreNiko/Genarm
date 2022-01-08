@@ -1,8 +1,9 @@
-function vG = safeRemoveVoxels3D(vG, NstressSorted, noVoxToRemove)
+function [vG, reduce] = safeRemoveVoxels3D(vG, NstressSorted, noVoxToRemove)
 % Her gjør man noen sjekker før man fjerner vox
 % Disse sjekkene er ikke nok til å 100% eliminere sing, må filtrere beam til slutt
 
 noRemoved = 0;
+reduce = noVoxToRemove;
 n = 1;
 while noRemoved < noVoxToRemove && n < size(NstressSorted,1)
     proposedVoxel = NstressSorted(n,1:4);
@@ -22,11 +23,11 @@ while noRemoved < noVoxToRemove && n < size(NstressSorted,1)
     %end
     
     % test nr. 2 - sjekker alle nabonodene for å se om noen er løse
-    
-    if bwconncomp(vG).NumObjects > 1
+    if areAnyNeighbourNodesSingular3D(vG,proposedVoxel) == 1 % en eller flere nabo voksler er nå løse
         vG(xP,yP,zP) = 1; % Ombestemmer oss og setter proposedVoxel tilbake
         noRemoved = noRemoved-1;
     end
+
     %{
     if areAnyNeighbourNodesSingular3D(vG,proposedVoxel) == 1 % en eller flere nabo voksler er nå løse
         vG(xP,yP,zP) = 1; % Ombestemmer oss og setter proposedVoxel tilbake
@@ -36,5 +37,7 @@ while noRemoved < noVoxToRemove && n < size(NstressSorted,1)
     
     n = n+1;
 end
-
+if bwconncomp(vG).NumObjects > 1
+    [vG, reduce] = safeRemoveVoxels3D(vG, NstressSorted, round(noVoxToRemove/2)); % Ombestemmer oss og setter proposedVoxel tilbake
+end
 end
