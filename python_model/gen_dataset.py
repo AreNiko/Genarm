@@ -18,7 +18,7 @@ def gen_data():
 
 	#path = "C:/Users/nikol/Documents/thesis/genarm/python_model/data/reinforce1"
 
-	path = os.path.abspath(os.getcwd()) + "/data/reinforce_all/004"
+	path = os.path.abspath(os.getcwd()) + "/data/reinforce_all/005"
 
 	
 	datasize = 500
@@ -28,7 +28,7 @@ def gen_data():
 	struct1F_list = []
 	struct1off_list = []
 	collist = matlab.double([0, 0.68, 0.7647])
-	for i in range(200):
+	for i in range(50):
 		print(i)
 		radii = np.random.randint(10, 14)
 		wrist_rad = radii - np.random.randint(1, 3)
