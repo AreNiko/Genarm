@@ -27,17 +27,16 @@ while noRemoved < noVoxToRemove && n < size(NstressSorted,1)
         vG(xP,yP,zP) = 1; % Ombestemmer oss og setter proposedVoxel tilbake
         noRemoved = noRemoved-1;
     end
-
     %{
-    if areAnyNeighbourNodesSingular3D(vG,proposedVoxel) == 1 % en eller flere nabo voksler er nå løse
+    if bwconncomp(vG).NumObjects > 1
         vG(xP,yP,zP) = 1; % Ombestemmer oss og setter proposedVoxel tilbake
         noRemoved = noRemoved-1;
-    end    
+    end
     %}
     
     n = n+1;
 end
-if bwconncomp(vG).NumObjects > 1
-    [vG, reduce] = safeRemoveVoxels3D(vG, NstressSorted, round(noVoxToRemove/2)); % Ombestemmer oss og setter proposedVoxel tilbake
-end
+%if bwconncomp(vG).NumObjects > 1
+%    [vG, reduce] = safeRemoveVoxels3D(vG, NstressSorted, round(noVoxToRemove/2)); % Ombestemmer oss og setter proposedVoxel tilbake
+%end
 end

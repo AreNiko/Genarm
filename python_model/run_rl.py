@@ -149,6 +149,9 @@ def policy_loss(pi_a, pi_old_a, advantage, epsilon):
 
     # Note: pi_old_a are necessarily non-zero as it was sampled
     f = pi_a / pi_old_a
+    f = np.nan_to_num(f, posinf=10)
+    #print("Check policy: ", f)
+
     f_clipped = tf.clip_by_value(f, 1-epsilon, 1+epsilon)
     loss = -tf.minimum(f*A, f_clipped*A)
     # [batch_sizes] ==> scalar
@@ -246,11 +249,12 @@ class EpisodeData:
 def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1):
 
 	episodes = []
+	og_struct = obser[:,:,:,:,0]
 	structC = obser[:,:,:,:,1]
 	structF = obser[:,:,:,:,2]
 	stayoff = obser[:,:,:,:,3]
 	og_bend = eng.check_max_bend(convert_to_matlabint8(obser[0,:,:,:,0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]))
-	print(og_bend)
+
 	for i in range(num_episodes):
 		episode = EpisodeData()
 		observation = obser
@@ -275,21 +279,29 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 				logits_tol[logits_tol <= 0.0] = 0
 				logits_tol[logits_tol > 0.0] = 1
 				observation = tf.stack([tf.convert_to_tensor(logits_tol), structC, structF, stayoff], axis=4)
+				done = False
 				if np.sum(logits_tol) == 0:
-					r = -100
+					r = -1
 					done = True
 					reward = reward + r
 				else:
 					try:
 						eng.clf(nargout=0)
 						eng.plotVg_safe(convert_to_matlabint8(logits_tol[0]), 'edgeOff', 'col',collist, nargout=0)
-						new_bend = eng.check_max_bend(convert_to_matlabint8(logits_tol[0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]))
-						r = -10*(new_bend/og_bend)
-						done = False
+						new_bend = eng.check_max_bend(convert_to_matlabint8(logits_tol[0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]), nargout=1)
+						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(logits_tol))/np.sum(og_struct.numpy())
+						bend_diff = og_bend/new_bend
+						if np.isnan(bend_diff):
+							bend_diff = -10
+						r = 10*(bend_diff) - vox_diff
+						print("old vs new bending: ", bend_diff)
+						print("Difference in voxels: ", vox_amount)
+						
 					except:
-						r = -10
-						done = True
+						r = -1
+						#done = True
 					reward = reward + r
+					print(r, reward)
 					if done:
 						break
 
@@ -306,9 +318,7 @@ def create_dataset(obser, policy_network, value_network, num_episodes, maxlen, a
 	episodes = sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=action_repeat)
 
 	dataset_size = 0
-	print("TTTTTTTTTTTTTTTTTTTTTTTTTTT")
 	for episode in episodes:
-		print("Episode ", episode.ts)
 		# Could also get this when sampling episodes for efficiency
 		# use predict?
 		values = np.concatenate([value_network(np.expand_dims(o_t, 0), np.expand_dims(np.float32(maxlen)-t, 0)).numpy() for o_t, t in zip(episode.observations, episode.ts)])
@@ -338,7 +348,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True):
 	K = 3
 	num_episodes = 12#2 #8
 	maxlen_environment = 30
-	action_repeat = 4
+	action_repeat = 1
 	maxlen = maxlen_environment // action_repeat # max number of actions
 	batch_size = 1
 	checkpoint_interval = 5
@@ -361,6 +371,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True):
 	])
 
 	structog, vGextC, vGextF, vGstayOff = eng.get_struct2(nargout=4)
+	og_maxbending = eng.check_max_bend(structog, vGextC, vGextF, nargout=1)
+
 	struct = np.array(structog); structC = np.array(vGextC); structF = np.array(vGextF); structOff = np.array(vGstayOff)
 	(xstruct,ystruct,zstruct) = struct.shape
 
@@ -468,7 +480,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True):
 
 		# linearly decay alpha, change epsilon and learning rate accordingly
 		alpha = (alpha_start-alpha_end)*(iterations-iteration)/iterations+alpha_end
-		epsilon = init_epsilon * alpha # clipping paramter
+		epsilon = init_epsilon * alpha # clipping parameter
 		optimizer.learning_rate.assign(init_lr*alpha) # set learning rate
 
 		########################### Generate dataset ###########################
@@ -484,12 +496,12 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True):
 		dataset = dataset.batch(batch_size)
 
 		for epoch in range(saved_progress, 100):
+			print(epoch, "/", 100)
 			# Trains model on structures with a truth structure created from
 			# The direct stiffness method and shifted voxels
 			for batch in dataset:
 				obs, action, advantage, pi_old, value_target, t = batch
 				#action = tf.expand_dims(action, -1)
-				print(tf.shape(obs))
 				with tf.GradientTape() as tape:
 					pi = activations.tanh(policy_network.policy(obs))
 					v = value_network(obs, np.float32(maxlen)-t)
@@ -501,9 +513,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True):
 					p_loss = policy_loss(pi_a, pi_old_a, advantage, epsilon)
 					v_loss = c1*value_loss(value_target, v)
 					e_loss = c2*entropy_loss(pi)
-					print(p_loss, v_loss, e_loss)
+					#print(p_loss, v_loss, e_loss)
 					loss = p_loss + v_loss + e_loss
-
 
 
 				trainable_variables = policy_network.trainable_variables + value_network.trainable_variables
@@ -511,13 +522,18 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True):
 				trainable_variables = list({v.name : v for v in trainable_variables}.values())
 				grads = tape.gradient(loss, trainable_variables)
 				optimizer.apply_gradients(zip(grads, trainable_variables))
-				#print(loss)
+				print(loss.numpy())
 				# Update loss
 				train_loss.update_state(loss)
 				out = pi.numpy()
 				out[out <= 0.0] = 0
 				out[out > 0.0] = 1
 
+				try:
+					new_maxbend = eng.check_max_bend(convert_to_matlabint8(out[0]), vGextC, vGextF, nargout=1)
+					print("New vs old bending: ", new_maxbend, "/", og_maxbending)
+				except:
+					print("This one is singular :P")
 				eng.clf(nargout=0)
 				eng.plotVg_safe(convert_to_matlabint8(out[0]), 'edgeOff', 'col',collist, nargout=0)
 				step += 1

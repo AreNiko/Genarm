@@ -137,7 +137,6 @@ function [vG, figcount] = genarm(env, origo, arm_radiusx, arm_radiusy, wrist_rad
         extC = vGextC2extC(vGextC,vG_work);
         extF = vGextF2extF(vGextF,vG_work);
         
-        
         idx = mod(i,8);
         if idx == 0
             extF = extF.* [100 0 0];
@@ -193,6 +192,11 @@ function [vG, figcount] = genarm(env, origo, arm_radiusx, arm_radiusy, wrist_rad
         vG_work = gravitate2D(vG_work, vGstayOff); vG_work = gravitate2D(vG_work, vGstayOff);
         
         current_weight = PLAdens*(plainfill*(nnz(vG_work)+nnz(vG(:,:,1:b_layer-3)) - nnz(vGc))*(nozzwidth/2)^2)*pi + weight_hand; 
+        
+        if mod(i,20) == 0
+            vGsave = vG_work;
+        end
+        
         if idx == 0
             x_bendp = [x_bendp max(sum(abs(dN),2), [], 'all')];
         elseif idx == 1

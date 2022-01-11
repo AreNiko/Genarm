@@ -88,9 +88,10 @@ class PolicyNetwork(tf.keras.Model):
 
         xf = tf.concat([x1d, x2d, x3d, x4d], -1)
         xf = self.dense512(xf)
+        xf = self.dense512(xf)
         xfd = layers.Conv3D(1, 1, strides=(1, 1, 1), padding='same', activation='relu')(xf)
         
-        xfd = tf.keras.activations.tanh(xfd)
+        #xfd = tf.keras.activations.tanh(xfd)
         #xfd = tf.keras.activations.sigmoid(xfd)
         xfd = layers.Reshape((xdim, ydim, zdim))(xfd) 
 
@@ -111,7 +112,7 @@ class PolicyNetwork(tf.keras.Model):
 
 class ValueNetwork(tf.keras.Model):
 
-    def __init__(self, feature_extractor=None, hidden_units=0, **kwargs):
+    def __init__(self, feature_extractor=None, hidden_units=100, **kwargs):
         super(ValueNetwork, self).__init__(**kwargs)
 
         self.feature_extractor = feature_extractor
