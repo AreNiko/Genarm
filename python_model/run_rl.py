@@ -276,8 +276,8 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			#action = action_encoder.index2action(action).numpy()
 			for _ in range(action_repeat):
 				logits_tol = logits.numpy()
-				logits_tol[logits_tol <= 0.0] = 0
-				logits_tol[logits_tol > 0.0] = 1
+				logits_tol[logits_tol <= 0.1] = 0
+				logits_tol[logits_tol > 0.1] = 1
 				observation = tf.stack([tf.convert_to_tensor(logits_tol), structC, structF, stayoff], axis=4)
 				done = False
 				if np.sum(logits_tol) == 0:
@@ -289,6 +289,8 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						eng.clf(nargout=0)
 						eng.plotVg_safe(convert_to_matlabint8(logits_tol[0]), 'edgeOff', 'col',collist, nargout=0)
 						new_bend = eng.check_max_bend(convert_to_matlabint8(logits_tol[0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]), nargout=1)
+						if new_bend == 0:
+							new_bend = 100
 						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(logits_tol))/np.sum(og_struct.numpy())
 						bend_diff = og_bend/new_bend
 						if np.isnan(bend_diff):
@@ -342,7 +344,7 @@ def create_dataset(obser, policy_network, value_network, num_episodes, maxlen, a
 
 	return dataset
 
-def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True):
+def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, show=False):
 	# Construct model and measurements
 	iterations = 100
 	K = 3
@@ -526,16 +528,17 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True):
 				# Update loss
 				train_loss.update_state(loss)
 				out = pi.numpy()
-				out[out <= 0.0] = 0
-				out[out > 0.0] = 1
+				out[out <= 0.1] = 0
+				out[out > 0.1] = 1
 
-				try:
-					new_maxbend = eng.check_max_bend(convert_to_matlabint8(out[0]), vGextC, vGextF, nargout=1)
-					print("New vs old bending: ", new_maxbend, "/", og_maxbending)
-				except:
-					print("This one is singular :P")
-				eng.clf(nargout=0)
-				eng.plotVg_safe(convert_to_matlabint8(out[0]), 'edgeOff', 'col',collist, nargout=0)
+				#try:
+					#new_maxbend = eng.check_max_bend(convert_to_matlabint8(out[0]), vGextC, vGextF, nargout=1)
+					#print("New vs old bending: ", new_maxbend, "/", og_maxbending)
+				#except:
+				#	print("This one is singular :P")
+				if np.sum(out) != 0 & show:
+					eng.clf(nargout=0)
+					eng.plotVg_safe(convert_to_matlabint8(out[0]), 'edgeOff', 'col',collist, nargout=0)
 				step += 1
 
 	print("Training completed.")

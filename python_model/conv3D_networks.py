@@ -62,6 +62,7 @@ class PolicyNetwork(tf.keras.Model):
         super(PolicyNetwork, self).__init__(**kwargs)
 
         self.feature_extractor = feature_extractor
+        self.conv3d = layers.Conv3D(128, 5, strides=(1, 1, 1), padding='same', activation='relu')
         self.dense512 = layers.Dense(512)
         self.dense256 = layers.Dense(256)
         self.dense128 = layers.Dense(128)
@@ -74,16 +75,20 @@ class PolicyNetwork(tf.keras.Model):
         #print(batch, xdim, ydim, zdim, channels)
         x1,x2,x3,x4 = self.feature_extractor(inpu)
         #print(tf.shape(x1))
-        x1d = self.dense128(x1)
+        x1d = self.conv3d(x1)
+        x1d = self.dense128(x1d)
         x1d = self.dense128(x1d)
 
-        x2d = self.dense128(x2)
+        x2d = self.conv3d(x2)
+        x2d = self.dense128(x2d)
         x2d = self.dense128(x2d)
 
-        x3d = self.dense128(x3)
+        x3d = self.conv3d(x3d)
+        x3d = self.dense128(x3d)
         x3d = self.dense128(x3d)
 
-        x4d = self.dense128(x4)
+        x4d = self.conv3d(x4)
+        x4d = self.dense128(x4d)
         x4d = self.dense128(x4d)
 
         xf = tf.concat([x1d, x2d, x3d, x4d], -1)

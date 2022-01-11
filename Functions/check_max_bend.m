@@ -1,5 +1,4 @@
 function max_bend = check_max_bend(vG, vGextC, vGextF)
-
     [E,N, ~] = vox2mesh18(vG);
     radius = 0.003; E(:,3) = pi*radius^2;
 
