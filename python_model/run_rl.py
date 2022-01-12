@@ -281,7 +281,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 				observation = tf.stack([tf.convert_to_tensor(logits_tol), structC, structF, stayoff], axis=4)
 				done = False
 				if np.sum(logits_tol) == 0:
-					r = -1
+					r = -100
 					done = True
 					reward = reward + r
 				else:
@@ -300,12 +300,14 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						print("Difference in voxels: ", vox_amount)
 						
 					except:
-						r = -1
+						r = -100
 						#done = True
 					reward = reward + r
-					print(r, reward)
+					
 					if done:
 						break
+
+				print(r, reward)
 
 			episode.rewards.append(reward)
 			if done:
@@ -372,7 +374,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	layers.RandomRotation(0.25)
 	])
 
-	structog, vGextC, vGextF, vGstayOff = eng.get_struct2(nargout=4)
+	#structog, vGextC, vGextF, vGstayOff = eng.get_struct2(nargout=4)
+	structog, _, vGextC, vGextF, vGstayOff = eng.get_struct1(14,14,12,100, nargout=5)
 	og_maxbending = eng.check_max_bend(structog, vGextC, vGextF, nargout=1)
 
 	struct = np.array(structog); structC = np.array(vGextC); structF = np.array(vGextF); structOff = np.array(vGstayOff)
@@ -536,7 +539,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 					#print("New vs old bending: ", new_maxbend, "/", og_maxbending)
 				#except:
 				#	print("This one is singular :P")
-				if np.sum(out) != 0 & show:
+				if np.sum(out) != 0 and show:
 					eng.clf(nargout=0)
 					eng.plotVg_safe(convert_to_matlabint8(out[0]), 'edgeOff', 'col',collist, nargout=0)
 				step += 1
