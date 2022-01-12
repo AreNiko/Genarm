@@ -286,8 +286,8 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 					reward = reward + r
 				else:
 					try:
-						eng.clf(nargout=0)
-						eng.plotVg_safe(convert_to_matlabint8(logits_tol[0]), 'edgeOff', 'col',collist, nargout=0)
+						#eng.clf(nargout=0)
+						#eng.plotVg_safe(convert_to_matlabint8(logits_tol[0]), 'edgeOff', 'col',collist, nargout=0)
 						new_bend = eng.check_max_bend(convert_to_matlabint8(logits_tol[0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]), nargout=1)
 						if new_bend == 0:
 							new_bend = 100
