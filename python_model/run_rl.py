@@ -536,7 +536,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 					#print("New vs old bending: ", new_maxbend, "/", og_maxbending)
 				#except:
 				#	print("This one is singular :P")
-				if np.sum(out) != 0 & show:
+				if np.sum(out) != 0 and show:
 					eng.clf(nargout=0)
 					eng.plotVg_safe(convert_to_matlabint8(out[0]), 'edgeOff', 'col',collist, nargout=0)
 				step += 1
