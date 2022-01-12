@@ -8,10 +8,10 @@ class FeatureExtractor(tf.keras.Model):
     def __init__(self, **kwargs):
         super(FeatureExtractor, self).__init__(**kwargs)
 
-        self.conv3d1 = layers.Conv3D(128, 5, strides=(1, 1, 1), padding='same', activation='relu')
-        self.conv3d2 = layers.Conv3D(128, 5, strides=(1, 1, 1), padding='same', activation='relu')
-        self.conv3d3 = layers.Conv3D(128, 5, strides=(1, 1, 1), padding='same', activation='relu')
-        self.conv3d4 = layers.Conv3D(128, 5, strides=(1, 1, 1), padding='same', activation='relu')
+        self.conv3d1 = layers.Conv3D(64, 5, strides=(1, 1, 1), padding='same', activation='relu')
+        self.conv3d2 = layers.Conv3D(64, 5, strides=(1, 1, 1), padding='same', activation='relu')
+        self.conv3d3 = layers.Conv3D(64, 5, strides=(1, 1, 1), padding='same', activation='relu')
+        self.conv3d4 = layers.Conv3D(64, 5, strides=(1, 1, 1), padding='same', activation='relu')
         self.batchmeup = layers.BatchNormalization(momentum=0.8)
         self.flatten = layers.Flatten()
 
@@ -62,7 +62,7 @@ class PolicyNetwork(tf.keras.Model):
         super(PolicyNetwork, self).__init__(**kwargs)
 
         self.feature_extractor = feature_extractor
-        self.conv3d = layers.Conv3D(128, 5, strides=(1, 1, 1), padding='same', activation='relu')
+        self.conv3d = layers.Conv3D(64, 5, strides=(1, 1, 1), padding='same', activation='relu')
         self.dense512 = layers.Dense(512)
         self.dense256 = layers.Dense(256)
         self.dense128 = layers.Dense(128)
@@ -76,24 +76,24 @@ class PolicyNetwork(tf.keras.Model):
         x1,x2,x3,x4 = self.feature_extractor(inpu)
         #print(tf.shape(x1))
         x1d = self.conv3d(x1)
-        x1d = self.dense128(x1d)
-        x1d = self.dense128(x1d)
+        x1d = self.dense64(x1d)
+        x1d = self.dense64(x1d)
 
         x2d = self.conv3d(x2)
-        x2d = self.dense128(x2d)
-        x2d = self.dense128(x2d)
+        x2d = self.dense64(x2d)
+        x2d = self.dense64(x2d)
 
         x3d = self.conv3d(x3)
-        x3d = self.dense128(x3d)
-        x3d = self.dense128(x3d)
+        x3d = self.dense64(x3d)
+        x3d = self.dense64(x3d)
 
         x4d = self.conv3d(x4)
-        x4d = self.dense128(x4d)
-        x4d = self.dense128(x4d)
+        x4d = self.dense64(x4d)
+        x4d = self.dense64(x4d)
 
         xf = tf.concat([x1d, x2d, x3d, x4d], -1)
-        xf = self.dense512(xf)
-        xf = self.dense512(xf)
+        xf = self.dense256(xf)
+        xf = self.dense256(xf)
         xfd = layers.Conv3D(1, 1, strides=(1, 1, 1), padding='same', activation='relu')(xf)
         
         #xfd = tf.keras.activations.tanh(xfd)
