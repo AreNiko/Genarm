@@ -286,8 +286,8 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 					reward = reward + r
 				else:
 					try:
-						#eng.clf(nargout=0)
-						#eng.plotVg_safe(convert_to_matlabint8(logits_tol[0]), 'edgeOff', 'col',collist, nargout=0)
+						eng.clf(nargout=0)
+						eng.plotVg_safe(convert_to_matlabint8(logits_tol[0]), 'edgeOff', 'col',collist, nargout=0)
 						new_bend = eng.check_max_bend(convert_to_matlabint8(logits_tol[0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]), nargout=1)
 						if new_bend == 0 or np.isnan(new_bend):
 							new_bend = 100
@@ -374,8 +374,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	layers.RandomRotation(0.25)
 	])
 
-	#structog, vGextC, vGextF, vGstayOff = eng.get_struct2(nargout=4)
-	structog, _, vGextC, vGextF, vGstayOff = eng.get_struct3(nargout=5)
+	structog, vGextC, vGextF, vGstayOff = eng.get_struct2(nargout=4)
+	#structog, _, vGextC, vGextF, vGstayOff = eng.get_struct3(nargout=5)
 	og_maxbending = eng.check_max_bend(structog, vGextC, vGextF, nargout=1)
 
 	struct = np.array(structog); structC = np.array(vGextC); structF = np.array(vGextF); structOff = np.array(vGstayOff)
