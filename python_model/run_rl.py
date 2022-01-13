@@ -289,12 +289,12 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						#eng.clf(nargout=0)
 						#eng.plotVg_safe(convert_to_matlabint8(logits_tol[0]), 'edgeOff', 'col',collist, nargout=0)
 						new_bend = eng.check_max_bend(convert_to_matlabint8(logits_tol[0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]), nargout=1)
-						if new_bend == 0:
+						if new_bend == 0 or np.isnan(new_bend):
 							new_bend = 100
+
 						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(logits_tol))/np.sum(og_struct.numpy())
 						bend_diff = og_bend/new_bend
-						if np.isnan(bend_diff):
-							bend_diff = -10
+						
 						r = bend_diff - vox_diff
 						print("old vs new bending: ", og_bend, "/", new_bend)
 						print("Difference in voxels: ", vox_amount)
@@ -375,7 +375,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	])
 
 	#structog, vGextC, vGextF, vGstayOff = eng.get_struct2(nargout=4)
-	structog, _, vGextC, vGextF, vGstayOff = eng.get_struct1(14,14,12,100, nargout=5)
+	structog, _, vGextC, vGextF, vGstayOff = eng.get_struct3(nargout=5)
 	og_maxbending = eng.check_max_bend(structog, vGextC, vGextF, nargout=1)
 
 	struct = np.array(structog); structC = np.array(vGextC); structF = np.array(vGextF); structOff = np.array(vGstayOff)
@@ -512,8 +512,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 					v = value_network(obs, np.float32(maxlen)-t)
 					print(tf.shape(pi))
 					print(tf.shape(action))
-					#pi_a = tf.gather(pi, tf.cast(action, tf.int32))[0]
-					#pi_old_a = tf.gather(pi_old, tf.cast(action, tf.int32))[0]
+					pi_a = tf.gather(pi, tf.cast(action, tf.int32))[0]
+					pi_old_a = tf.gather(pi_old, tf.cast(action, tf.int32))[0]
 					#print(pi)
 					#print(pi_a)
 					#print(pi_old_a)
