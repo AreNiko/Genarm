@@ -59,19 +59,19 @@ function [vG, vGextC, vGextF, vGstayOff] = get_struct2()
     vGextC(:,:,1:max_radius+2) = vG(:,:,1:max_radius+2);
     vGextF(:,:,height+14:end) = vG(:,:,height+14:end);
     %}
-    env = zeros(10, 10, 10, 'int8');
+    env = zeros(10, 10, 30, 'int8');
     vG = env;
-    vG(4:6,4:6,2:6) = 1;
+    vG(3:7,3:7,2:20) = 1;
     vGextC = env;
     vGextF = env;
     vGstayOff = env;
     
-    vGstayOff(:,:,4) = vG(:,:,4); 
-    vGextC(:,:,1:2) = vG(:,:,1:2); 
-    vGextF(:,:,end-4:end) = vG(:,:,end-4:end);
+    vGstayOff(:,:,19:20) = vG(:,:,19:20); 
+    vGextC(:,:,2:3) = vG(:,:,2:3); 
+    vGextF(:,:,19:20) = vG(:,:,19:20);
     
-    %figure(1);clf;plotVg_safe(vG,'edgeOff');
-    %hold on;plotVg_safe(vGstayOff,'edgeOff','col',[0.9 0.9 0.5]);
-    %hold on;plotVg_safe(vGextF,'edgeOff','col',[0.5 0.5 0.5]);
-    %hold on;plotVg_safe(vGextC,'edgeOff','col',[0.6 0.6 0.8]);
+    figure(1);clf;plotVg_safe(vG,'edgeOff');
+    hold on;plotVg_safe(vGstayOff,'edgeOff','col',[0.9 0.9 0.5]);
+    hold on;plotVg_safe(vGextF,'edgeOff','col',[0.5 0.5 0.5]);
+    hold on;plotVg_safe(vGextC,'edgeOff','col',[0.6 0.6 0.8]);
 end

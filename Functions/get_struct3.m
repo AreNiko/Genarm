@@ -12,6 +12,7 @@ function [vG, vGc, vGextC, vGextF, vGstayOff] = get_struct3()
     origo = [round(xdim/2) round(ydim/2) (max_radius+thickness+10)];
 
     [vG, vGc, vGextC, vGextF, vGstayOff] = genstructure(env, origo, max_radius, wrist_radius, height, thickness, arm_height);
+    %{
     figure(1);clf;plotVg_safe(vG,'edgeOff');
     hold on;plotVg_safe(vGstayOff,'edgeOff','col',[0.9 0.9 0.5]);
     hold on;plotVg_safe(vGextF,'edgeOff','col',[0.5 0.5 0.5]);
@@ -20,7 +21,7 @@ function [vG, vGc, vGextC, vGextF, vGstayOff] = get_struct3()
     sun1;
     max_bend = check_max_bend(vG, vGextC, vGextF);
     disp(max_bend);
-    %{
+    
     arm_radiusx = 14;
     arm_radiusy = 14;
 
