@@ -512,8 +512,10 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 					v = value_network(obs, np.float32(maxlen)-t)
 					print(tf.shape(pi))
 					print(tf.shape(action))
-					pi_a = tf.gather(pi, tf.cast(action, tf.int32), batch_dims=1)[0]
-					pi_old_a = tf.gather(pi_old, tf.cast(action, tf.int32), batch_dims=1)[0]
+					#pi_a = tf.gather(pi, tf.cast(action, tf.int32), batch_dims=1)[0]
+					#pi_old_a = tf.gather(pi_old, tf.cast(action, tf.int32), batch_dims=1)[0]
+					pi_a = pi[0]
+					pi_old_a = pi_old[0]
 					#print(pi)
 					#print(pi_a)
 					#print(pi_old_a)
