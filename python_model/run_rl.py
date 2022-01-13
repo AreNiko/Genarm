@@ -295,7 +295,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						bend_diff = og_bend/new_bend
 						if np.isnan(bend_diff):
 							bend_diff = -10
-						r = 10*(bend_diff) - vox_diff
+						r = bend_diff - vox_diff
 						print("old vs new bending: ", bend_diff)
 						print("Difference in voxels: ", vox_amount)
 						
@@ -511,7 +511,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 					pi = activations.tanh(policy_network.policy(obs))
 					v = value_network(obs, np.float32(maxlen)-t)
 					print(tf.shape(pi))
-					print(tf.shape(v))
+					print(tf.shape(action))
 					pi_a = tf.gather(pi, tf.cast(action, tf.int32), batch_dims=1)[0]
 					pi_old_a = tf.gather(pi_old, tf.cast(action, tf.int32), batch_dims=1)[0]
 					#print(pi)
