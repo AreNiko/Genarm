@@ -380,7 +380,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 
 	struct = np.array(structog); structC = np.array(vGextC); structF = np.array(vGextF); structOff = np.array(vGstayOff)
 	(xstruct,ystruct,zstruct) = struct.shape
-
+	print(xstruct,ystruct,zstruct)
 	struct = tf.convert_to_tensor(struct, dtype=tf.float32)
 	structCten = tf.convert_to_tensor(structC, dtype=tf.float32)
 	structFten = tf.convert_to_tensor(structF, dtype=tf.float32)
@@ -512,11 +512,11 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 					v = value_network(obs, np.float32(maxlen)-t)
 					print(tf.shape(pi))
 					print(tf.shape(action))
-					pi_a = tf.stack([pi, action], axis=1)
-					pi_old_a = tf.stack([pi_old, action], axis=1)
-					print(tf.shape(pi_a))
+					pi_a = tf.stack([pi, action], axis=1)[0]
+					pi_old_a = tf.stack([pi_old, action], axis=1)[0]
 					#pi_a = tf.gather(pi, tf.cast(action, tf.int32))[0]
 					#pi_old_a = tf.gather(pi_old, tf.cast(action, tf.int32))[0]
+					print(tf.shape(pi_a))
 					#print(pi)
 					#print(pi_a)
 					#print(pi_old_a)
