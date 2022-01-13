@@ -510,6 +510,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				with tf.GradientTape() as tape:
 					pi = activations.tanh(policy_network.policy(obs))
 					v = value_network(obs, np.float32(maxlen)-t)
+					print(tf.shape(pi))
+					print(tf.shape(v))
 					pi_a = tf.gather(pi, tf.cast(action, tf.int32), batch_dims=1)[0]
 					pi_old_a = tf.gather(pi_old, tf.cast(action, tf.int32), batch_dims=1)[0]
 					#print(pi)

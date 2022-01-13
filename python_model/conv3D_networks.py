@@ -135,9 +135,7 @@ class ValueNetwork(tf.keras.Model):
             #print(tr)
             y0,y1,y2,y3 = self.feature_extractor(observation)
             feats = tf.concat([y0,y1,y2,y3], -1)
-            print(tf.shape(feats))
             x = tf.concat([layers.Flatten()(feats), tr], -1)
-            print(tf.shape(x))
         else:
             x = time_left
 
