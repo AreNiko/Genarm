@@ -514,12 +514,10 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 					print(tf.shape(action))
 					#pi_a = tf.gather(pi, tf.cast(action, tf.int32), batch_dims=1)[0]
 					#pi_old_a = tf.gather(pi_old, tf.cast(action, tf.int32), batch_dims=1)[0]
-					pi_a = pi[0]
-					pi_old_a = pi_old[0]
 					#print(pi)
 					#print(pi_a)
 					#print(pi_old_a)
-					p_loss = policy_loss(pi_a, pi_old_a, advantage, epsilon)
+					p_loss = policy_loss(pi, pi_old, advantage, epsilon)
 					v_loss = c1*value_loss(value_target, v)
 					e_loss = c2*entropy_loss(pi)
 					#print(p_loss, v_loss, e_loss)
