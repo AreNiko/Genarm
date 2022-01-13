@@ -117,7 +117,7 @@ class PolicyNetwork(tf.keras.Model):
 
 class ValueNetwork(tf.keras.Model):
 
-    def __init__(self, feature_extractor=None, hidden_units=100, **kwargs):
+    def __init__(self, feature_extractor=None, hidden_units=0, **kwargs):
         super(ValueNetwork, self).__init__(**kwargs)
 
         self.feature_extractor = feature_extractor
@@ -134,8 +134,8 @@ class ValueNetwork(tf.keras.Model):
             tr = tf.expand_dims(time_left, -1)
             #print(tr)
             y0,y1,y2,y3 = self.feature_extractor(observation)
-            x = tf.concat([y0,y1,y2,y3], -1)
-            x = tf.concat([layers.Flatten()(x), tr], -1)
+            feats = tf.concat([y0,y1,y2,y3], -1)
+            x = tf.concat([layers.Flatten()(feats), tr], -1)
         else:
             x = time_left
 
