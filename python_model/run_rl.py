@@ -296,7 +296,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						if np.isnan(bend_diff):
 							bend_diff = -10
 						r = bend_diff - vox_diff
-						print("old vs new bending: ", bend_diff)
+						print("old vs new bending: ", og_bend, "/", new_bend)
 						print("Difference in voxels: ", vox_amount)
 						
 					except:
@@ -351,7 +351,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	iterations = 100
 	K = 3
 	num_episodes = 2#2 #8
-	maxlen_environment = 12
+	maxlen_environment = 2
 	action_repeat = 1
 	maxlen = maxlen_environment // action_repeat # max number of actions
 	batch_size = 1
@@ -512,8 +512,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 					v = value_network(obs, np.float32(maxlen)-t)
 					print(tf.shape(pi))
 					print(tf.shape(action))
-					pi_a = tf.gather(pi, tf.cast(action, tf.int32))[0]
-					pi_old_a = tf.gather(pi_old, tf.cast(action, tf.int32))[0]
+					#pi_a = tf.gather(pi, tf.cast(action, tf.int32))[0]
+					#pi_old_a = tf.gather(pi_old, tf.cast(action, tf.int32))[0]
 					#print(pi)
 					#print(pi_a)
 					#print(pi_old_a)
