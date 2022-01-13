@@ -297,7 +297,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						
 						r = bend_diff - vox_diff
 						print("old vs new bending: ", og_bend, "/", new_bend)
-						print("Difference in voxels: ", vox_amount)
+						print("Difference in voxels: ", vox_diff)
 						
 					except:
 						r = -100
@@ -510,13 +510,13 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				with tf.GradientTape() as tape:
 					pi = activations.tanh(policy_network.policy(obs))
 					v = value_network(obs, np.float32(maxlen)-t)
-					print(tf.shape(pi))
-					print(tf.shape(action))
+					#print(tf.shape(pi))
+					#print(tf.shape(action))
 					pi_a = tf.stack([pi, action], axis=1)[0]
 					pi_old_a = tf.stack([pi_old, action], axis=1)[0]
 					#pi_a = tf.gather(pi, tf.cast(action, tf.int32))[0]
 					#pi_old_a = tf.gather(pi_old, tf.cast(action, tf.int32))[0]
-					print(tf.shape(pi_a))
+					#print(tf.shape(pi_a))
 					#print(pi)
 					#print(pi_a)
 					#print(pi_old_a)
