@@ -265,7 +265,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			# remove num_samples dimension and batch dimension
 			#action = tf.random.categorical(logits, 1)[0][0]
 			action = logits[0]
-			pi_old = activations.tanh(logits)[0]
+			pi_old = activations.sigmoid(logits)[0]
 
 			episode.observations.append(observation[0])
 			episode.ts.append(np.float32(t))
@@ -350,8 +350,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	# Construct model and measurements
 	iterations = 100
 	K = 3
-	num_episodes = 12#2 #8
-	maxlen_environment = 10
+	num_episodes = 2#2 #8
+	maxlen_environment = 20
 	action_repeat = 1
 	maxlen = maxlen_environment // action_repeat # max number of actions
 	batch_size = 1
@@ -508,12 +508,12 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				obs, action, advantage, pi_old, value_target, t = batch
 				#action = tf.expand_dims(action, -1)
 				with tf.GradientTape() as tape:
-					pi = activations.tanh(policy_network.policy(obs))
+					pi = activations.sigmoid(policy_network.policy(obs))
 					v = value_network(obs, np.float32(maxlen)-t)
 					#print(tf.shape(pi))
 					#print(tf.shape(action))
-					pi_a = tf.stack([pi, action], axis=1)[0]
-					pi_old_a = tf.stack([pi_old, action], axis=1)[0]
+					#pi_a = tf.stack([pi, action], axis=1)[0]
+					#pi_old_a = tf.stack([pi_old, action], axis=1)[0]
 					#pi_a = tf.gather(pi, tf.cast(action, tf.int32))[0]
 					#pi_old_a = tf.gather(pi_old, tf.cast(action, tf.int32))[0]
 					#print(tf.shape(pi_a))
