@@ -94,145 +94,145 @@ def convert_to_matlabint8(inarr):
 	return matlab.int8(np.int8(np.ceil(inarr)).tolist())
 
 def calculate_returns(rewards, gamma):
-    """Calculate returns, i.e. sum of future discounted rewards, for episode.
+	"""Calculate returns, i.e. sum of future discounted rewards, for episode.
 
-    Args:
-        rewards : array of shape [sequence_length], with elements
-            being the immediate rewards [r_1, r_2, ..., r_T]
-        gamma : discount factor, scalar value in [0, 1)
+	Args:
+		rewards : array of shape [sequence_length], with elements
+			being the immediate rewards [r_1, r_2, ..., r_T]
+		gamma : discount factor, scalar value in [0, 1)
 
-    Returns:
-        returns: array of return for each time step, i.e. [g_0, g_1, ... g_{T-1}]
-    """
+	Returns:
+		returns: array of return for each time step, i.e. [g_0, g_1, ... g_{T-1}]
+	"""
 
-    returns = np.zeros(len(rewards), dtype=np.float32)
-    returns[-1] = rewards[-1]
-    for t in reversed(range(1, len(returns))):
-        returns[t-1] = rewards[t-1] + gamma*returns[t]
+	returns = np.zeros(len(rewards), dtype=np.float32)
+	returns[-1] = rewards[-1]
+	for t in reversed(range(1, len(returns))):
+		returns[t-1] = rewards[t-1] + gamma*returns[t]
 
-    return returns
+	return returns
 
 def value_loss(target, prediction):
-    """Calculate mean squared error loss for value function predictions.
+	"""Calculate mean squared error loss for value function predictions.
 
-    Args:
-        target : tensor of shape [batch_size] with corresponding target values
-        prediction : tensor of shape [batch_size] of predictions from value network
+	Args:
+		target : tensor of shape [batch_size] with corresponding target values
+		prediction : tensor of shape [batch_size] of predictions from value network
 
-    Returns:
-        loss : mean squared error difference between predictions and targets
-    """
-    loss = tf.reduce_mean((prediction - target)**2)
-    #print("Value: ", loss)
-    return loss
+	Returns:
+		loss : mean squared error difference between predictions and targets
+	"""
+	loss = tf.reduce_mean((prediction - target)**2)
+	#print("Value: ", loss)
+	return loss
 def policy_loss(pi_a, pi_old_a, advantage, epsilon):
-    """Calculate policy loss as in https://arxiv.org/abs/1707.06347
+	"""Calculate policy loss as in https://arxiv.org/abs/1707.06347
 
-    Args:
-        pi_a : Tensor of shape [batch_size] with probabilities for actions under
-            the current policy
-        pi_old_a : Tensor of shape [batch_size] with probabilities for actions
-            under the old policy
-        advantage : Tensor of shape [batch_size] with estimated advantges for
-            the actions (under the old policy)
-        epsilon : clipping parameter, float value in (0, 1)
+	Args:
+		pi_a : Tensor of shape [batch_size] with probabilities for actions under
+			the current policy
+		pi_old_a : Tensor of shape [batch_size] with probabilities for actions
+			under the old policy
+		advantage : Tensor of shape [batch_size] with estimated advantges for
+			the actions (under the old policy)
+		epsilon : clipping parameter, float value in (0, 1)
 
-    Returns:
-        loss : scalar loss value
-    """
+	Returns:
+		loss : scalar loss value
+	"""
 
-    A = advantage
+	A = advantage
 
-    # Note: pi_old_a are necessarily non-zero as it was sampled
-    f = pi_a / pi_old_a
-    f = np.nan_to_num(f, posinf=10)
-    #print("Check policy: ", f)
+	# Note: pi_old_a are necessarily non-zero as it was sampled
+	f = pi_a / pi_old_a
+	f = np.nan_to_num(f, posinf=10)
+	#print("Check policy: ", f)
 
-    f_clipped = tf.clip_by_value(f, 1-epsilon, 1+epsilon)
-    loss = -tf.minimum(f*A, f_clipped*A)
-    # [batch_sizes] ==> scalar
-    loss = tf.reduce_mean(loss)
-    #print("Policy: ", loss)
+	f_clipped = tf.clip_by_value(f, 1-epsilon, 1+epsilon)
+	loss = -tf.minimum(f*A, f_clipped*A)
+	# [batch_sizes] ==> scalar
+	loss = tf.reduce_mean(loss)
+	#print("Policy: ", loss)
 
-    return loss
+	return loss
 
 def estimate_improvement(pi_a, pi_old_a, advantage, t, gamma):
-    """Calculate sample contributions to estimated improvement, ignoring changes to
-    state visitation frequencies.
+	"""Calculate sample contributions to estimated improvement, ignoring changes to
+	state visitation frequencies.
 
-    Args:
-        pi_a : Tensor of shape [batch_size] with probabilties for actions under
-            the current policy
-        pi_old_a : Tensor of shape [batch_size] with probabilities for actions
-            under the old policy
-        advantage : Tensor of shape [batch_size] with estimated advantges for
-            the actions (under the old policy)
-        t : Tensor of shape [batch_size], time step fo
-        gamma : discount factor scalar value in [0, 1)
-    Returns:
-        Tensor of shape [batch_size] with estimated sample "contributions" to
-        policy improvement.
+	Args:
+		pi_a : Tensor of shape [batch_size] with probabilties for actions under
+			the current policy
+		pi_old_a : Tensor of shape [batch_size] with probabilities for actions
+			under the old policy
+		advantage : Tensor of shape [batch_size] with estimated advantges for
+			the actions (under the old policy)
+		t : Tensor of shape [batch_size], time step fo
+		gamma : discount factor scalar value in [0, 1)
+	Returns:
+		Tensor of shape [batch_size] with estimated sample "contributions" to
+		policy improvement.
 
-    Note: in theory advantages*gamma^t should be close to zero, but may be
-    different due to randomness or errors in our estimation. Subtracting this
-    term seems to make more sense than not doing it.
-    """
+	Note: in theory advantages*gamma^t should be close to zero, but may be
+	different due to randomness or errors in our estimation. Subtracting this
+	term seems to make more sense than not doing it.
+	"""
 
-    return (pi_a / pi_old_a - 1)*advantage*gamma**t
+	return (pi_a / pi_old_a - 1)*advantage*gamma**t
 
 def estimate_improvement_lb(pi_a, pi_old_a, advantage, t, gamma, epsilon):
-    """Estimate sample contributions to lower bound for improvement, ignoring
-    changes to state visitation frequencies.
+	"""Estimate sample contributions to lower bound for improvement, ignoring
+	changes to state visitation frequencies.
 
-    Args:
-        pi_a : Tensor of shape [batch_size] with probabilities for actions under
-            the current policy
-        pi_old_a : Tensor of shape [batch_size] with probabilities for actions
-            under the old policy
-        advantage : Tensor of shape [batch_size] with estimated advantges for
-            the actions (under the old policy)
-        epsilon : clipping parameter, float value in (0, 1)
+	Args:
+		pi_a : Tensor of shape [batch_size] with probabilities for actions under
+			the current policy
+		pi_old_a : Tensor of shape [batch_size] with probabilities for actions
+			under the old policy
+		advantage : Tensor of shape [batch_size] with estimated advantges for
+			the actions (under the old policy)
+		epsilon : clipping parameter, float value in (0, 1)
 
-    Note: in theory advantages*gamma^t should be close to zero, but may be
-    different due to randomness or errors in our estimation. Subtracting this
-    term seems to make more sense than not doing it.
+	Note: in theory advantages*gamma^t should be close to zero, but may be
+	different due to randomness or errors in our estimation. Subtracting this
+	term seems to make more sense than not doing it.
 
-    Returns:
-        Tensor of shape [batch_size] with estimated sample "contributions" to
-        lower bound of policy improvement.
+	Returns:
+		Tensor of shape [batch_size] with estimated sample "contributions" to
+		lower bound of policy improvement.
 
-    """
+	"""
 
-    A = advantage
-    f = pi_a / pi_old_a
-    f_clipped = tf.clip_by_value(f, 1-epsilon, 1+epsilon)
-    return tf.minimum(f*A, f_clipped*A)*gamma**t - A*gamma**t
+	A = advantage
+	f = pi_a / pi_old_a
+	f_clipped = tf.clip_by_value(f, 1-epsilon, 1+epsilon)
+	return tf.minimum(f*A, f_clipped*A)*gamma**t - A*gamma**t
 
 def entropy(p):
-    """Entropy base 2, for each sample in batch."""
+	"""Entropy base 2, for each sample in batch."""
 
-    log_p = tf.math.log(p + 1e-6) # add small number to avoid log(0)
-    # use log2 for easier intepretation
-    log2_p = log_p / np.log(2)
+	log_p = tf.math.log(p + 1e-6) # add small number to avoid log(0)
+	# use log2 for easier intepretation
+	log2_p = log_p / np.log(2)
 
-    # [batch_size x num_action] --> [batch_size]
-    entropy = -tf.reduce_sum(p*log2_p, axis=-1)
-    return entropy
+	# [batch_size x num_action] --> [batch_size]
+	entropy = -tf.reduce_sum(p*log2_p, axis=-1)
+	return entropy
 
 def entropy_loss(pi):
-    """Calculate entropy loss for action distributions.
+	"""Calculate entropy loss for action distributions.
 
-    Args:
-        pi : Tensor of shape [batch_size, num_actions], each element in the
-            batch is a probability distribution over actions, conditoned on a
-            state.
+	Args:
+		pi : Tensor of shape [batch_size, num_actions], each element in the
+			batch is a probability distribution over actions, conditoned on a
+			state.
 
-    Returns:
-        scalar, average negative entropy for the distributions
-    """
-    loss = -tf.reduce_mean(entropy(pi))
-    #print("Entropy: ", loss)
-    return loss
+	Returns:
+		scalar, average negative entropy for the distributions
+	"""
+	loss = -tf.reduce_mean(entropy(pi))
+	#print("Entropy: ", loss)
+	return loss
 
 class EpisodeData:
 	def __init__(self):
@@ -412,21 +412,21 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	checkpoint_path = os.path.dirname(checkpoint_path)
 
 	ckpt = tf.train.Checkpoint(
-        policy_network=policy_network,
-        value_network=value_network,
-        optimizer=optimizer
-        )
+		policy_network=policy_network,
+		value_network=value_network,
+		optimizer=optimizer
+		)
 
 	ckpt_manager = tf.train.CheckpointManager(ckpt, checkpoint_path, max_to_keep=5)
-    if ckpt_manager.latest_checkpoint:
-        print("Restored weights from {}".format(ckpt_manager.latest_checkpoint))
-        ckpt.restore(ckpt_manager.latest_checkpoint)
-    else:
-        print("Initializing random weights.")
+	if ckpt_manager.latest_checkpoint:
+		print("Restored weights from {}".format(ckpt_manager.latest_checkpoint))
+		ckpt.restore(ckpt_manager.latest_checkpoint)
+	else:
+		print("Initializing random weights.")
 
-    start_iteration = 0
-    if ckpt_manager.latest_checkpoint:
-        start_iteration = int(ckpt_manager.latest_checkpoint.split('-')[-1])
+	start_iteration = 0
+	if ckpt_manager.latest_checkpoint:
+		start_iteration = int(ckpt_manager.latest_checkpoint.split('-')[-1])
 
 	avg_diff_vals = []
 	avg_loss_vals = []
@@ -564,8 +564,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				step += 1
 
 		if step % checkpoint_interval == 0:
-            print("Checkpointing model after %d iterations of training." % step)
-            ckpt_manager.save(step)
+			print("Checkpointing model after %d iterations of training." % step)
+			ckpt_manager.save(step)
 
 	print("Training completed.")
 
