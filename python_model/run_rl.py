@@ -530,22 +530,22 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 					#print(pi)
 					#print(pi_a)
 					#print(pi_old_a)
-					print("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT")
 					p_loss = policy_loss(pi, pi_old, advantage, epsilon)
-					print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 					v_loss = c1*value_loss(value_target, v)
-					print("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC")
 					e_loss = c2*entropy_loss(pi)
-					print("DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD")
 					#print(p_loss, v_loss, e_loss)
 					loss = p_loss + v_loss + e_loss
 
 
 				trainable_variables = policy_network.trainable_variables + value_network.trainable_variables
+				print("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
 				# Get unique list of variables, just adding lists may cause issues if shared variables
 				trainable_variables = list({v.name : v for v in trainable_variables}.values())
+				print("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS")
 				grads = tape.gradient(loss, trainable_variables)
+				print("WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW")
 				optimizer.apply_gradients(zip(grads, trainable_variables))
+				print("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK")
 				print(loss.numpy())
 				# Update loss
 				train_loss.update_state(loss)
