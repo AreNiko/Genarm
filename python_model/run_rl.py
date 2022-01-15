@@ -370,8 +370,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	layers.RandomRotation(0.25)
 	])
 
-	#structog, vGextC, vGextF, vGstayOff = eng.get_struct2(nargout=4)
-	structog, _, vGextC, vGextF, vGstayOff = eng.get_struct3(nargout=5)
+	structog, vGextC, vGextF, vGstayOff = eng.get_struct2(nargout=4)
+	#structog, _, vGextC, vGextF, vGstayOff = eng.get_struct3(nargout=5)
 	og_maxbending = eng.check_max_bend(structog, vGextC, vGextF, nargout=1)
 
 	struct = np.array(structog); structC = np.array(vGextC); structF = np.array(vGextF); structOff = np.array(vGstayOff)
@@ -541,15 +541,10 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				#print(pi_old_a)
 
 				trainable_variables = policy_network.trainable_variables + value_network.trainable_variables
-				print("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
 				# Get unique list of variables, just adding lists may cause issues if shared variables
 				#trainable_variables = list({v.name : v for v in trainable_variables}.values())
-				print("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS")
-				print(len(trainable_variables))
 				grads = tape.gradient(loss, trainable_variables)
-				print("WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW")
 				optimizer.apply_gradients(zip(grads, trainable_variables))
-				print("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK")
 				print(loss.numpy())
 				# Update loss
 				train_loss.update_state(loss)
