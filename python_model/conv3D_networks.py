@@ -35,7 +35,7 @@ class FeatureExtractor(tf.keras.Model):
 
         x1 = self.conv3d1(input_shape)
         #x1 = self.batchmeup(x1)
-        """
+        
         x2 = self.conv3d2(x1)
         #x2 = self.batchmeup(x2)
         
@@ -44,14 +44,14 @@ class FeatureExtractor(tf.keras.Model):
         
         x4 = self.conv3d4(x3)
         #x4 = self.batchmeup(x4)
-        """
+        
         #x1 = self.flatten(x1)
         #x2 = self.flatten(x2)
         #x3 = self.flatten(x3)
         #x4 = self.flatten(x4)
         #model = models.Model(inputs=[struct, locked, forces, stayoff], outputs=xfd)
 
-        return x1
+        return x1,x2,x3,x4
 
 class PolicyNetwork(tf.keras.Model):
     """Policy network with discrete action space. Interpretation and encoding of
@@ -73,12 +73,12 @@ class PolicyNetwork(tf.keras.Model):
     def policy(self, inpu):
         batch, xdim, ydim, zdim, channels = tf.shape(inpu).numpy()
         #print(batch, xdim, ydim, zdim, channels)
-        x1 = self.feature_extractor(inpu)
+        x1,x2,x3,x4 = self.feature_extractor(inpu)
         #print(tf.shape(x1))
         x1d = self.conv3d(x1)
         x1d = self.dense128(x1d)
         x1d = self.dense128(x1d)
-        """
+
         x2d = self.conv3d(x2)
         x2d = self.dense128(x2d)
         x2d = self.dense128(x2d)
@@ -92,10 +92,8 @@ class PolicyNetwork(tf.keras.Model):
         x4d = self.dense128(x4d)
 
         xf = tf.concat([x1d, x2d, x3d, x4d], -1)
-        """
-        xf = x1d
-        xf = self.dense128(xf)
-        xf = self.dense128(xf)
+        xf = self.dense512(xf)
+        xf = self.dense512(xf)
         xfd = layers.Conv3D(1, 1, strides=(1, 1, 1), padding='same', activation='relu')(xf)
         
         #xfd = tf.keras.activations.tanh(xfd)
@@ -135,9 +133,9 @@ class ValueNetwork(tf.keras.Model):
             # TODO: Better to project time_left, so that about same dimensions?
             tr = tf.expand_dims(time_left, -1)
             #print(tr)
-            y0 = self.feature_extractor(observation)
-            #feats = tf.concat([y0,y1,y2,y3], -1)
-            x = tf.concat([layers.Flatten()(y0), tr], -1)
+            y0,y1,y2,y3 = self.feature_extractor(observation)
+            feats = tf.concat([y0,y1,y2,y3], -1)
+            x = tf.concat([layers.Flatten()(feats), tr], -1)
         else:
             x = time_left
 

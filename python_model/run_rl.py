@@ -545,6 +545,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				# Get unique list of variables, just adding lists may cause issues if shared variables
 				trainable_variables = list({v.name : v for v in trainable_variables}.values())
 				print("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS")
+				print(len(trainable_variables))
 				grads = tape.gradient(loss, trainable_variables)
 				print("WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW")
 				optimizer.apply_gradients(zip(grads, trainable_variables))
