@@ -520,22 +520,25 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				with tf.GradientTape() as tape:
 					pi = activations.sigmoid(policy_network.policy(obs))
 					v = value_network(obs, np.float32(maxlen)-t)
-					#print(tf.shape(pi))
-					#print(tf.shape(action))
-					#pi_a = tf.stack([pi, action], axis=1)[0]
-					#pi_old_a = tf.stack([pi_old, action], axis=1)[0]
-					#pi_a = tf.gather(pi, tf.cast(action, tf.int32))[0]
-					#pi_old_a = tf.gather(pi_old, tf.cast(action, tf.int32))[0]
-					#print(tf.shape(pi_a))
-					#print(pi)
-					#print(pi_a)
-					#print(pi_old_a)
-					p_loss = policy_loss(pi, pi_old, advantage, epsilon)
-					v_loss = c1*value_loss(value_target, v)
-					e_loss = c2*entropy_loss(pi)
-					#print(p_loss, v_loss, e_loss)
-					loss = p_loss + v_loss + e_loss
-
+					
+					#p_loss = policy_loss(pi, pi_old, advantage, epsilon)
+					#v_loss = c1*value_loss(value_target, v)
+					#e_loss = c2*entropy_loss(pi)
+					loss = policy_loss(pi, pi_old, advantage, epsilon) \
+						 + c1*value_loss(value_target, v) \
+						 + c2*entropy_loss(pi)
+				#print(p_loss, v_loss, e_loss)
+				#loss = p_loss + v_loss + e_loss
+				#print(tf.shape(pi))
+				#print(tf.shape(action))
+				#pi_a = tf.stack([pi, action], axis=1)[0]
+				#pi_old_a = tf.stack([pi_old, action], axis=1)[0]
+				#pi_a = tf.gather(pi, tf.cast(action, tf.int32))[0]
+				#pi_old_a = tf.gather(pi_old, tf.cast(action, tf.int32))[0]
+				#print(tf.shape(pi_a))
+				#print(pi)
+				#print(pi_a)
+				#print(pi_old_a)
 
 				trainable_variables = policy_network.trainable_variables + value_network.trainable_variables
 				print("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
