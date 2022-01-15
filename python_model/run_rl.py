@@ -542,7 +542,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 
 				trainable_variables = policy_network.trainable_variables + value_network.trainable_variables
 				# Get unique list of variables, just adding lists may cause issues if shared variables
-				#trainable_variables = list({v.name : v for v in trainable_variables}.values())
+				trainable_variables = list({v.name : v for v in trainable_variables}.values())
 				grads = tape.gradient(loss, trainable_variables)
 				optimizer.apply_gradients(zip(grads, trainable_variables))
 				print(loss.numpy())
