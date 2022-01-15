@@ -73,7 +73,7 @@ class PolicyNetwork(tf.keras.Model):
     def policy(self, inpu):
         batch, xdim, ydim, zdim, channels = tf.shape(inpu).numpy()
         #print(batch, xdim, ydim, zdim, channels)
-        x1,x2,x3,x4 = self.feature_extractor(inpu)
+        x1 = self.feature_extractor(inpu)
         #print(tf.shape(x1))
         x1d = self.conv3d(x1)
         x1d = self.dense128(x1d)
