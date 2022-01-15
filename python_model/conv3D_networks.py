@@ -94,8 +94,8 @@ class PolicyNetwork(tf.keras.Model):
         xf = tf.concat([x1d, x2d, x3d, x4d], -1)
         """
         xf = x1d
-        xf = self.dense512(xf)
-        xf = self.dense512(xf)
+        xf = self.dense128(xf)
+        xf = self.dense128(xf)
         xfd = layers.Conv3D(1, 1, strides=(1, 1, 1), padding='same', activation='relu')(xf)
         
         #xfd = tf.keras.activations.tanh(xfd)
