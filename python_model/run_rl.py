@@ -67,10 +67,6 @@ def augment_data(dataset):
 
 	return new_data
 
-def get_optimizer():
-	# Just constant learning rate schedule
-	optimizer = optimizers.Adam(learning_rate=1e-4)
-	return optimizer
 
 def custom_loss_function(true_struct, new_struct, struct):
 	# Apply direct stiffness method as loss function
@@ -350,7 +346,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	# Construct model and measurements
 	iterations = 100
 	K = 3
-	num_episodes = 2#2 #8
+	num_episodes = 4#2 #8
 	maxlen_environment = 20
 	action_repeat = 1
 	maxlen = maxlen_environment // action_repeat # max number of actions
@@ -374,8 +370,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	layers.RandomRotation(0.25)
 	])
 
-	structog, vGextC, vGextF, vGstayOff = eng.get_struct2(nargout=4)
-	#structog, _, vGextC, vGextF, vGstayOff = eng.get_struct3(nargout=5)
+	#structog, vGextC, vGextF, vGstayOff = eng.get_struct2(nargout=4)
+	structog, _, vGextC, vGextF, vGstayOff = eng.get_struct3(nargout=5)
 	og_maxbending = eng.check_max_bend(structog, vGextC, vGextF, nargout=1)
 
 	struct = np.array(structog); structC = np.array(vGextC); structF = np.array(vGextF); structOff = np.array(vGstayOff)
@@ -404,7 +400,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	# possibly share parameters with policy-network
 	value_network = ValueNetwork(feature_extractor)
 
-	optimizer = get_optimizer()
+	optimizer = optimizers.Adam(learning_rate=1e-4)
 	mse = losses.MeanSquaredError()
 	train_loss = metrics.Mean()
 	val_loss = metrics.Mean()	
@@ -413,11 +409,25 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 
 	os.makedirs(os.path.dirname("reinforcement_results/" + test_number + "/"), exist_ok=True)
 	checkpoint_path = "training_reinforcement/" + test_number + "/cp-{epoch:04d}.ckpt"
-	checkpoint_dir = os.path.dirname(checkpoint_path)
-	cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
-												 save_weights_only=True,
-												 verbose=1)
-	
+	checkpoint_path = os.path.dirname(checkpoint_path)
+
+	ckpt = tf.train.Checkpoint(
+        policy_network=policy_network,
+        value_network=value_network,
+        optimizer=optimizer
+        )
+
+	ckpt_manager = tf.train.CheckpointManager(ckpt, checkpoint_path, max_to_keep=5)
+    if ckpt_manager.latest_checkpoint:
+        print("Restored weights from {}".format(ckpt_manager.latest_checkpoint))
+        ckpt.restore(ckpt_manager.latest_checkpoint)
+    else:
+        print("Initializing random weights.")
+
+    start_iteration = 0
+    if ckpt_manager.latest_checkpoint:
+        start_iteration = int(ckpt_manager.latest_checkpoint.split('-')[-1])
+
 	avg_diff_vals = []
 	avg_loss_vals = []
 	avg_val_diff_vals = []
@@ -481,7 +491,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 
 	#struct, extC, extF, stayoff = new_dataset
 	print("Starting from epoch: %d | On training step: %d | Validation step: %d" % (saved_progress, step, step_val))
-	for iteration in range(0, iterations):
+	for iteration in range(start_iteration, iterations):
 
 		# linearly decay alpha, change epsilon and learning rate accordingly
 		alpha = (alpha_start-alpha_end)*(iterations-iteration)/iterations+alpha_end
@@ -520,9 +530,13 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 					#print(pi)
 					#print(pi_a)
 					#print(pi_old_a)
+					print("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT")
 					p_loss = policy_loss(pi, pi_old, advantage, epsilon)
+					print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 					v_loss = c1*value_loss(value_target, v)
+					print("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC")
 					e_loss = c2*entropy_loss(pi)
+					print("DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD")
 					#print(p_loss, v_loss, e_loss)
 					loss = p_loss + v_loss + e_loss
 
@@ -548,6 +562,10 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 					eng.clf(nargout=0)
 					eng.plotVg_safe(convert_to_matlabint8(out[0]), 'edgeOff', 'col',collist, nargout=0)
 				step += 1
+
+		if step % checkpoint_interval == 0:
+            print("Checkpointing model after %d iterations of training." % step)
+            ckpt_manager.save(step)
 
 	print("Training completed.")
 
