@@ -510,8 +510,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 			  (iteration, time.time() - start))
 		dataset = dataset.batch(batch_size)
 
-		for epoch in range(saved_progress, 100):
-			print(epoch, "/", 100)
+		for epoch in range(saved_progress, 20):
+			print(epoch, "/", 20)
 			# Trains model on structures with a truth structure created from
 			# The direct stiffness method and shifted voxels
 			for batch in dataset:
