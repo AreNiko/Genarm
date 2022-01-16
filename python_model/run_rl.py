@@ -272,8 +272,8 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			#action = action_encoder.index2action(action).numpy()
 			for _ in range(action_repeat):
 				logits_tol = logits.numpy()
-				logits_tol[logits_tol <= 0.1] = 0
-				logits_tol[logits_tol > 0.1] = 1
+				logits_tol[logits_tol <= 0.5] = 0
+				logits_tol[logits_tol > 0.5] = 1
 				observation = tf.stack([tf.convert_to_tensor(logits_tol), structC, structF, stayoff], axis=4)
 				done = False
 				if np.sum(logits_tol) == 0:
@@ -549,8 +549,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				# Update loss
 				train_loss.update_state(loss)
 				out = pi.numpy()
-				out[out <= 0.1] = 0
-				out[out > 0.1] = 1
+				out[out <= 0.5] = 0
+				out[out > 0.5] = 1
 
 				#try:
 					#new_maxbend = eng.check_max_bend(convert_to_matlabint8(out[0]), vGextC, vGextF, nargout=1)
@@ -562,9 +562,9 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 					eng.plotVg_safe(convert_to_matlabint8(out[0]), 'edgeOff', 'col',collist, nargout=0)
 				step += 1
 
-		if step % checkpoint_interval == 0:
-			print("Checkpointing model after %d iterations of training." % step)
-			ckpt_manager.save(step)
+		#if step % checkpoint_interval == 0:
+		#	print("Checkpointing model after %d iterations of training." % step)
+		#	ckpt_manager.save(step)
 
 	print("Training completed.")
 
