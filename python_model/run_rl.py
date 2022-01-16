@@ -261,7 +261,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			# remove num_samples dimension and batch dimension
 			#action = tf.random.categorical(logits, 1)[0][0]
 			action = logits[0]
-			pi_old = activations.sigmoid(logits)[0]
+			pi_old = activations.tanh(logits)[0]
 
 			episode.observations.append(observation[0])
 			episode.ts.append(np.float32(t))
@@ -272,8 +272,8 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			#action = action_encoder.index2action(action).numpy()
 			for _ in range(action_repeat):
 				logits_tol = logits.numpy()
-				logits_tol[logits_tol <= 0.5] = 0
-				logits_tol[logits_tol > 0.5] = 1
+				logits_tol[logits_tol <= 0.1] = 0
+				logits_tol[logits_tol > 0.1] = 1
 				observation = tf.stack([tf.convert_to_tensor(logits_tol), structC, structF, stayoff], axis=4)
 				done = False
 				if np.sum(logits_tol) == 0:
@@ -518,7 +518,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				obs, action, advantage, pi_old, value_target, t = batch
 				#action = tf.expand_dims(action, -1)
 				with tf.GradientTape() as tape:
-					pi = activations.sigmoid(policy_network.policy(obs))
+					pi = activations.tanh(policy_network.policy(obs))
 					v = value_network(obs, np.float32(maxlen)-t)
 					
 					#p_loss = policy_loss(pi, pi_old, advantage, epsilon)
@@ -549,8 +549,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				# Update loss
 				train_loss.update_state(loss)
 				out = pi.numpy()
-				out[out <= 0.5] = 0
-				out[out > 0.5] = 1
+				out[out <= 0.1] = 0
+				out[out > 0.1] = 1
 
 				#try:
 					#new_maxbend = eng.check_max_bend(convert_to_matlabint8(out[0]), vGextC, vGextF, nargout=1)
