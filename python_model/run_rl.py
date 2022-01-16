@@ -346,7 +346,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	# Construct model and measurements
 	iterations = 100
 	K = 3
-	num_episodes = 4#2 #8
+	num_episodes = 12#2 #8
 	maxlen_environment = 20
 	action_repeat = 1
 	maxlen = maxlen_environment // action_repeat # max number of actions
