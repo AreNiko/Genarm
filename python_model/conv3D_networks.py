@@ -111,9 +111,9 @@ class PolicyNetwork(tf.keras.Model):
     def call(self, x):
 
         logits = self.policy(x)
-        action = self._sample_action(logits)
+        #action = self._sample_action(logits)
 
-        return action
+        return logits
 
 class ValueNetwork(tf.keras.Model):
 

@@ -30,6 +30,82 @@ if not names:
 else:
 	eng = matlab.engine.connect_matlab(names[0])
 
+def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
+	episodes = []
+	og_struct = obser[:,:,:,:,0]
+	structC = obser[:,:,:,:,1]
+	structF = obser[:,:,:,:,2]
+	stayoff = obser[:,:,:,:,3]
+	og_bend = eng.check_max_bend(convert_to_matlabint8(obser[0,:,:,:,0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]))
+	scores = []
+	
+	print("Evaluating Agent:")
+	for i in range(eval_episodes):
+		print("Episode: ", i)
+		observation = obser
+		rewards = []
+		observations = []
+		t = 0
+		done = False
+		while True:
+			#observation = preprocess(observation)
+			observations.append(observation)
+			logits = agent(observation)
+			# remove num_samples dimension and batch dimension
+			action = logits[0]
+			pi_old = activations.tanh(logits)[0]
+
+			for _ in range(action_repeat):
+				t += 1
+				logits_tol = logits.numpy()
+				logits_tol[logits_tol <= 0.1] = 0
+				logits_tol[logits_tol > 0.1] = 1
+				observation = tf.stack([tf.convert_to_tensor(logits_tol), structC, structF, stayoff], axis=4)
+
+				if np.sum(logits_tol) == 0:
+					reward = -10.0
+					done = True
+				else:
+					try:
+						#eng.clf(nargout=0)
+						#eng.plotVg_safe(convert_to_matlabint8(logits_tol[0]), 'edgeOff', 'col',collist, nargout=0)
+						new_bend = eng.check_max_bend(convert_to_matlabint8(logits_tol[0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]), nargout=1)
+						if new_bend == 0 or np.isnan(new_bend) or np.isinf(new_bend):
+							new_bend = 100.0
+
+						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(logits_tol))
+						bend_diff = og_bend/new_bend
+						
+						reward = 100*bend_diff - (vox_diff/np.sum(og_struct.numpy()))
+						print("old vs new bending: ", og_bend, "/", new_bend)
+						print("Difference in voxels: ", vox_diff)
+						
+					except:
+						reward = -10.0
+						#done = True
+
+					
+					if done:
+						break
+					if maxlen_environment >= 0 and t == maxlen_environment:
+						break
+				rewards.append(reward)
+				print(reward)
+
+			if done:
+				print("Episode finished after {} timesteps".format(t+1))
+				break
+			if maxlen_environment >= 0 and t == maxlen_environment:
+				break
+		score = sum(rewards)
+		scores.append(score)
+
+		if i == 0 or score > best_score:
+			best_score = score
+			best_episode = observations
+
+	return scores, best_episode
+
 class Agent(tf.keras.models.Model):
 	"""Convenience wrapper around policy network, which returns *encoded*
 	actions. Useful when running model for inference and evaluation.
@@ -41,6 +117,7 @@ class Agent(tf.keras.models.Model):
 		self.policy_network = policy_network
 
 	def call(self, inpu):
+		print("Agent input: 	", tf.shape(inpu))
 		index = self.policy_network(inpu)
 		#action = self.action_encoder.index2action(index)
 		return index
@@ -251,9 +328,11 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 	stayoff = obser[:,:,:,:,3]
 	og_bend = eng.check_max_bend(convert_to_matlabint8(obser[0,:,:,:,0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]))
 
+	print("Generating episodes:")
 	for i in range(num_episodes):
 		episode = EpisodeData()
 		observation = obser
+		print("Episode: ", i)
 		for t in range(maxlen):
 			#observation = preprocess(observation)
 
@@ -268,8 +347,9 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			episode.actions.append(action.numpy())
 			episode.probs_old.append(pi_old.numpy())
 
-			reward = 0 # accumulate reward accross actions
+			reward = 0.0 # accumulate reward accross actions
 			#action = action_encoder.index2action(action).numpy()
+
 			for _ in range(action_repeat):
 				logits_tol = logits.numpy()
 				logits_tol[logits_tol <= 0.1] = 0
@@ -277,7 +357,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 				observation = tf.stack([tf.convert_to_tensor(logits_tol), structC, structF, stayoff], axis=4)
 				done = False
 				if np.sum(logits_tol) == 0:
-					r = -100
+					r = -10.0
 					done = True
 					reward = reward + r
 				else:
@@ -286,17 +366,17 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						eng.plotVg_safe(convert_to_matlabint8(logits_tol[0]), 'edgeOff', 'col',collist, nargout=0)
 						new_bend = eng.check_max_bend(convert_to_matlabint8(logits_tol[0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]), nargout=1)
 						if new_bend == 0 or np.isnan(new_bend):
-							new_bend = 100
+							new_bend = 100.0
 
-						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(logits_tol))/np.sum(og_struct.numpy())
+						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(logits_tol))
 						bend_diff = og_bend/new_bend
 						
-						r = bend_diff - vox_diff
+						r = 100*bend_diff - (vox_diff/np.sum(og_struct.numpy()))
 						print("old vs new bending: ", og_bend, "/", new_bend)
 						print("Difference in voxels: ", vox_diff)
 						
 					except:
-						r = -100
+						r = -10.0
 						#done = True
 					reward = reward + r
 					
@@ -344,6 +424,10 @@ def create_dataset(obser, policy_network, value_network, num_episodes, maxlen, a
 
 def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, show=False):
 	# Construct model and measurements
+
+	base_dir = os.path.join("reinforcement_model", test_number)
+	os.makedirs(base_dir, exist_ok=True)
+
 	iterations = 100
 	K = 3
 	num_episodes = 12#2 #8
@@ -351,8 +435,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	action_repeat = 1
 	maxlen = maxlen_environment // action_repeat # max number of actions
 	batch_size = 1
-	checkpoint_interval = 5
-	eval_interval = 5
+	checkpoint_interval = 1
+	eval_interval = 1
 	eval_episodes = 8
 
 	alpha_start = 1
@@ -404,23 +488,25 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	mse = losses.MeanSquaredError()
 	train_loss = metrics.Mean()
 	val_loss = metrics.Mean()	
+	mean_high = tf.Variable(-100000, dtype='float32', name='mean_high', trainable=False)
 	#model.summary()
 	#tf.keras.utils.plot_model(model, "3Dconv_model.png", show_shapes=True)
 
-	os.makedirs(os.path.dirname("reinforcement_results/" + test_number + "/"), exist_ok=True)
+	os.makedirs(os.path.dirname("training_reinforcement/" + test_number + "/"), exist_ok=True)
 	checkpoint_path = "training_reinforcement/" + test_number + "/cp-{epoch:04d}.ckpt"
 	checkpoint_path = os.path.dirname(checkpoint_path)
 
 	ckpt = tf.train.Checkpoint(
 		policy_network=policy_network,
 		value_network=value_network,
+		mean_high=mean_high,
 		optimizer=optimizer
 		)
 
 	ckpt_manager = tf.train.CheckpointManager(ckpt, checkpoint_path, max_to_keep=5)
 	if ckpt_manager.latest_checkpoint:
 		print("Restored weights from {}".format(ckpt_manager.latest_checkpoint))
-		ckpt.restore(ckpt_manager.latest_checkpoint)
+		#ckpt.restore(ckpt_manager.latest_checkpoint)
 	else:
 		print("Initializing random weights.")
 
@@ -490,12 +576,12 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	tol = np.linspace(0.0, 1.0, 101)
 
 	#struct, extC, extF, stayoff = new_dataset
-	print("Starting from epoch: %d | On training step: %d | Validation step: %d" % (saved_progress, step, step_val))
+	print("Starting from iteration: %d" % (start_iteration))
 	for iteration in range(start_iteration, iterations):
-
 		# linearly decay alpha, change epsilon and learning rate accordingly
 		alpha = (alpha_start-alpha_end)*(iterations-iteration)/iterations+alpha_end
 		epsilon = init_epsilon * alpha # clipping parameter
+
 		optimizer.learning_rate.assign(init_lr*alpha) # set learning rate
 
 		########################### Generate dataset ###########################
@@ -510,8 +596,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 			  (iteration, time.time() - start))
 		dataset = dataset.batch(batch_size)
 
-		for epoch in range(saved_progress, 20):
-			print(epoch, "/", 20)
+		for epoch in range(5):
+			print(epoch, "/", 5)
 			# Trains model on structures with a truth structure created from
 			# The direct stiffness method and shifted voxels
 			for batch in dataset:
@@ -560,8 +646,40 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				if np.sum(out) != 0 and show:
 					eng.clf(nargout=0)
 					eng.plotVg_safe(convert_to_matlabint8(out[0]), 'edgeOff', 'col',collist, nargout=0)
-				step += 1
+		step += 1
 
+		if step % checkpoint_interval == 0:
+			print("Checkpointing model after %d iterations of training." % step)
+			ckpt_manager.save(step)
+
+		if step % eval_interval == 0:
+			start = time.time()
+
+			scores, best_episode = eval_policy(inpus, agent, maxlen_environment, 
+				eval_episodes, action_repeat=action_repeat
+			)
+			m, M = np.min(scores), np.max(scores)
+			median, mean = np.median(scores), np.mean(scores)
+
+			print("Evaluated policy in %f sec. min, median, mean, max: (%g, %g, %g, %g)" %
+				  (time.time() - start, m, median, mean, M))
+			"""
+			with writer.as_default():
+				tf.summary.scalar("return_min", m, step=step)
+				tf.summary.scalar("return_max", M, step=step)
+				tf.summary.scalar("return_mean", mean, step=step)
+				tf.summary.scalar("return_median", median, step=step)
+			"""
+
+			if mean > mean_high:
+				print("New mean high! Old score: %g. New score: %g." %
+					  (mean_high.numpy(), mean))
+				mean_high.assign(mean)
+				#agent.save(os.path.join(base_dir, "high_score_model"))
+
+	# Saving final model (in addition to highest scoring model already saved)
+	# The model may be loaded with tf.keras.load_model(os.path.join(checkpoint_path, "agent"))
+	agent.save(os.path.join(checkpoint_path, "agent"))
 		#if step % checkpoint_interval == 0:
 		#	print("Checkpointing model after %d iterations of training." % step)
 		#	ckpt_manager.save(step)
