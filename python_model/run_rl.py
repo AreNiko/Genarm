@@ -76,7 +76,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(logits_tol))
 						bend_diff = og_bend/new_bend
 						
-						reward = 100*bend_diff - (vox_diff/np.sum(og_struct.numpy()))
+						reward = 100*bend_diff - vox_diff
 						print("old vs new bending: ", og_bend, "/", new_bend)
 						print("Difference in voxels: ", vox_diff)
 						
@@ -111,8 +111,8 @@ class Agent(tf.keras.models.Model):
 	actions. Useful when running model for inference and evaluation.
 	"""
 
-	def __init__(self, policy_network):
-		super(Agent, self).__init__()
+	def __init__(self, policy_network, **kwargs):
+		super(Agent, self).__init__(**kwargs)
 
 		self.policy_network = policy_network
 
@@ -371,7 +371,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(logits_tol))
 						bend_diff = og_bend/new_bend
 						
-						r = 100*bend_diff - (vox_diff/np.sum(og_struct.numpy()))
+						r = 100*bend_diff - vox_diff
 						print("old vs new bending: ", og_bend, "/", new_bend)
 						print("Difference in voxels: ", vox_diff)
 						
@@ -476,15 +476,14 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	#action_encoder = ActionEncoder()
 	feature_extractor = FeatureExtractor()
 	policy_network = PolicyNetwork(feature_extractor)
-	policy_network._set_inputs(np.zeros([xstruct,ystruct,zstruct, 4]))
+	policy_network._set_inputs(np.zeros([1, xstruct,ystruct,zstruct, 4], dtype=np.float32))
 	# Use to generate encoded actions (not just indices)
 	agent = Agent(policy_network)
-	agent._set_inputs(np.zeros([xstruct,ystruct,zstruct,4]))
+	agent._set_inputs(np.zeros([1, xstruct,ystruct,zstruct,4], dtype=np.float32))
 
 	# possibly share parameters with policy-network
 	value_network = ValueNetwork(feature_extractor)
 
-	optimizer = optimizers.Adam(learning_rate=1e-4)
 	mse = losses.MeanSquaredError()
 	train_loss = metrics.Mean()
 	val_loss = metrics.Mean()	
@@ -492,9 +491,9 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	#model.summary()
 	#tf.keras.utils.plot_model(model, "3Dconv_model.png", show_shapes=True)
 
-	os.makedirs(os.path.dirname("training_reinforcement/" + test_number + "/"), exist_ok=True)
-	checkpoint_path = "training_reinforcement/" + test_number + "/cp-{epoch:04d}.ckpt"
-	checkpoint_path = os.path.dirname(checkpoint_path)
+	#os.makedirs(os.path.dirname("training_reinforcement/" + test_number + "/"), exist_ok=True)
+	checkpoint_path = base_dir + "/checkpoints/"
+	#checkpoint_path = os.path.dirname(checkpoint_path)
 
 	ckpt = tf.train.Checkpoint(
 		policy_network=policy_network,
@@ -506,7 +505,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	ckpt_manager = tf.train.CheckpointManager(ckpt, checkpoint_path, max_to_keep=5)
 	if ckpt_manager.latest_checkpoint:
 		print("Restored weights from {}".format(ckpt_manager.latest_checkpoint))
-		#ckpt.restore(ckpt_manager.latest_checkpoint)
+		ckpt.restore(ckpt_manager.latest_checkpoint)
 	else:
 		print("Initializing random weights.")
 
@@ -596,8 +595,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 			  (iteration, time.time() - start))
 		dataset = dataset.batch(batch_size)
 
-		for epoch in range(5):
-			print(epoch, "/", 5)
+		for epoch in range(3):
+			print(epoch, "/", 3)
 			# Trains model on structures with a truth structure created from
 			# The direct stiffness method and shifted voxels
 			for batch in dataset:
@@ -675,8 +674,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				print("New mean high! Old score: %g. New score: %g." %
 					  (mean_high.numpy(), mean))
 				mean_high.assign(mean)
-				#agent.save(os.path.join(base_dir, "high_score_model"))
-
+				#tf.keras.models.save_model(agent, os.path.join(base_dir, "high_score_model"))
+				agent.save(os.path.join(base_dir, "high_score_model"))
 	# Saving final model (in addition to highest scoring model already saved)
 	# The model may be loaded with tf.keras.load_model(os.path.join(checkpoint_path, "agent"))
 	agent.save(os.path.join(checkpoint_path, "agent"))
