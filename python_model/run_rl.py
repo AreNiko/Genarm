@@ -675,10 +675,10 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 					  (mean_high.numpy(), mean))
 				mean_high.assign(mean)
 				#tf.keras.models.save_model(agent, os.path.join(base_dir, "high_score_model"))
-				agent.save(os.path.join(base_dir, "high_score_model"))
+				#agent.save(os.path.join(base_dir, "high_score_model"))
 	# Saving final model (in addition to highest scoring model already saved)
 	# The model may be loaded with tf.keras.load_model(os.path.join(checkpoint_path, "agent"))
-	agent.save(os.path.join(checkpoint_path, "agent"))
+	#agent.save(os.path.join(checkpoint_path, "agent"))
 		#if step % checkpoint_interval == 0:
 		#	print("Checkpointing model after %d iterations of training." % step)
 		#	ckpt_manager.save(step)
