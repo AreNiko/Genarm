@@ -83,7 +83,6 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 					except:
 						reward = -10.0
 						#done = True
-
 					
 					if done:
 						break
@@ -362,8 +361,8 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 					reward = reward + r
 				else:
 					try:
-						eng.clf(nargout=0)
-						eng.plotVg_safe(convert_to_matlabint8(logits_tol[0]), 'edgeOff', 'col',collist, nargout=0)
+						#eng.clf(nargout=0)
+						#eng.plotVg_safe(convert_to_matlabint8(logits_tol[0]), 'edgeOff', 'col',collist, nargout=0)
 						new_bend = eng.check_max_bend(convert_to_matlabint8(logits_tol[0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]), nargout=1)
 						if new_bend == 0 or np.isnan(new_bend):
 							new_bend = 100.0
@@ -429,14 +428,15 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	os.makedirs(base_dir, exist_ok=True)
 
 	iterations = 500
+	epoch_range = 20
 	K = 3
 	num_episodes = 12#2 #8
 	maxlen_environment = 20
 	action_repeat = 1
 	maxlen = maxlen_environment // action_repeat # max number of actions
 	batch_size = 1
-	checkpoint_interval = 1
-	eval_interval = 1
+	checkpoint_interval = 5
+	eval_interval = 3
 	eval_episodes = 8
 
 	alpha_start = 1
@@ -595,8 +595,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 			  (iteration, time.time() - start))
 		dataset = dataset.batch(batch_size)
 
-		for epoch in range(50):
-			print(epoch, "/", 50)
+		for epoch in range(epoch_range):
+			print(epoch, "/", epoch_range)
 			# Trains model on structures with a truth structure created from
 			# The direct stiffness method and shifted voxels
 			for batch in dataset:
@@ -675,10 +675,10 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 					  (mean_high.numpy(), mean))
 				mean_high.assign(mean)
 				#tf.keras.models.save_model(agent, os.path.join(base_dir, "high_score_model"))
-				#agent.save(os.path.join(base_dir, "high_score_model"))
+				agent.save(os.path.join(base_dir, "high_score_model"))
 	# Saving final model (in addition to highest scoring model already saved)
 	# The model may be loaded with tf.keras.load_model(os.path.join(checkpoint_path, "agent"))
-	#agent.save(os.path.join(checkpoint_path, "agent"))
+	agent.save(os.path.join(checkpoint_path, "agent"))
 		#if step % checkpoint_interval == 0:
 		#	print("Checkpointing model after %d iterations of training." % step)
 		#	ckpt_manager.save(step)
