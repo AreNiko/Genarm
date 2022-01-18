@@ -428,7 +428,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	base_dir = os.path.join("reinforcement_model", test_number)
 	os.makedirs(base_dir, exist_ok=True)
 
-	iterations = 100
+	iterations = 500
 	K = 3
 	num_episodes = 12#2 #8
 	maxlen_environment = 20
@@ -595,8 +595,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 			  (iteration, time.time() - start))
 		dataset = dataset.batch(batch_size)
 
-		for epoch in range(3):
-			print(epoch, "/", 3)
+		for epoch in range(50):
+			print(epoch, "/", 50)
 			# Trains model on structures with a truth structure created from
 			# The direct stiffness method and shifted voxels
 			for batch in dataset:
