@@ -371,8 +371,8 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						bend_diff = og_bend/new_bend
 						
 						r = 100*bend_diff - vox_diff
-						print("old vs new bending: ", og_bend, "/", new_bend)
-						print("Difference in voxels: ", vox_diff)
+						#print("old vs new bending: ", og_bend, "/", new_bend)
+						#print("Difference in voxels: ", vox_diff)
 						
 					except:
 						r = -10.0
