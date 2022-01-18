@@ -630,7 +630,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				trainable_variables = list({v.name : v for v in trainable_variables}.values())
 				grads = tape.gradient(loss, trainable_variables)
 				optimizer.apply_gradients(zip(grads, trainable_variables))
-				print(loss.numpy())
+				#print(loss.numpy())
 				# Update loss
 				train_loss.update_state(loss)
 				out = pi.numpy()
