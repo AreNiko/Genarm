@@ -118,7 +118,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 			best_score = score
 			best_episode = observations
 
-	eng.quit()
+	#eng.quit()
 
 	return scores, best_episode, best_struct
 
@@ -482,7 +482,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	new_dataset = new_dataset.batch(batch_size)
 	eng.plotVg_safe(structog, 'edgeOff', nargout=0)
 
-	eng.quit()
+	#eng.quit()
 
 	#model = gen_model.ConvStructModel3D((x,y,z,4))
 
