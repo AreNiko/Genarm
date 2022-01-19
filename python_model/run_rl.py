@@ -38,6 +38,8 @@ def start_engine():
 
 eng = start_engine()
 
+eng.warning('off',"MATLAB:singularMatrix")
+
 def convert_to_matlabint8(inarr):
 	return matlab.int8(np.int8(np.ceil(inarr)).tolist())
 
@@ -480,6 +482,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 
 	new_dataset = tf.data.Dataset.from_tensors((struct,structCten,structFten,structOfften))
 	new_dataset = new_dataset.batch(batch_size)
+	eng.clf(nargout=0)
 	eng.plotVg_safe(structog, 'edgeOff', nargout=0)
 
 	#eng.quit()
@@ -647,18 +650,20 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				#print(loss.numpy())
 				# Update loss
 				train_loss.update_state(loss)
-				out = pi.numpy()
-				out[out <= 0.1] = 0
-				out[out > 0.1] = 1
+			
+			out = pi.numpy()
+			out[out <= 0.1] = 0
+			out[out > 0.1] = 1
 
-				try:
+			try:
+				if np.sum(out) != 0:
 					new_maxbend = eng.check_max_bend(convert_to_matlabint8(out[0]), vGextC, vGextF, nargout=1)
 					print("New vs old bending: ", new_maxbend, "/", og_maxbending)
-				except:
-					print("This one is singular :P")
-				#if np.sum(out) != 0 and show:
-				#	eng.clf(nargout=0)
-				#	eng.plotVg_safe(convert_to_matlabint8(out[0]), 'edgeOff', 'col',collist, nargout=0)
+			except:
+				print("This one is singular :P")
+			#if np.sum(out) != 0 and show:
+			#	eng.clf(nargout=0)
+			#	eng.plotVg_safe(convert_to_matlabint8(out[0]), 'edgeOff', 'col',collist, nargout=0)
 		step += 1
 
 		if step % checkpoint_interval == 0:
