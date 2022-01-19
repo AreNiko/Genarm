@@ -23,19 +23,21 @@ from FEM.vGextC2extC import vGextC2extC
 from FEM.vGextF2extF import vGextF2extF
 
 collist = matlab.double([0, 0.68, 0.7647])
-names = matlab.engine.find_matlab()
-#print(names)
-if not names:
-	eng = matlab.engine.start_matlab()
-else:
-	eng = matlab.engine.connect_matlab(names[0])
 
-def check_engine():
+
+def start_engine():
 	isengine = matlab.engine.find_matlab()
 	print(isengine)
 	if not isengine:
 		eng = matlab.engine.start_matlab()
 		print("Restarting matlab engine")
+	else:
+		eng = matlab.engine.connect_matlab(names[0])
+
+	return eng
+
+def convert_to_matlabint8(inarr):
+	return matlab.int8(np.int8(np.ceil(inarr)).tolist())
 
 def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 	episodes = []
@@ -43,7 +45,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 	structC = obser[:,:,:,:,1]
 	structF = obser[:,:,:,:,2]
 	stayoff = obser[:,:,:,:,3]
-	check_engine()
+	eng = start_engine()
 	og_bend = eng.check_max_bend(convert_to_matlabint8(obser[0,:,:,:,0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]))
 	scores = []
 	
@@ -111,6 +113,8 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 			best_score = score
 			best_episode = observations
 
+	eng.quit()
+
 	return scores, best_episode
 
 class Agent(tf.keras.models.Model):
@@ -146,12 +150,6 @@ def get_data(folder, test_number, filename):
 			out = pickle.load(fp)
 	return out
 
-
-def augment_data(dataset):
-
-	return new_data
-
-
 def custom_loss_function(true_struct, new_struct, struct):
 	# Apply direct stiffness method as loss function
 	#(E, N,_) = eng.vox2mesh18(x);
@@ -173,9 +171,6 @@ def custom_loss_function(true_struct, new_struct, struct):
 	#loss = tf.reduce_sum(diff)
 	loss = tf.losses.mean_squared_error(true_struct2, new_struct2) 
 	return loss
-
-def convert_to_matlabint8(inarr):
-	return matlab.int8(np.int8(np.ceil(inarr)).tolist())
 
 def calculate_returns(rewards, gamma):
 	"""Calculate returns, i.e. sum of future discounted rewards, for episode.
@@ -334,7 +329,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 	structF = obser[:,:,:,:,2]
 	stayoff = obser[:,:,:,:,3]
 
-	check_engine()
+	eng = start_engine()
 	og_bend = eng.check_max_bend(convert_to_matlabint8(obser[0,:,:,:,0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]))
 
 	print("Generating episodes:")
@@ -652,9 +647,9 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 					#print("New vs old bending: ", new_maxbend, "/", og_maxbending)
 				#except:
 				#	print("This one is singular :P")
-				if np.sum(out) != 0 and show:
-					eng.clf(nargout=0)
-					eng.plotVg_safe(convert_to_matlabint8(out[0]), 'edgeOff', 'col',collist, nargout=0)
+				#if np.sum(out) != 0 and show:
+				#	eng.clf(nargout=0)
+				#	eng.plotVg_safe(convert_to_matlabint8(out[0]), 'edgeOff', 'col',collist, nargout=0)
 		step += 1
 
 		if step % checkpoint_interval == 0:
