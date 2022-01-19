@@ -48,13 +48,15 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 	eng = start_engine()
 	og_bend = eng.check_max_bend(convert_to_matlabint8(obser[0,:,:,:,0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]))
 	scores = []
-	
+	best_reward = 0
+
 	print("Evaluating Agent:")
 	for i in range(eval_episodes):
 		print("Episode: ", i)
 		observation = obser
 		rewards = []
 		observations = []
+
 		t = 0
 		done = False
 		while True:
@@ -89,7 +91,8 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 						reward = 100*bend_diff - vox_diff
 						print("old vs new bending: ", og_bend, "/", new_bend)
 						print("Difference in voxels: ", vox_diff)
-						
+						if best_reward < reward:
+							best_struct = logits_tol
 					except:
 						reward = -10.0
 						#done = True
@@ -115,7 +118,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 
 	eng.quit()
 
-	return scores, best_episode
+	return scores, best_episode, best_struct
 
 class Agent(tf.keras.models.Model):
 	"""Convenience wrapper around policy network, which returns *encoded*
@@ -478,7 +481,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	eng.plotVg_safe(structog, 'edgeOff', nargout=0)
 
 	eng.quit()
-	
+
 	#model = gen_model.ConvStructModel3D((x,y,z,4))
 
 	# initialize policy and value network
@@ -663,7 +666,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 		if step % eval_interval == 0:
 			start = time.time()
 
-			scores, best_episode = eval_policy(inpus, agent, maxlen_environment, 
+			scores, best_episode, best_struct = eval_policy(inpus, agent, maxlen_environment, 
 				eval_episodes, action_repeat=action_repeat
 			)
 			m, M = np.min(scores), np.max(scores)
@@ -678,11 +681,14 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				tf.summary.scalar("return_mean", mean, step=step)
 				tf.summary.scalar("return_median", median, step=step)
 			"""
+			with open("results_structures/" + test_number + str(step), "wb") as fp:
+				pickle.dump(best_struct, fp)
 
 			if mean > mean_high:
 				print("New mean high! Old score: %g. New score: %g." %
 					  (mean_high.numpy(), mean))
 				mean_high.assign(mean)
+
 				#tf.keras.models.save_model(agent, os.path.join(base_dir, "high_score_model"))
 				#agent.save(os.path.join(base_dir, "high_score_model"))
 	# Saving final model (in addition to highest scoring model already saved)
