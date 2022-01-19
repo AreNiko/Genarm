@@ -31,9 +31,11 @@ else:
 	eng = matlab.engine.connect_matlab(names[0])
 
 def check_engine():
-	names = matlab.engine.find_matlab()
-	if not names:
+	isengine = matlab.engine.find_matlab()
+	print(isengine)
+	if not isengine:
 		eng = matlab.engine.start_matlab()
+		print("Restarting matlab engine")
 
 def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 	episodes = []
@@ -331,7 +333,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 	structC = obser[:,:,:,:,1]
 	structF = obser[:,:,:,:,2]
 	stayoff = obser[:,:,:,:,3]
-	
+
 	check_engine()
 	og_bend = eng.check_max_bend(convert_to_matlabint8(obser[0,:,:,:,0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]))
 
