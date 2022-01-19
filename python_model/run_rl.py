@@ -30,11 +30,13 @@ def start_engine():
 	print(isengine)
 	if not isengine:
 		eng = matlab.engine.start_matlab()
-		print("Restarting matlab engine")
+		print("Starting matlab engine")
 	else:
-		eng = matlab.engine.connect_matlab(names[0])
+		eng = matlab.engine.connect_matlab(isengine[0])
 
 	return eng
+
+eng = start_engine()
 
 def convert_to_matlabint8(inarr):
 	return matlab.int8(np.int8(np.ceil(inarr)).tolist())
@@ -45,7 +47,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 	structC = obser[:,:,:,:,1]
 	structF = obser[:,:,:,:,2]
 	stayoff = obser[:,:,:,:,3]
-	eng = start_engine()
+	#eng = start_engine()
 	og_bend = eng.check_max_bend(convert_to_matlabint8(obser[0,:,:,:,0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]))
 	scores = []
 	best_reward = 0
@@ -332,7 +334,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 	structF = obser[:,:,:,:,2]
 	stayoff = obser[:,:,:,:,3]
 
-	eng = start_engine()
+	#eng = start_engine()
 	og_bend = eng.check_max_bend(convert_to_matlabint8(obser[0,:,:,:,0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]))
 
 	print("Generating episodes:")
@@ -462,7 +464,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	layers.RandomRotation(0.25)
 	])
 
-	eng = start_engine()
+	#eng = start_engine()
 
 	structog, vGextC, vGextF, vGstayOff = eng.get_struct2(nargout=4)
 	#structog, _, vGextC, vGextF, vGstayOff = eng.get_struct3(nargout=5)
