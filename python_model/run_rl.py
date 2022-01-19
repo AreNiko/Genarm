@@ -459,6 +459,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	layers.RandomRotation(0.25)
 	])
 
+	eng = start_engine()
+
 	structog, vGextC, vGextF, vGstayOff = eng.get_struct2(nargout=4)
 	#structog, _, vGextC, vGextF, vGstayOff = eng.get_struct3(nargout=5)
 	og_maxbending = eng.check_max_bend(structog, vGextC, vGextF, nargout=1)
@@ -474,6 +476,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	new_dataset = tf.data.Dataset.from_tensors((struct,structCten,structFten,structOfften))
 	new_dataset = new_dataset.batch(batch_size)
 	eng.plotVg_safe(structog, 'edgeOff', nargout=0)
+
+	eng.quit()
 	
 	#model = gen_model.ConvStructModel3D((x,y,z,4))
 
