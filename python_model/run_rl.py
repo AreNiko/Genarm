@@ -52,7 +52,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 	#eng = start_engine()
 	og_bend = eng.check_max_bend(convert_to_matlabint8(obser[0,:,:,:,0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]))
 	scores = []
-	best_reward = 0
+	best_reward = -1000000000
 
 	print("Evaluating Agent:")
 	for i in range(eval_episodes):
@@ -654,13 +654,12 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 			out = pi.numpy()
 			out[out <= 0.1] = 0
 			out[out > 0.1] = 1
-
-			try:
-				if np.sum(out) != 0:
+			if np.sum(out) != 0:
+				try:
 					new_maxbend = eng.check_max_bend(convert_to_matlabint8(out[0]), vGextC, vGextF, nargout=1)
 					print("New vs old bending: ", new_maxbend, "/", og_maxbending)
-			except:
-				print("This one is singular :P")
+				except:
+					print("This one is singular :P")
 			#if np.sum(out) != 0 and show:
 			#	eng.clf(nargout=0)
 			#	eng.plotVg_safe(convert_to_matlabint8(out[0]), 'edgeOff', 'col',collist, nargout=0)
