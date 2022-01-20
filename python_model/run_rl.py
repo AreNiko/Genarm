@@ -92,7 +92,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(logits_tol))
 						bend_diff = og_bend/new_bend
 						
-						reward = 100*bend_diff - vox_diff
+						reward = 100*bend_diff - vox_diff/100
 						print("old vs new bending: ", og_bend, "/", new_bend)
 						print("Difference in voxels: ", vox_diff)
 						if best_reward < reward:
@@ -382,7 +382,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(logits_tol))
 						bend_diff = og_bend/new_bend
 						
-						r = 100*bend_diff - vox_diff
+						r = 100*bend_diff - vox_diff/100
 						#print("old vs new bending: ", og_bend, "/", new_bend)
 						#print("Difference in voxels: ", vox_diff)
 						
@@ -663,7 +663,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				except:
 					print("This one is singular :P")
 			"""
-			
+
 			#if np.sum(out) != 0 and show:
 			#	eng.clf(nargout=0)
 			#	eng.plotVg_safe(convert_to_matlabint8(out[0]), 'edgeOff', 'col',collist, nargout=0)
@@ -691,7 +691,9 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				tf.summary.scalar("return_mean", mean, step=step)
 				tf.summary.scalar("return_median", median, step=step)
 			"""
-			
+			eng.clf(nargout=0)
+			eng.plotVg_safe(convert_to_matlabint8(best_struct[0]), 'edgeOff', 'col',collist, nargout=0)
+
 			with open("results_structures/" + test_number + str(step), "wb+") as fp:
 				pickle.dump(best_struct, fp)
 
