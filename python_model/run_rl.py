@@ -438,6 +438,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 
 	base_dir = os.path.join("reinforcement_model", test_number)
 	os.makedirs(base_dir, exist_ok=True)
+	os.makedirs("results_structures/", exist_ok=True)
 
 	iterations = 500
 	epoch_range = 20
@@ -687,6 +688,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				tf.summary.scalar("return_mean", mean, step=step)
 				tf.summary.scalar("return_median", median, step=step)
 			"""
+			
 			with open("results_structures/" + test_number + str(step), "wb+") as fp:
 				pickle.dump(best_struct, fp)
 
