@@ -687,7 +687,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				tf.summary.scalar("return_mean", mean, step=step)
 				tf.summary.scalar("return_median", median, step=step)
 			"""
-			with open("results_structures/" + test_number + str(step), "wb") as fp:
+			with open("results_structures/" + test_number + str(step), "wb+") as fp:
 				pickle.dump(best_struct, fp)
 
 			if mean > mean_high:
