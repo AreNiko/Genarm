@@ -51,7 +51,7 @@ def runstuff(folder, test_number, step=None):
 		for i in range(len(struct)):
 			print("Showing structure from ", file_name[i])
 			eng.clf(nargout=0)
-			eng.plotVg_safe(convert_to_matlabint8(struct[0][i]), 'edgeOff', 'col',collist, nargout=0)
+			eng.plotVg_safe(convert_to_matlabint8(struct[i]), 'edgeOff', 'col',collist, nargout=0)
 			print('Press enter to close')
 			input()
 	else:
