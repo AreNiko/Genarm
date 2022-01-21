@@ -1,5 +1,6 @@
 import argparse
 import numpy as np
+import os
 
 import pickle
 import matlab
@@ -22,29 +23,53 @@ def start_engine():
 def convert_to_matlabint8(inarr):
 	return matlab.int8(np.int8(np.ceil(inarr)).tolist())
 
-def get_struct(desti):
-	with open(desti, "rb+") as fp:
-		struct = pickle.load(fp)
+def get_struct(folder, test_number, step=None):
+	if step == None:
+		structs = []
+		for path, currentDirectory, files in os.walk(folder):
+			for file in files:
+				if file.startswith(str(test_number)):
+					print(path+"/"+file)
 
-	return struct
+			with open(path+"/"+file, "rb+") as fp:
+				struct = pickle.load(fp)
+			structs.append(struct)
+		return structs
+	else:
+		with open(desti, "rb+") as fp:
+			struct = pickle.load(fp)
+		return struct
 
-def runstuff(folder, test_number, step):
-	desti = folder+"/"+test_number+"-"+step+".txt"
-	struct = get_struct(desti)
+def runstuff(folder, test_number, step=None):
+	#desti = folder+"/"+test_number+"-"+step+".txt"
+	struct = get_struct(folder, test_number, step)
 	
 	eng = start_engine()
-	print("Showing structure from " + desti)
-	eng.clf(nargout=0)
-	eng.plotVg_safe(convert_to_matlabint8(struct[0]), 'edgeOff', 'col',collist, nargout=0)
-	print('Press enter to close')
-	input()
+	if step == None:
+		for i in struct:
+			print("Showing structure from ", test_number)
+			eng.clf(nargout=0)
+			eng.plotVg_safe(convert_to_matlabint8(i[0]), 'edgeOff', 'col',collist, nargout=0)
+			print('Press enter to close')
+			input()
+	else:
+		print("Showing structure from " + desti)
+		eng.clf(nargout=0)
+		eng.plotVg_safe(convert_to_matlabint8(struct[0]), 'edgeOff', 'col',collist, nargout=0)
+		print('Press enter to close')
+		input()
+
+def none_or_str(value):
+    if value == 'None':
+        return None
+    return value
 
 def parse_args():
 	"""Parse command line argument."""
 	parser = argparse.ArgumentParser("Train segmention model on 3D structures.")
 	parser.add_argument("Folder", help="Folder with saved structures.")
 	parser.add_argument("test_number", help="Get the structure from a specific run")
-	parser.add_argument("checkpoint", help="Gets the structures from a specific checkpoint")
+	parser.add_argument("checkpoint", type=none_or_str, nargs='?', default=None, help="Get the structure from a specific checkpoint")
 
 	return parser.parse_args()
 
