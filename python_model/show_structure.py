@@ -1,0 +1,53 @@
+import argparse
+import numpy as np
+
+import pickle
+import matlab
+import matlab.engine
+
+
+collist = matlab.double([0, 0.68, 0.7647])
+
+def start_engine():
+	isengine = matlab.engine.find_matlab()
+	print(isengine)
+	if not isengine:
+		eng = matlab.engine.start_matlab()
+		print("Starting matlab engine")
+	else:
+		eng = matlab.engine.connect_matlab(isengine[0])
+
+	return eng
+
+def convert_to_matlabint8(inarr):
+	return matlab.int8(np.int8(np.ceil(inarr)).tolist())
+
+def get_struct(desti):
+	with open(desti, "rb+") as fp:
+		struct = pickle.load(fp)
+
+	return struct
+
+def runstuff(folder, test_number, step):
+	desti = folder+"/"+test_number+"-"+step+".txt"
+	struct = get_struct(desti)
+	
+	eng = start_engine()
+	print("Showing structure from " + desti)
+	eng.clf(nargout=0)
+	eng.plotVg_safe(convert_to_matlabint8(struct[0]), 'edgeOff', 'col',collist, nargout=0)
+	print('Press enter to close')
+	input()
+
+def parse_args():
+	"""Parse command line argument."""
+	parser = argparse.ArgumentParser("Train segmention model on 3D structures.")
+	parser.add_argument("Folder", help="Folder with saved structures.")
+	parser.add_argument("test_number", help="Get the structure from a specific run")
+	parser.add_argument("checkpoint", help="Gets the structures from a specific checkpoint")
+
+	return parser.parse_args()
+
+if __name__ == '__main__':
+	args = parse_args()
+	runstuff(args.Folder, args.test_number, args.checkpoint)
