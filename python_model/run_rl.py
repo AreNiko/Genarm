@@ -135,7 +135,6 @@ class Agent(tf.keras.models.Model):
 		self.policy_network = policy_network
 
 	def call(self, inpu):
-		print("Agent input: 	", tf.shape(inpu))
 		index = self.policy_network(inpu)
 		#action = self.action_encoder.index2action(index)
 		return index
@@ -684,6 +683,10 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 
 			print("Evaluated policy in %f sec. min, median, mean, max: (%g, %g, %g, %g)" %
 				  (time.time() - start, m, median, mean, M))
+
+			with open("results_structures/" + test_number + "-" + str(step) + ".txt", "wb+") as fp:
+				print("Writing best structure to results_structures/" + test_number + str(step) + ".txt")
+				pickle.dump(best_struct, fp)
 			"""
 			with writer.as_default():
 				tf.summary.scalar("return_min", m, step=step)
@@ -694,8 +697,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 			eng.clf(nargout=0)
 			eng.plotVg_safe(convert_to_matlabint8(best_struct[0]), 'edgeOff', 'col',collist, nargout=0)
 
-			with open("results_structures/" + test_number + str(step), "wb+") as fp:
-				pickle.dump(best_struct, fp)
+			
 
 			if mean > mean_high:
 				print("New mean high! Old score: %g. New score: %g." %

@@ -110,7 +110,6 @@ class PolicyNetwork(tf.keras.Model):
     def _sample_action(self, logits):
 
         xfd = layers.Reshape((xdim, ydim, zdim))(xfd) 
-
         return xfd
 
     def call(self, x):
