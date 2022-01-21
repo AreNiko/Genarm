@@ -31,9 +31,9 @@ def get_struct(folder, test_number, step=None):
 				if file.startswith(str(test_number)):
 					print(path+"/"+file)
 
-			with open(path+"/"+file, "rb+") as fp:
-				struct = pickle.load(fp)
-			structs.append(struct[0])
+					with open(path+"/"+file, "rb+") as fp:
+						struct = pickle.load(fp)
+					structs.append(struct[0])
 		return structs
 	else:
 		with open(desti, "rb+") as fp:
