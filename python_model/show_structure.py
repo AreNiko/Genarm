@@ -33,7 +33,7 @@ def get_struct(folder, test_number, step=None):
 
 			with open(path+"/"+file, "rb+") as fp:
 				struct = pickle.load(fp)
-			structs.append(struct)
+			structs.append(struct[0])
 		return structs
 	else:
 		with open(desti, "rb+") as fp:
@@ -43,7 +43,7 @@ def get_struct(folder, test_number, step=None):
 def runstuff(folder, test_number, step=None):
 	#desti = folder+"/"+test_number+"-"+step+".txt"
 	struct = get_struct(folder, test_number, step)
-	
+	print(len(struct))
 	eng = start_engine()
 	if step == None:
 		for i in struct:
