@@ -35,7 +35,7 @@ def get_struct(folder, test_number, step=None):
 					with open(path+"/"+file, "rb+") as fp:
 						struct = pickle.load(fp)
 					structs.append(struct[0])
-					file_name.apend(path+"/"+file)
+					file_name.append(path+"/"+file)
 		return structs
 	else:
 		with open(desti, "rb+") as fp:
