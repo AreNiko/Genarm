@@ -89,7 +89,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 						if new_bend == 0 or np.isnan(new_bend) or np.isinf(new_bend):
 							new_bend = 100.0
 
-						vox_diff = np.abs(np.sum(og_struct.numpy() - logits_tol))
+						vox_diff = np.sum(np.abs(og_struct.numpy() - logits_tol))
 						bend_diff = og_bend/new_bend
 						
 						reward = 100*bend_diff - vox_diff/100
@@ -378,7 +378,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						if new_bend == 0 or np.isnan(new_bend):
 							new_bend = 100.0
 
-						vox_diff = np.abs(np.sum(og_struct.numpy() - logits_tol))
+						vox_diff = np.sum(np.abs(og_struct.numpy() - logits_tol))
 						bend_diff = og_bend/new_bend
 						
 						r = 100*bend_diff - vox_diff/100
