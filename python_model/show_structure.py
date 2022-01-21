@@ -25,6 +25,7 @@ def convert_to_matlabint8(inarr):
 
 def get_struct(folder, test_number, step=None):
 	if step == None:
+		file_name = []
 		structs = []
 		for path, currentDirectory, files in os.walk(folder):
 			for file in files:
@@ -34,6 +35,7 @@ def get_struct(folder, test_number, step=None):
 					with open(path+"/"+file, "rb+") as fp:
 						struct = pickle.load(fp)
 					structs.append(struct[0])
+					file_name.apend(path+"/"+file)
 		return structs
 	else:
 		with open(desti, "rb+") as fp:
