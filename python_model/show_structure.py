@@ -36,20 +36,20 @@ def get_struct(folder, test_number, step=None):
 						struct = pickle.load(fp)
 					structs.append(struct[0])
 					file_name.append(path+"/"+file)
-		return structs
+		return structs, file_name
 	else:
 		with open(desti, "rb+") as fp:
 			struct = pickle.load(fp)
-		return struct
+		return struct, 0
 
 def runstuff(folder, test_number, step=None):
 	#desti = folder+"/"+test_number+"-"+step+".txt"
-	struct = get_struct(folder, test_number, step)
+	struct, file_name = get_struct(folder, test_number, step)
 	print(len(struct))
 	eng = start_engine()
 	if step == None:
 		for i in struct:
-			print("Showing structure from ", test_number)
+			print("Showing structure from ", file_name)
 			eng.clf(nargout=0)
 			eng.plotVg_safe(convert_to_matlabint8(i[0]), 'edgeOff', 'col',collist, nargout=0)
 			print('Press enter to close')
