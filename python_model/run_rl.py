@@ -89,7 +89,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 						if new_bend == 0 or np.isnan(new_bend) or np.isinf(new_bend):
 							new_bend = 100.0
 
-						vox_diff = np.sum(np.abs(og_struct.numpy() - logits_tol))
+						vox_diff = np.abs(np.sum(og_struct.numpy() - logits_tol))
 						bend_diff = og_bend/new_bend
 						
 						reward = 100*bend_diff - vox_diff/100
@@ -378,7 +378,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						if new_bend == 0 or np.isnan(new_bend):
 							new_bend = 100.0
 
-						vox_diff = np.sum(np.abs(og_struct.numpy() - logits_tol))
+						vox_diff = np.abs(np.sum(og_struct.numpy() - logits_tol))
 						bend_diff = og_bend/new_bend
 						
 						r = 100*bend_diff - vox_diff/100
@@ -440,7 +440,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	os.makedirs("results_structures/", exist_ok=True)
 
 	iterations = 500
-	epoch_range = 20
+	epoch_range = 50
 	K = 3
 	num_episodes = 12#2 #8
 	maxlen_environment = 20
@@ -448,8 +448,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	maxlen = maxlen_environment // action_repeat # max number of actions
 	batch_size = 1
 	checkpoint_interval = 5
-	eval_interval = 3
-	eval_episodes = 8
+	eval_interval = 1
+	eval_episodes = 20
 
 	alpha_start = 1
 	alpha_end = 0.0
@@ -610,6 +610,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 
 		print("Iteration: %d. Generated dataset in %f sec." %
 			  (iteration, time.time() - start))
+		print(alpha)
 		dataset = dataset.batch(batch_size)
 
 		for epoch in range(epoch_range):

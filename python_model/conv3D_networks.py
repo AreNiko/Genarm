@@ -39,7 +39,7 @@ class FeatureExtractor(tf.keras.Model):
         x2 = self.conv3d2(x1)
         #x2 = self.batchmeup(x2)
         
-        #x3 = self.conv3d3(x2)
+        x3 = self.conv3d3(x2)
         #x3 = self.batchmeup(x3)
         
         #x4 = self.conv3d4(x3)
@@ -51,7 +51,7 @@ class FeatureExtractor(tf.keras.Model):
         #x4 = self.flatten(x4)
         #model = models.Model(inputs=[struct, locked, forces, stayoff], outputs=xfd)
 
-        return x1,x2
+        return x1,x2,x3
 
 class PolicyNetwork(tf.keras.Model):
     """Policy network with discrete action space. Interpretation and encoding of
@@ -73,8 +73,8 @@ class PolicyNetwork(tf.keras.Model):
     def policy(self, inpu):
         batch, xdim, ydim, zdim, channels = tf.shape(inpu)
         #print(batch, xdim, ydim, zdim, channels)
-        x1,x2 = self.feature_extractor(inpu)
-        #x1,x2,x3,x4 = self.feature_extractor(inpu)
+        #x1,x2 = self.feature_extractor(inpu)
+        x1,x2,x3,x4 = self.feature_extractor(inpu)
         #print(tf.shape(x1))
         x1d = self.conv3d(x1)
         x1d = self.dense128(x1d)
@@ -84,19 +84,19 @@ class PolicyNetwork(tf.keras.Model):
         x2d = self.dense128(x2d)
         x2d = self.dense128(x2d)
 
-        #x3d = self.conv3d(x3)
-        #x3d = self.dense128(x3d)
-        #x3d = self.dense128(x3d)
+        x3d = self.conv3d(x3)
+        x3d = self.dense128(x3d)
+        x3d = self.dense128(x3d)
 
         #x4d = self.conv3d(x4)
         #x4d = self.dense128(x4d)
         #x4d = self.dense128(x4d)
 
-        xf = tf.concat([x1d, x2d], -1)
-        #xf = tf.concat([x1d, x2d, x3d, x4d], -1)
+        #xf = tf.concat([x1d, x2d], -1)
+        xf = tf.concat([x1d, x2d, x3d], -1)
         
-        xf = self.dense256(xf)
-        xf = self.dense256(xf)
+        xf = layers.Dense(384)(xf)
+        xf = layers.Dense(384)(xf)
         #xf = self.dense512(xf)
         #xf = self.dense512(xf)
         xfd = layers.Conv3D(1, 1, strides=(1, 1, 1), padding='same', activation='relu')(xf)
@@ -137,9 +137,9 @@ class ValueNetwork(tf.keras.Model):
             # TODO: Better to project time_left, so that about same dimensions?
             tr = tf.expand_dims(time_left, -1)
             #print(tr)
-            y0,y1 = self.feature_extractor(observation)
-            #y0,y1,y2,y3 = self.feature_extractor(observation)
-            feats = tf.concat([y0,y1], -1)
+            #y0,y1 = self.feature_extractor(observation)
+            y0,y1,y2 = self.feature_extractor(observation)
+            feats = tf.concat([y0,y1,y2], -1)
             x = tf.concat([layers.Flatten()(feats), tr], -1)
         else:
             x = time_left
