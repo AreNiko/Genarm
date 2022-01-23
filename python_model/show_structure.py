@@ -45,20 +45,29 @@ def get_struct(folder, test_number, step=None):
 def runstuff(folder, test_number, step=None):
 	#desti = folder+"/"+test_number+"-"+step+".txt"
 	struct, file_name = get_struct(folder, test_number, step)
-	
+
 	print(len(struct))
 	eng = start_engine()
 	structog, vGextC, vGextF, vGstayOff = eng.get_struct2(nargout=4)
 	#structog, _, vGextC, vGextF, vGstayOff = eng.get_struct3(nargout=5)
 	og_maxbending = eng.check_max_bend(structog, vGextC, vGextF, nargout=1)
+
+	eng.figure(1, nargout=0)
+	eng.clf(nargout=0)
+	eng.plotVg_safe(structog, 'edgeOff', 'col',collist, nargout=0)
 	if step == None:
 		for i in range(len(struct)):
 			print("Showing structure from ", file_name[i])
 			structi = convert_to_matlabint8(struct[i])
+			eng.figure(2, nargout=0)
 			eng.clf(nargout=0)
 			eng.plotVg_safe(structi, 'edgeOff', 'col',collist, nargout=0)
 			new_bend = eng.check_max_bend(structi, vGextC, vGextF, nargout=1)
-			print(og_maxbending, " / ", new_bend)
+			if new_bend == 0 or np.isnan(new_bend):
+				print("Doesn't work :P")
+			else:
+				print(new_bend, " / ", og_maxbending)
+
 			print('Press enter to close')
 			input()
 	else:
