@@ -45,12 +45,12 @@ def get_struct(folder, test_number, step=None):
 def runstuff(folder, test_number, step=None):
 	#desti = folder+"/"+test_number+"-"+step+".txt"
 	struct, file_name = get_struct(folder, test_number, step)
-
+	
+	print(len(struct))
+	eng = start_engine()
 	structog, vGextC, vGextF, vGstayOff = eng.get_struct2(nargout=4)
 	#structog, _, vGextC, vGextF, vGstayOff = eng.get_struct3(nargout=5)
 	og_maxbending = eng.check_max_bend(structog, vGextC, vGextF, nargout=1)
-	print(len(struct))
-	eng = start_engine()
 	if step == None:
 		for i in range(len(struct)):
 			print("Showing structure from ", file_name[i])
