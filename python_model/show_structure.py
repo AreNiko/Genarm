@@ -39,25 +39,34 @@ def get_struct(folder, test_number, step=None):
 		return structs, file_name
 	else:
 		with open(desti, "rb+") as fp:
-			struct = pickle.load(fp)
+			struct = pickle.load(fp)[0]
 		return struct, 0
 
 def runstuff(folder, test_number, step=None):
 	#desti = folder+"/"+test_number+"-"+step+".txt"
 	struct, file_name = get_struct(folder, test_number, step)
+
+	structog, vGextC, vGextF, vGstayOff = eng.get_struct2(nargout=4)
+	#structog, _, vGextC, vGextF, vGstayOff = eng.get_struct3(nargout=5)
+	og_maxbending = eng.check_max_bend(structog, vGextC, vGextF, nargout=1)
 	print(len(struct))
 	eng = start_engine()
 	if step == None:
 		for i in range(len(struct)):
 			print("Showing structure from ", file_name[i])
+			structi = convert_to_matlabint8(struct[i])
 			eng.clf(nargout=0)
-			eng.plotVg_safe(convert_to_matlabint8(struct[i]), 'edgeOff', 'col',collist, nargout=0)
+			eng.plotVg_safe(structi, 'edgeOff', 'col',collist, nargout=0)
+			new_bend = eng.check_max_bend(structi, vGextC, vGextF, nargout=1)
+			print(og_maxbending, " / ", new_bend)
 			print('Press enter to close')
 			input()
 	else:
 		print("Showing structure from " + desti)
 		eng.clf(nargout=0)
-		eng.plotVg_safe(convert_to_matlabint8(struct[0]), 'edgeOff', 'col',collist, nargout=0)
+		eng.plotVg_safe(convert_to_matlabint8(struct), 'edgeOff', 'col',collist, nargout=0)
+		new_bend = eng.check_max_bend(convert_to_matlabint8(struct), vGextC, vGextF, nargout=1)
+		print(og_maxbending, " / ", new_bend)
 		print('Press enter to close')
 		input()
 
