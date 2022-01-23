@@ -52,14 +52,14 @@ def runstuff(folder, test_number, step=None):
 	#structog, _, vGextC, vGextF, vGstayOff = eng.get_struct3(nargout=5)
 	og_maxbending = eng.check_max_bend(structog, vGextC, vGextF, nargout=1)
 
-	eng.figure(1, nargout=0)
+	eng.figure(matlab.int8(1), nargout=0)
 	eng.clf(nargout=0)
 	eng.plotVg_safe(structog, 'edgeOff', 'col',collist, nargout=0)
 	if step == None:
 		for i in range(len(struct)):
 			print("Showing structure from ", file_name[i])
 			structi = convert_to_matlabint8(struct[i])
-			eng.figure(2, nargout=0)
+			eng.figure(matlab.int8(2), nargout=0)
 			eng.clf(nargout=0)
 			eng.plotVg_safe(structi, 'edgeOff', 'col',collist, nargout=0)
 			new_bend = eng.check_max_bend(structi, vGextC, vGextF, nargout=1)
