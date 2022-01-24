@@ -78,7 +78,7 @@ def description(loc):
 	description.close()
 	print("Description has been saved to: " + loc + "experiment_description.txt")
 
-def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True):
+def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, model_type=2):
 
 	# Construct model and measurements
 	collist = matlab.double([0, 0.68, 0.7647])
@@ -119,7 +119,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True):
 		eng.plotVg_safe(structog, 'edgeOff', nargout=0)
 
 	else:
-		path = os.path.abspath(os.getcwd()) + "/data/reinforce_all/004" 
+		path = os.path.abspath(os.getcwd()) + "/data/reinforce_all/005" 
 		new_dataset = tf.data.experimental.load(path)
 		data_size = tf.data.experimental.cardinality(new_dataset).numpy()
 		new_dataset = new_dataset.batch(batch_size)
@@ -139,8 +139,14 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True):
 			(xF,yF,zF) = structF[0].numpy().shape
 			(xoff,yoff,zoff) = stayoff[0].numpy().shape
 	#dims = tf.stack([, (xC,yC,zC), (xF,yF,zF), (xoff,yoff,zoff)])
-	#model = gen_model.ConvModel3D((xstruct,ystruct,zstruct), (xC,yC,zC), (xF,yF,zF), (xoff,yoff,zoff))
-	model = gen_model.ConvStructModel3D((xstruct,ystruct,zstruct, 4))
+
+	if model_type == 0:
+		model = gen_model.Model3D((xstruct,ystruct,zstruct))
+	elif model_type == 1:
+		model = gen_model.ConvModel3D((xstruct,ystruct,zstruct), (xC,yC,zC), (xF,yF,zF), (xoff,yoff,zoff))
+	else:
+		model = gen_model.ConvStructModel3D((xstruct,ystruct,zstruct, 4))
+
 	optimizer = get_optimizer()
 	mse = losses.MeanSquaredError()
 	train_loss = metrics.Mean()
@@ -157,11 +163,16 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True):
 			3D matrix [batch_size, height, width, depth] with probabilties
 		"""
 		#m = tf.Variable(0.5)
+		
+
 		inpus = tf.stack([struct, structC, structF, stayoff], axis=4)
 		with tf.GradientTape() as g:
-
-			#new_struct = model([struct, structC, structF, stayoff], training=istrain)
-			new_struct = model(inpus, training=istrain)
+			if model_type == 0:
+				new_struct = model(struct, training=istrain)
+			elif model_type == 1:
+				new_struct = model([struct, structC, structF, stayoff], training=istrain)
+			else:
+				new_struct = model(inpus, training=istrain)
 			
 			# Calculate loss and accuracy of prediction
 			loss = custom_loss_function(true_struct, new_struct, struct)
@@ -234,14 +245,16 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True):
 		#loss = tf.reduce_sum(new_struct) - tf.reduce_sum(struct)
 		loss = tf.math.multiply(tf.reduce_sum(E2) - tf.reduce_sum(E1),tf.reduce_sum(N2) - tf.reduce_sum(N1))
 		return loss
-	os.makedirs(os.path.dirname("models/" + test_number + "/"), exist_ok=True)
-	os.makedirs(os.path.dirname("results/" + test_number + "/"), exist_ok=True)
-	checkpoint_path = "training_reinforce_all2/" + test_number + "/cp-{epoch:04d}.ckpt"
+
+	model_folder = "models_" + str(model_type) + "/"
+	result_folder = "results_" + str(model_type) + "/"
+	os.makedirs(os.path.dirname(model_folder + test_number + "/"), exist_ok=True)
+	os.makedirs(os.path.dirname(result_folder + test_number + "/"), exist_ok=True)
+	checkpoint_path = model_folder + "checkpoints/" + test_number + "/cp-{epoch:04d}.ckpt"
 	checkpoint_dir = os.path.dirname(checkpoint_path)
 	cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
                                                  save_weights_only=True,
                                                  verbose=1)
-	#description("results/" + test_number + "/")		# Saves a text file with the results that describes their purpose
 
 	avg_diff_vals = []
 	avg_loss_vals = []
@@ -256,64 +269,31 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True):
 	step = 0
 	step_val = 0
 	saved_progress = 0
-	"""
-	if continue_train:
-		try:
-			step_loss_vals = get_data("results/" + test_number + "/step_loss.txt")
-			step_diff_vals = get_data("results/" + test_number + "/step_diff.txt")
-			step = step_loss_vals[-1][0]+1
-		except:
-			print("No training stepwise measurement file in results/" + test_number + " found")
-		try:
-			avg_loss_vals = get_data("results/" + test_number + "/avg_train_loss.txt")
-			avg_diff_vals = get_data("results/" + test_number + "/avg_train_diff.txt")
-			saved_progress = avg_loss_vals[-1][0]+1
-		except:
-			print("No training average measurement file in results/" + test_number + " found")
-		
-		try:
-			step_val_loss_vals = get_data("results/" + test_number + "/step_val_loss.txt")
-			step_val_diff_vals = get_data("results/" + test_number + "/step_val_diff.txt")
-			step = step_val_loss_vals[-1][0]+1
-		except:
-			print("No validation stepwise measurement file in results/" + test_number + " found")
-		try:		
-			avg_val_loss_vals = get_data("results/" + test_number + "/avg_val_loss.txt")
-			avg_val_diff_vals = get_data("results/" + test_number + "/avg_val_diff.txt")
 
-		except:
-			print("No validation average measurement file in results/" + test_number + " found")
-
-		try:
-			latest = tf.train.latest_checkpoint(checkpoint_dir)
-			model.load_weights(latest)
-		except AttributeError:
-			print("No previously saved weights")
-	"""
 	if continue_train:
-		step_loss_vals = get_data("results/", test_number, "/step_loss.txt")
-		step_diff_vals = get_data("results/", test_number, "/step_diff.txt")
+		step_loss_vals = get_data(result_folder, test_number, "/step_loss.txt")
+		step_diff_vals = get_data(result_folder, test_number, "/step_diff.txt")
 		if step_loss_vals:
 			step = step_loss_vals[-1][0]+1
 		else:
 			step = 0
 
-		avg_loss_vals = get_data("results/", test_number, "/avg_train_loss.txt")
-		avg_diff_vals = get_data("results/", test_number, "/avg_train_diff.txt")
+		avg_loss_vals = get_data(result_folder, test_number, "/avg_train_loss.txt")
+		avg_diff_vals = get_data(result_folder, test_number, "/avg_train_diff.txt")
 		if avg_loss_vals:		
 			saved_progress = avg_loss_vals[-1][0]+1
 		else:
 			saved_progress = 0
 		
-		step_val_loss_vals = get_data("results/", test_number, "/step_val_loss.txt")
-		step_val_diff_vals = get_data("results/", test_number, "/step_val_diff.txt")
+		step_val_loss_vals = get_data(result_folder, test_number, "/step_val_loss.txt")
+		step_val_diff_vals = get_data(result_folder, test_number, "/step_val_diff.txt")
 		if step_val_loss_vals:
 			step = step_val_loss_vals[-1][0]+1
 		else:
 			step = 0
 			
-		avg_val_loss_vals = get_data("results/", test_number, "/avg_val_loss.txt")
-		avg_val_diff_vals = get_data("results/", test_number, "/avg_val_diff.txt")
+		avg_val_loss_vals = get_data(result_folder, test_number, "/avg_val_loss.txt")
+		avg_val_diff_vals = get_data(result_folder, test_number, "/avg_val_diff.txt")
 
 		try:
 			latest = tf.train.latest_checkpoint(checkpoint_dir)
@@ -408,9 +388,9 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True):
 				
 				if step % summary_interval_step == 0:
 					#print("Training step: %d" % step)
-					with open("results/" + test_number + "/step_loss.txt", "wb") as fp:
+					with open(result_folder + test_number + "/step_loss.txt", "wb") as fp:
 						pickle.dump(step_loss_vals, fp)
-					with open("results/" + test_number + "/step_diff.txt", "wb") as fp:
+					with open(result_folder + test_number + "/step_diff.txt", "wb") as fp:
 						pickle.dump(step_diff_vals, fp)
 					model.save_weights(checkpoint_path.format(epoch=epoch))
 					#print("Epoch %3d. step %3d. Training loss: %f" % (epoch, step, train_loss.result().numpy()))
@@ -427,13 +407,13 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True):
 			#print("Avg Training tol: %f", avg_tol/len(tol_list))
 			print("Avg Training Difference: %d | Avg Train loss: %f" % (avg_diff, avg_loss))
 			
-			with open("results/" + test_number + "/step_loss.txt", "wb") as fp:
+			with open(result_folder + test_number + "/step_loss.txt", "wb") as fp:
 				pickle.dump(step_loss_vals, fp)
-			with open("results/" + test_number + "/step_diff.txt", "wb") as fp:
+			with open(result_folder + test_number + "/step_diff.txt", "wb") as fp:
 				pickle.dump(step_diff_vals, fp)
-			with open("results/" + test_number + "/avg_train_loss.txt", "wb") as fp:
+			with open(result_folder + test_number + "/avg_train_loss.txt", "wb") as fp:
 				pickle.dump(avg_loss_vals, fp)
-			with open("results/" + test_number + "/avg_train_diff.txt", "wb") as fp:
+			with open(result_folder + test_number + "/avg_train_diff.txt", "wb") as fp:
 				pickle.dump(avg_diff_vals, fp)
 			
 			# summaries to terminal
@@ -488,9 +468,9 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True):
 				#eng.plotVg_safe(matlab.int8(np.int8(np.ceil(out)).tolist()), 'edgeOff', 'col',collist, nargout=0)
 			
 				if step_val % summary_interval_step == 0:
-					with open("results/" + test_number + "/step_val_loss.txt", "wb") as fp:
+					with open(result_folder + test_number + "/step_val_loss.txt", "wb") as fp:
 						pickle.dump(step_val_loss_vals, fp)
-					with open("results/" + test_number + "/step_val_diff.txt", "wb") as fp:
+					with open(result_folder + test_number + "/step_val_diff.txt", "wb") as fp:
 						pickle.dump(step_val_diff_vals, fp)
 
 				datlen_val += 1
@@ -503,13 +483,13 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True):
 			avg_val_diff_vals.append([epoch, avg_val_diff])
 			avg_loss_vals.append([epoch, avg_val_loss])
 			
-			with open("results/" + test_number + "/step_val_loss.txt", "wb") as fp:
+			with open(result_folder + test_number + "/step_val_loss.txt", "wb") as fp:
 				pickle.dump(step_val_loss_vals, fp)
-			with open("results/" + test_number + "/step_val_diff.txt", "wb") as fp:
+			with open(result_folder + test_number + "/step_val_diff.txt", "wb") as fp:
 				pickle.dump(step_val_diff_vals, fp)
-			with open("results/" + test_number + "/avg_val_loss.txt", "wb") as fp:
+			with open(result_folder + test_number + "/avg_val_loss.txt", "wb") as fp:
 				pickle.dump(avg_val_loss_vals, fp)
-			with open("results/" + test_number + "/avg_val_diff.txt", "wb") as fp:
+			with open(result_folder + test_number + "/avg_val_diff.txt", "wb") as fp:
 				pickle.dump(avg_val_diff_vals, fp)
 
 			print("Avg Validation Difference: %d | Avg Validation loss: %f | Avg Validation tol: %f" % (avg_val_diff, avg_val_loss, avg_tol_val))		
@@ -525,7 +505,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True):
 		input("Press Enter to continue...")
 
 	print("Training and validation have completed.")
-	model.save("models/" + test_number + "/Genmodel")
+	model.save(model_folder + test_number + "/Genmodel")
 
 def parse_args():
 	"""Parse command line argument."""
@@ -539,4 +519,9 @@ if __name__ == '__main__':
 	args = parse_args()
 	use_pre_struct  = False
 	continue_train 	= True
-	runstuff(args.train_dir, args.test_number, use_pre_struct, continue_train)
+	print("Select Model type:")
+	print("Select 0 for single input only structure matrix")
+	print("Select 1 for multiple input of all matrix types")
+	print("Select 2 for single input with all matrix types")
+	model_type = int(input())
+	runstuff(args.train_dir, args.test_number, use_pre_struct, continue_train, model_type)

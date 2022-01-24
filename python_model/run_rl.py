@@ -74,8 +74,8 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 			for _ in range(action_repeat):
 				t += 1
 				logits_tol = logits.numpy()
-				logits_tol[logits_tol <= 0.1] = 0
-				logits_tol[logits_tol > 0.1] = 1
+				logits_tol[logits_tol <= 0.05] = 0
+				logits_tol[logits_tol > 0.05] = 1
 				observation = tf.stack([tf.convert_to_tensor(logits_tol), structC, structF, stayoff], axis=4)
 
 				if np.sum(logits_tol) == 0:
@@ -85,14 +85,14 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 					try:
 						#eng.clf(nargout=0)
 						#eng.plotVg_safe(convert_to_matlabint8(logits_tol[0]), 'edgeOff', 'col',collist, nargout=0)
-						new_bend = eng.check_max_bend(convert_to_matlabint8(logits_tol[0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]), nargout=1)
+						new_bend, comps = eng.check_max_bend(convert_to_matlabint8(logits_tol[0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]), nargout=1)
 						if new_bend == 0 or np.isnan(new_bend) or np.isinf(new_bend):
 							new_bend = 100.0
 
 						vox_diff = np.abs(np.sum(og_struct.numpy() - logits_tol))
 						bend_diff = og_bend/new_bend
 						
-						reward = 100*bend_diff - vox_diff/100
+						reward = 100*bend_diff - (vox_diff/100 + 1000*comps)
 						print("old vs new bending: ", og_bend, "/", new_bend)
 						print("Difference in voxels: ", vox_diff)
 						if best_reward < reward:
@@ -362,8 +362,8 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 
 			for _ in range(action_repeat):
 				logits_tol = logits.numpy()
-				logits_tol[logits_tol <= 0.1] = 0
-				logits_tol[logits_tol > 0.1] = 1
+				logits_tol[logits_tol <= 0.05] = 0
+				logits_tol[logits_tol > 0.05] = 1
 				observation = tf.stack([tf.convert_to_tensor(logits_tol), structC, structF, stayoff], axis=4)
 				done = False
 				if np.sum(logits_tol) == 0:
@@ -374,14 +374,15 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 					try:
 						#eng.clf(nargout=0)
 						#eng.plotVg_safe(convert_to_matlabint8(logits_tol[0]), 'edgeOff', 'col',collist, nargout=0)
-						new_bend = eng.check_max_bend(convert_to_matlabint8(logits_tol[0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]), nargout=1)
+						new_bend, comps = eng.check_max_bend(convert_to_matlabint8(logits_tol[0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]), nargout=1)
+						
 						if new_bend == 0 or np.isnan(new_bend):
 							new_bend = 100.0
 
 						vox_diff = np.abs(np.sum(og_struct.numpy() - logits_tol))
 						bend_diff = og_bend/new_bend
 						
-						r = 100*bend_diff - vox_diff/100
+						r = 100*bend_diff - (vox_diff/100 + 1000*comps)
 						#print("old vs new bending: ", og_bend, "/", new_bend)
 						#print("Difference in voxels: ", vox_diff)
 						
