@@ -83,10 +83,20 @@ if __name__ == '__main__':
 
 		file_name = "/step_loss.txt"
 		file_name2 = "/step_diff.txt"
-		steploss = get_data(folder + file_name1)
-		stepdiff = get_data(folder + file_name2)
+		steploss = get_data(folder_0 + file_name1)
+		stepdiff = get_data(folder_0 + file_name2)
 		plot_results(steploss, "Training Stepwise Loss", 1, legds, True, True)
 		plot_results(stepdiff, "Training Stepwise Differences", 2, legds, True)
+
+		steploss2 = get_data(folder_1 + file_name1)
+		stepdiff2 = get_data(folder_1 + file_name2)
+		plot_results(steploss2, "Training Stepwise Loss", 1, legds, True, True)
+		plot_results(stepdiff2, "Training Stepwise Differences", 2, legds, True)
+
+		steploss3 = get_data(folder_0 + file_name1)
+		stepdiff3 = get_data(folder_0 + file_name2)
+		plot_results(steploss3, "Training Stepwise Loss", 1, legds, True, True)
+		plot_results(stepdiff3, "Training Stepwise Differences", 2, legds, True)
 	else:
 		folder = "test_results/"
 		file_name1 = "/generative_loss.txt"
