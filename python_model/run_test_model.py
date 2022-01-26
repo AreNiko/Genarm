@@ -60,7 +60,7 @@ def custom_loss_function(true_struct, new_struct, struct):
 def convert_to_matlabint8(inarr):
 	return matlab.int8(np.int8(np.ceil(inarr)).tolist())
 
-def runstuff(train_dir, test_number):
+def runstuff(train_dir, test_number, model_type=2):
 	# Construct model and measurements
 	collist = matlab.double([0, 0.68, 0.7647])
 	batch_size = 1
@@ -122,7 +122,12 @@ def runstuff(train_dir, test_number):
 		print("No trained weights to test on")
 	"""
 
-	model = tf.keras.models.load_model('models/' + test_number + '/Genmodel')
+	if model_type == 0:
+		model = tf.keras.models.load_model('models_0/' + test_number + '/Genmodel')
+	elif model_type == 1:
+		model = tf.keras.models.load_model('models_1/' + test_number + '/Genmodel')
+	else:
+		model = tf.keras.models.load_model('models_2/' + test_number + '/Genmodel')
 
 	def bend_function(struct, vGextC, vGextF):
 		sE, dN = eng.Struct_bend(convert_to_matlabint8(struct[0]), convert_to_matlabint8(vGextC[0]), convert_to_matlabint8(vGextF[0]), nargout=2)
@@ -146,8 +151,15 @@ def runstuff(train_dir, test_number):
 		print('Original max bending: %f | sum bending: %f' % (lossog[0], lossog[1])) 
 		for epoch in range(300):
 			print("Epoch: ", epoch)
-			inpus = tf.stack([struct, structC, structF, structOff], axis=4)
-			new_struct = model(inpus, training=False)
+			
+			
+			if model_type == 0:
+				new_struct = model(struct, training=False)
+			elif model_type == 1:
+				new_struct = model(struct, structC, structF, structOff, training=False)
+			else:
+				inpus = tf.stack([struct, structC, structF, structOff], axis=4)
+				new_struct = model(inpus, training=False)
 			
 			# Trains model on structures with a truth structure created from
 			# The direct stiffness method and shifted vox
@@ -195,4 +207,5 @@ def parse_args():
 
 if __name__ == '__main__':
 	args = parse_args()
-	runstuff(args.train_dir, args.test_number)
+	model_type = 0
+	runstuff(args.train_dir, args.test_number, model_type)
