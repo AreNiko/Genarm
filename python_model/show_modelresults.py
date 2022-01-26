@@ -81,7 +81,7 @@ if __name__ == '__main__':
 		folder_1 = "results_1/" + args.test_number
 		folder_2 = "results_2/" + args.test_number
 
-		file_name = "/step_loss.txt"
+		file_name1 = "/step_loss.txt"
 		file_name2 = "/step_diff.txt"
 		steploss = get_data(folder_0 + file_name1)
 		stepdiff = get_data(folder_0 + file_name2)
