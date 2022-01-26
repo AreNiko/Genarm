@@ -5,7 +5,7 @@ function [sE, dN] = Struct_bend(vG, vGextC, vGextF)
     extC = vGextC2extC(vGextC,vG);
     extF = vGextF2extF(vGextF,vG);
 
-    extF = extF.* [0 10 0];
+    extF = extF.* [0 100 0];
 
     extC(:,3) = 0;
 
