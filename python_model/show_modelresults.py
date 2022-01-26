@@ -93,8 +93,8 @@ if __name__ == '__main__':
 		plot_results(steploss2, "Training Stepwise Loss", 1, legds, True, True)
 		plot_results(stepdiff2, "Training Stepwise Differences", 2, legds, True)
 
-		steploss3 = get_data(folder_0 + file_name1)
-		stepdiff3 = get_data(folder_0 + file_name2)
+		steploss3 = get_data(folder_2 + file_name1)
+		stepdiff3 = get_data(folder_2 + file_name2)
 		plot_results(steploss3, "Training Stepwise Loss", 1, legds, True, True)
 		plot_results(stepdiff3, "Training Stepwise Differences", 2, legds, True)
 	else:
