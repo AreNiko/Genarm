@@ -523,5 +523,6 @@ if __name__ == '__main__':
 	print("Select 0 for single input only structure matrix")
 	print("Select 1 for multiple input of all matrix types")
 	print("Select 2 for single input with all matrix types")
-	model_type = int(input())
+	#model_type = int(input())
+	model_type = 2
 	runstuff(args.train_dir, args.test_number, use_pre_struct, continue_train, model_type)
