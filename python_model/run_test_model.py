@@ -181,13 +181,13 @@ def runstuff(train_dir, test_number, model_type=2):
 			eng.saveFigToAnimGif('3Dconvoxnet_testing' + test_number + '.gif', epoch==0, nargout=0)
 			struct = out
 	
-	with open("test_results/" + test_number + "/3Dconvmodel_loss.txt", "wb") as fp:
+	with open("test_results/" + "model" + str(model_type) + "_" + test_number + "/3Dconvmodel_loss.txt", "wb") as fp:
 		pickle.dump(test_results, fp)
-	with open("test_results/" + test_number + "/generative_loss.txt", "wb") as fp:
+	with open("test_results/" + "model" + str(model_type) + "_" + test_number + "/generative_loss.txt", "wb") as fp:
 		pickle.dump(compare_results, fp)
-	with open("test_results/" + test_number + "/3Dconv_structures.txt", "wb") as fp:
+	with open("test_results/" + "model" + str(model_type) + "_" + test_number + "/3Dconv_structures.txt", "wb") as fp:
 		pickle.dump([ogtruct[0].numpy(),out[0]], fp)
-	with open("test_results/" + test_number + "/generative_structures.txt", "wb") as fp:
+	with open("test_results/" + "model" + str(model_type) + "_" + test_number + "/generative_structures.txt", "wb") as fp:
 		pickle.dump([ogtruct[0].numpy(),np.array(structog)], fp)
 
 	print('Original max bending: %f | sum bending: %f' % (lossog[0], lossog[1])) 
