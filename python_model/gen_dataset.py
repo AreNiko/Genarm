@@ -18,7 +18,7 @@ def gen_data():
 
 	#path = "C:/Users/nikol/Documents/thesis/genarm/python_model/data/reinforce1"
 
-	path = os.path.abspath(os.getcwd()) + "/data/reinforce_all/005"
+	path = os.path.abspath(os.getcwd()) + "/data/reinforce_all/006_sf" # _sf = start&finish, _step = start-finish
 
 	
 	datasize = 500
