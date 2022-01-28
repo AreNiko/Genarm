@@ -7,8 +7,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import pickle
-import matlab
-import matlab.engine
 
 import tensorflow as tf
 from tensorflow.keras import losses, metrics, optimizers, layers, Sequential
@@ -89,14 +87,19 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, m
 	layers.RandomRotation(0.25)
 	])
 
-	names = matlab.engine.find_matlab()
-	#print(names)
-	if not names:
-		eng = matlab.engine.start_matlab()
-	else:
-		eng = matlab.engine.connect_matlab(names[0])
+	
 
 	if use_pre_struct:
+		import matlab
+		import matlab.engine
+		
+		names = matlab.engine.find_matlab()
+		#print(names)
+		if not names:
+			eng = matlab.engine.start_matlab()
+		else:
+			eng = matlab.engine.connect_matlab(names[0])
+
 		structog, vGextC, vGextF, vGstayOff = eng.get_struct2(nargout=4)
 		
 		struct = np.array(structog)
@@ -188,63 +191,6 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, m
 			val_loss.update_state(loss)
 
 		return new_struct, grad
-
-	def train_matlab(struct, extC, extF, stayoff):
-		"""Updates model parameters, as well as `train_loss` and `train_accuracy`
-		Args:
-			3D matrix: float tensor of shape [batch_size, height, width, depth]
-
-		Returns:
-			3D matrix [batch_size, height, width, depth] with probabilties
-		"""
-
-		with tf.GradientTape() as g:
-
-			new_struct = model([struct, extC, extF, stayoff], training=True)
-			
-			# Calculate loss and accuracy of prediction
-			loss = truss_loss_function(new_struct, struct, extF, extC)
-
-		grad = g.gradient(loss, model.trainable_weights)
-		# Calculate gradient and update model
-		optimizer.apply_gradients(zip(grad, model.trainable_weights))
-		
-		# Update loss
-		train_loss.update_state(loss)
-
-		return new_struct
-
-	def truss_loss_function(new_struct, struct, extF, extC):
-		# Apply direct stiffness method as loss function
-		#sE, dN = eng.Struct_bend(matlab.int8(np.int8(np.ceil(new_struct[0])).tolist()), extC, extF, nargout=2)
-		#sE2, dN2 = eng.Struct_bend(matlab.int8(np.int8(np.ceil(struct[0])).tolist()), extC, extF, nargout=2)
-
-		E1,N1 = vox2mesh18(new_struct)
-		#radius = 0.003
-		#E1[:,2] = np.pi*radius**2
-
-		#extC1 = vGextC2extC(extC,new_struct[0])
-		#extF1 = vGextF2extF(extF,new_struct[0])
-		#extF1 = extF1*np.array([0, 1, 0])
-		#extC1[:,2] = 0
-		
-		#sE, dN = FEM_truss(E1,N1,extF1,extC1)
-		#print(np.array(dN).max())
-		E2,N2 = vox2mesh18(struct)
-		#E2[:,2] = np.pi*radius**2
-	
-		#extC2 = vGextC2extC(extC,struct[0])
-		#extF2 = vGextF2extF(extF,struct[0])
-		#extF2 = extF2*np.array([0, 1, 0])
-		#extC2[:,2] = 0
-		
-		#sE2, dN2 = FEM_truss(E2,N2,extF2,extC2)
-		
-		#print(np.array(dN2).max())
-		#loss = (np.array(dN2).max()-np.array(dN).max())*tf.losses.mean_squared_error(np.array(new_struct), np.array(struct))
-		#loss = tf.reduce_sum(new_struct) - tf.reduce_sum(struct)
-		loss = tf.math.multiply(tf.reduce_sum(E2) - tf.reduce_sum(E1),tf.reduce_sum(N2) - tf.reduce_sum(N1))
-		return loss
 
 	model_folder = "models_" + str(model_type) + "/"
 	result_folder = "results_" + str(model_type) + "/"
@@ -371,13 +317,6 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, m
 					
 				print("Step: %d | Training Difference: %d | Train loss: %f | Current tol: %.2f" % (step, check_diff, train_loss.result().numpy(), current_tol))	
 				#print("Step: %d | Training Difference: %d | Train loss: %f " % (step, check_diff, train_loss.result().numpy()))	
-				# Plots the current output with the best tolerance
-				#eng.clf(nargout=0)
-				#eng.plotVg_safe(matlab.int8(np.int8(np.ceil(out)).tolist()), 'edgeOff', 'col',collist, nargout=0)
-				#eng.saveFigToAnimGif('/animations/3Dconvoxnet_training.gif', step==1, nargout=0)
-
-				#sE, dN = eng.Struct_bend(convert_to_matlabint8(out), convert_to_matlabint8(structC), convert_to_matlabint8(structF), nargout=2)
-				#print("Max bend: " + np.max(np.array(dN)))
 
 				# Records the tolerance and the stepwise measurements
 				avg_diff += check_diff 
@@ -462,10 +401,6 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, m
 				step_val_loss_vals.append([step_val, val_loss.result().numpy()])
 					
 				print("Step: %d | Validation Difference: %d | Validation loss: %f | Current tol: %.2f" % (step_val, check_diff, val_loss.result().numpy(), current_tol))
-
-				# Plots the current output with the best tolerance
-				#eng.clf(nargout=0)
-				#eng.plotVg_safe(matlab.int8(np.int8(np.ceil(out)).tolist()), 'edgeOff', 'col',collist, nargout=0)
 			
 				if step_val % summary_interval_step == 0:
 					with open(result_folder + test_number + "/step_val_loss.txt", "wb") as fp:
