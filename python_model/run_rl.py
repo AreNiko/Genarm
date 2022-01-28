@@ -53,6 +53,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 	og_bend = eng.check_max_bend(convert_to_matlabint8(obser[0,:,:,:,0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]))
 	scores = []
 	best_reward = -1000000000
+	best_struct = og_struct
 
 	print("Evaluating Agent:")
 	for i in range(eval_episodes):

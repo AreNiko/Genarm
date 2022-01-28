@@ -119,7 +119,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, m
 		eng.plotVg_safe(structog, 'edgeOff', nargout=0)
 
 	else:
-		path = os.path.abspath(os.getcwd()) + "/data/reinforce_all/005" 
+		path = os.path.abspath(os.getcwd()) + "/data/reinforce_all/004" 
 		new_dataset = tf.data.experimental.load(path)
 		data_size = tf.data.experimental.cardinality(new_dataset).numpy()
 		new_dataset = new_dataset.batch(batch_size)

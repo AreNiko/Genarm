@@ -28,7 +28,7 @@ def gen_data():
 	struct1F_list = []
 	struct1off_list = []
 	collist = matlab.double([0, 0.68, 0.7647])
-	for i in range(500):
+	for i in range(100):
 		print(i)
 		radii = np.random.randint(10, 14)
 		wrist_rad = radii - np.random.randint(1, 3)
