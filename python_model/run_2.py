@@ -79,7 +79,7 @@ def description(loc):
 def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, model_type=2):
 
 	# Construct model and measurements
-	collist = matlab.double([0, 0.68, 0.7647])
+	
 	batch_size = 1
 
 	trainAug = Sequential([
@@ -87,12 +87,11 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, m
 	layers.RandomRotation(0.25)
 	])
 
-	
-
 	if use_pre_struct:
 		import matlab
 		import matlab.engine
 		
+		collist = matlab.double([0, 0.68, 0.7647])
 		names = matlab.engine.find_matlab()
 		#print(names)
 		if not names:
