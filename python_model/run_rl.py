@@ -368,14 +368,14 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 				observation = tf.stack([tf.convert_to_tensor(logits_tol), structC, structF, stayoff], axis=4)
 				done = False
 				if np.sum(logits_tol) == 0:
-					r = -10.0
+					r = -1000.0
 					done = True
 					reward = reward + r
 				else:
 					try:
 						#eng.clf(nargout=0)
 						#eng.plotVg_safe(convert_to_matlabint8(logits_tol[0]), 'edgeOff', 'col',collist, nargout=0)
-						new_bend, comps = eng.check_max_bend(convert_to_matlabint8(logits_tol[0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]), nargout=1)
+						new_bend, comps = eng.check_max_bend(convert_to_matlabint8(logits_tol[0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]), nargout=2)
 						
 						if new_bend == 0 or np.isnan(new_bend):
 							new_bend = 100.0
@@ -383,12 +383,13 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						vox_diff = np.abs(np.sum(og_struct.numpy() - logits_tol))
 						bend_diff = og_bend/new_bend
 						
-						r = 100*bend_diff - (vox_diff/100 + 1000*comps)
+						r = 100*bend_diff - (vox_diff/100 + 10*comps)
 						#print("old vs new bending: ", og_bend, "/", new_bend)
 						#print("Difference in voxels: ", vox_diff)
 						
 					except:
-						r = -10.0
+						comps = eng.check_components(convert_to_matlabint8(logits_tol[0]), nargout=1)
+						r = -10.0*comps
 						#done = True
 					reward = reward + r
 					

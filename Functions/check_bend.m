@@ -6,7 +6,7 @@ function [sE, dN] = check_bend(vG, vGextC, vGextF)
     extC = vGextC2extC(vGextC,vG);
     extF = vGextF2extF(vGextF,vG);
 
-    extF = extF.* [0 1 0];
+    extF = extF.* [0 100 0];
     
     extC(:,3) = 0;
 
