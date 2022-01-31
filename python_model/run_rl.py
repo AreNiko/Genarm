@@ -96,13 +96,14 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 						reward = 100*bend_diff - (vox_diff/100 + 10*comps)
 						print("old vs new bending: ", og_bend, "/", new_bend)
 						print("Difference in voxels: ", vox_diff)
-						if best_reward < reward or best_reward is None:
-							best_struct = logits_tol
+						
 					except:
 						comps = eng.check_components(convert_to_matlabint8(logits_tol[0]), nargout=1)
 						r = -100.0*comps
 						#done = True
-				
+						
+				if best_reward < reward or best_reward is None:
+					best_struct = logits_tol
 				rewards.append(reward)
 				print(reward)
 
