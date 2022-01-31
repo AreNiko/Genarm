@@ -80,7 +80,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 				observation = tf.stack([tf.convert_to_tensor(logits_tol), structC, structF, stayoff], axis=4)
 
 				if np.sum(logits_tol) == 0:
-					reward = -10.0
+					reward = -1000.0
 					done = True
 				else:
 					try:
@@ -99,7 +99,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 						if best_reward < reward:
 							best_struct = logits_tol
 					except:
-						reward = -10.0
+						reward = -1000.0
 						#done = True
 					
 					if done:
@@ -389,7 +389,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						
 					except:
 						comps = eng.check_components(convert_to_matlabint8(logits_tol[0]), nargout=1)
-						r = -10.0*comps
+						r = -500.0
 						#done = True
 					reward = reward + r
 					
@@ -443,7 +443,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	os.makedirs("results_structures/", exist_ok=True)
 
 	iterations = 500
-	epoch_range = 50
+	epoch_range = 20
 	K = 3
 	num_episodes = 12#2 #8
 	maxlen_environment = 20
