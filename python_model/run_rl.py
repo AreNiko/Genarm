@@ -387,7 +387,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 
 						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(logits_tol))
 						bend_diff = og_bend/new_bend
-						
+						print(new_bend, vox_diff)
 						r = 100*bend_diff - (vox_diff/100 + 10*comps)
 						#print("old vs new bending: ", og_bend, "/", new_bend)
 						#print("Difference in voxels: ", vox_diff)
