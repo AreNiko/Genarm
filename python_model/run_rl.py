@@ -61,7 +61,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 		observation = obser
 		rewards = []
 		observations = []
-
+		reward = 0
 		t = 0
 		done = False
 		while True:
@@ -101,7 +101,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 						comps = eng.check_components(convert_to_matlabint8(logits_tol[0]), nargout=1)
 						r = -100.0*comps
 						#done = True
-						
+
 				if best_reward < reward or best_reward is None:
 					best_struct = logits_tol
 				rewards.append(reward)
@@ -452,7 +452,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	epoch_range = 20
 	K = 3
 	num_episodes = 12#2 #8
-	maxlen_environment = 20
+	maxlen_environment = 10
 	action_repeat = 1
 	maxlen = maxlen_environment // action_repeat # max number of actions
 	batch_size = 1
