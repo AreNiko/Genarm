@@ -93,13 +93,13 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(logits_tol))
 						bend_diff = og_bend/new_bend
 						
-						reward = 100*bend_diff - (vox_diff/100 + 10*comps)
+						reward = 100*bend_diff - (vox_diff/100 + 100*comps)
 						print("old vs new bending: ", og_bend, "/", new_bend)
 						print("Difference in voxels: ", vox_diff)
 						
 					except:
 						comps = eng.check_components(convert_to_matlabint8(logits_tol[0]), nargout=1)
-						r = -100.0*comps
+						reward = -100.0*comps
 						#done = True
 
 				if best_reward < reward or best_reward is None:
@@ -387,8 +387,8 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 
 						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(logits_tol))
 						bend_diff = og_bend/new_bend
-						print(new_bend, vox_diff)
-						r = 100*bend_diff - (vox_diff/100 + 10*comps)
+						print(new_bend, vox_diff, comps)
+						r = 100*bend_diff - (vox_diff/100 + 100*comps)
 						#print("old vs new bending: ", og_bend, "/", new_bend)
 						#print("Difference in voxels: ", vox_diff)
 						
