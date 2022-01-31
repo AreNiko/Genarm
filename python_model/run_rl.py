@@ -53,7 +53,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 	og_bend = eng.check_max_bend(convert_to_matlabint8(obser[0,:,:,:,0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]))
 	scores = []
 	best_reward = -1000000000
-	best_struct = og_struct
+	best_struct = None
 
 	print("Evaluating Agent:")
 	for i in range(eval_episodes):
@@ -80,7 +80,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 				observation = tf.stack([tf.convert_to_tensor(logits_tol), structC, structF, stayoff], axis=4)
 
 				if np.sum(logits_tol) == 0:
-					reward = -1000.0
+					reward = -10000.0
 					done = True
 				else:
 					try:
@@ -93,21 +93,24 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 						vox_diff = np.abs(np.sum(og_struct.numpy() - logits_tol))
 						bend_diff = og_bend/new_bend
 						
-						reward = 100*bend_diff - (vox_diff/100 + 1000*comps)
+						reward = 100*bend_diff - (vox_diff/100 + 10*comps)
 						print("old vs new bending: ", og_bend, "/", new_bend)
 						print("Difference in voxels: ", vox_diff)
-						if best_reward < reward:
+						if best_reward < reward or best_reward is None:
 							best_struct = logits_tol
 					except:
-						reward = -1000.0
+						comps = eng.check_components(convert_to_matlabint8(logits_tol[0]), nargout=1)
+						r = -100.0*comps
 						#done = True
-					
-					if done:
-						break
-					if maxlen_environment >= 0 and t == maxlen_environment:
-						break
+				
 				rewards.append(reward)
 				print(reward)
+
+				if done:
+					break
+				if maxlen_environment >= 0 and t == maxlen_environment:
+					break
+				
 
 			if done:
 				print("Episode finished after {} timesteps".format(t+1))
@@ -368,9 +371,9 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 				observation = tf.stack([tf.convert_to_tensor(logits_tol), structC, structF, stayoff], axis=4)
 				done = False
 				if np.sum(logits_tol) == 0:
-					r = -1000.0
+					r = -10000.0
 					done = True
-					reward = reward + r
+
 				else:
 					try:
 						#eng.clf(nargout=0)
@@ -389,14 +392,16 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						
 					except:
 						comps = eng.check_components(convert_to_matlabint8(logits_tol[0]), nargout=1)
-						r = -500.0
+						r = -100.0*comps
 						#done = True
-					reward = reward + r
-					
-					if done:
-						break
-
+				reward = reward + r
+				
 				print(r, reward)
+
+				if done:
+					break
+
+				
 
 			episode.rewards.append(reward)
 			if done:
