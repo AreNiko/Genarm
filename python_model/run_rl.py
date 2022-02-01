@@ -521,7 +521,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	#os.makedirs(os.path.dirname("training_reinforcement/" + test_number + "/"), exist_ok=True)
 	checkpoint_path = base_dir + "/checkpoints/"
 	#checkpoint_path = os.path.dirname(checkpoint_path)
-	print(tf.config.threading.get_intra_op_parallelism_threads())
+	tf.config.threading.set_intra_op_parallelism_threads(13)
+	tf.config.threading.set_inter_op_parallelism_threads(13)
 	ckpt = tf.train.Checkpoint(
 		policy_network=policy_network,
 		value_network=value_network,
