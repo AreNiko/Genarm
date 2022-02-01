@@ -472,7 +472,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	c2 = 0.001 # entropy bonus weight
 
 	tf.config.threading.set_intra_op_parallelism_threads(NUM_THREADS)
-	#tf.config.threading.set_inter_op_parallelism_threads(NUM_THREADS)
+	tf.config.threading.set_inter_op_parallelism_threads(NUM_THREADS)
 
 	trainAug = Sequential([
 	layers.RandomFlip(mode="horizontal_and_vertical"),
