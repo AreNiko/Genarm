@@ -99,7 +99,8 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 						
 					except:
 						comps = eng.check_components(convert_to_matlabint8(logits_tol[0]), nargout=1)
-						reward = -100.0*(comps-1)
+						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(logits_tol))
+						reward = - (vox_diff/100 + 100*(comps-1))
 						#done = True
 
 				if best_reward < reward or best_reward is None:
