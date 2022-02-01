@@ -467,7 +467,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	init_lr = 0.5*10**-5
 	optimizer = optimizers.Adam(init_lr)
 	gamma = 0.99
-	NUM_THREADS = 13
+	NUM_THREADS = 24
 	c1 = 0.1 # value function loss weight
 	c2 = 0.001 # entropy bonus weight
 
