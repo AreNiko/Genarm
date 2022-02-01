@@ -467,7 +467,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	init_lr = 0.5*10**-5
 	optimizer = optimizers.Adam(init_lr)
 	gamma = 0.99
-
+	NUM_THREADS = 13
 	c1 = 0.1 # value function loss weight
 	c2 = 0.001 # entropy bonus weight
 
@@ -521,7 +521,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	#os.makedirs(os.path.dirname("training_reinforcement/" + test_number + "/"), exist_ok=True)
 	checkpoint_path = base_dir + "/checkpoints/"
 	#checkpoint_path = os.path.dirname(checkpoint_path)
-
+	sess = tf.Session(config=tf.ConfigProto(
+  					intra_op_parallelism_threads=NUM_THREADS))
 	ckpt = tf.train.Checkpoint(
 		policy_network=policy_network,
 		value_network=value_network,
