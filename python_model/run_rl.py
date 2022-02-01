@@ -38,7 +38,7 @@ def start_engine():
 
 eng = start_engine()
 
-#eng.warning('off',"MATLAB:singularMatrix")
+eng.warning('off',"MATLAB:singularMatrix")
 
 def convert_to_matlabint8(inarr):
 	return matlab.int8(np.int8(np.ceil(inarr)).tolist())
