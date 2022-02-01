@@ -622,9 +622,10 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 			  (iteration, time.time() - start))
 		print(alpha)
 		dataset = dataset.batch(batch_size)
-
+		
 		for epoch in range(epoch_range):
 			print(epoch, "/", epoch_range)
+			start1 = time.time()
 			# Trains model on structures with a truth structure created from
 			# The direct stiffness method and shifted voxels
 			for batch in dataset:
@@ -665,6 +666,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 			out = pi.numpy()
 			out[out <= 0.1] = 0
 			out[out > 0.1] = 1
+			print("Time taken for one Epoch: ", time.time() - start1)
 			"""
 			if np.sum(out) != 0:
 				try:
