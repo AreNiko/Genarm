@@ -86,7 +86,9 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 					try:
 						#eng.clf(nargout=0)
 						#eng.plotVg_safe(convert_to_matlabint8(logits_tol[0]), 'edgeOff', 'col',collist, nargout=0)
+						print("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT")
 						new_bend, comps = eng.check_max_bend(convert_to_matlabint8(logits_tol[0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]), nargout=1)
+						print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 						if new_bend == 0 or np.isnan(new_bend) or np.isinf(new_bend):
 							new_bend = 100.0
 
@@ -472,8 +474,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	c1 = 0.1 # value function loss weight
 	c2 = 0.001 # entropy bonus weight
 
-	tf.config.threading.set_intra_op_parallelism_threads(NUM_THREADS)
-	tf.config.threading.set_inter_op_parallelism_threads(NUM_THREADS)
+	#tf.config.threading.set_intra_op_parallelism_threads(NUM_THREADS)
+	#tf.config.threading.set_inter_op_parallelism_threads(NUM_THREADS)
 
 	trainAug = Sequential([
 	layers.RandomFlip(mode="horizontal_and_vertical"),
