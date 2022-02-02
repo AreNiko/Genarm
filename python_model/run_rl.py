@@ -86,9 +86,9 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 					try:
 						#eng.clf(nargout=0)
 						#eng.plotVg_safe(convert_to_matlabint8(logits_tol[0]), 'edgeOff', 'col',collist, nargout=0)
-						print("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT")
-						new_bend, comps = eng.check_max_bend(convert_to_matlabint8(logits_tol[0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]), nargout=1)
-						print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+						new_bend, comps = eng.check_max_bend(convert_to_matlabint8(logits_tol[0]), 
+							                                 convert_to_matlabint8(structC[0]), 
+							                                 convert_to_matlabint8(structF[0]), nargout=2)
 						if new_bend == 0 or np.isnan(new_bend) or np.isinf(new_bend):
 							new_bend = 100.0
 
@@ -383,14 +383,16 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						#eng.clf(nargout=0)
 						#eng.plotVg_safe(convert_to_matlabint8(logits_tol[0]), 'edgeOff', 'col',collist, nargout=0)
 						
-						new_bend, comps = eng.check_max_bend(convert_to_matlabint8(logits_tol[0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]), nargout=2)
+						new_bend, comps = eng.check_max_bend(convert_to_matlabint8(logits_tol[0]), 
+							                                 convert_to_matlabint8(structC[0]), 
+							                                 convert_to_matlabint8(structF[0]), nargout=2)
 						
 						if new_bend == 0 or np.isnan(new_bend):
 							new_bend = 100.0
 
 						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(logits_tol))
 						bend_diff = og_bend/new_bend
-						print(new_bend, vox_diff, comps)
+						#print(new_bend, vox_diff, comps)
 						r = 100*bend_diff - (vox_diff/100 + 100*(comps-1))
 						#print("old vs new bending: ", og_bend, "/", new_bend)
 						#print("Difference in voxels: ", vox_diff)
