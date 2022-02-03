@@ -357,8 +357,9 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			logits = policy_network.policy(observation)
 			# remove num_samples dimension and batch dimension
 			#action = tf.random.categorical(logits, 1)[0][0]
-			action = logits[0]
-			pi_old = activations.tanh(logits)[0]
+			action = observation
+			pi_old = activations.sigmoid(logits[:,4])[0]
+			action[logits[:,1],logits[:,2],logits[:,3]] = pi_old
 
 			episode.observations.append(observation[0])
 			episode.ts.append(np.float32(t))
@@ -403,7 +404,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						#done = True
 				reward = reward + r
 				
-				print(r, reward)
+				print(reward)
 
 				if done:
 					break
