@@ -34,7 +34,7 @@ class FeatureExtractor(tf.keras.Model):
         #struct = layers.Input(input_shape)
 
         x1 = self.conv3d1(input_shape)
-        x1 = self.conv3d1(X1)
+        x1 = self.conv3d1(x1)
         #x1 = self.batchmeup(x1)
         
         x2 = self.conv3d2(x1)
