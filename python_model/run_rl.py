@@ -95,7 +95,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(logits_tol))
 						bend_diff = og_bend/new_bend
 						
-						reward = 100*bend_diff - (vox_diff/100 + 100*(comps-1))
+						reward = 100*bend_diff - (vox_diff/1000 + 100*(comps-1))
 						print("old vs new bending: ", og_bend, "/", new_bend)
 						print("Difference in voxels: ", vox_diff)
 						
@@ -342,7 +342,6 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 	structC = obser[:,:,:,:,1]
 	structF = obser[:,:,:,:,2]
 	stayoff = obser[:,:,:,:,3]
-
 	#eng = start_engine()
 	og_bend = eng.check_max_bend(convert_to_matlabint8(obser[0,:,:,:,0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]))
 
@@ -388,18 +387,18 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 							                                 convert_to_matlabint8(structF[0]), nargout=2)
 						
 						if new_bend == 0 or np.isnan(new_bend):
-							new_bend = 100.0
+							new_bend = 10.0
 
 						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(logits_tol))
 						bend_diff = og_bend/new_bend
 						#print(new_bend, vox_diff, comps)
-						r = 100*bend_diff - (vox_diff/100 + 100*(comps-1))
+						r = 100*bend_diff - (vox_diff/1000 + 100*(comps-1))
 						#print("old vs new bending: ", og_bend, "/", new_bend)
 						#print("Difference in voxels: ", vox_diff)
 						
 					except:
 						comps = eng.check_components(convert_to_matlabint8(logits_tol[0]), nargout=1)
-						r = -100.0*(comps-1)
+						r = -200.0*(comps-1)
 						#done = True
 				reward = reward + r
 				
@@ -457,8 +456,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	iterations = 500
 	epoch_range = 20
 	K = 3
-	num_episodes = 12#2 #8
-	maxlen_environment = 10
+	num_episodes = 32#2 #8
+	maxlen_environment = 0
 	action_repeat = 1
 	maxlen = maxlen_environment // action_repeat # max number of actions
 	batch_size = 1
