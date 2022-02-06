@@ -457,7 +457,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	epoch_range = 20
 	K = 3
 	num_episodes = 32#2 #8
-	maxlen_environment = 0
+	maxlen_environment = 32
 	action_repeat = 1
 	maxlen = maxlen_environment // action_repeat # max number of actions
 	batch_size = 1
