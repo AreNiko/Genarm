@@ -80,7 +80,6 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 				logits_tol = logits_tol + structF + structC + stayoff 
 				logits_tol[1.0 < logits_tol] = 1
 				logits_tol[0.0 > logits_tol] = 0
-				stayoff = obser[:,:,:,:,3]
 				observation = tf.stack([tf.convert_to_tensor(logits_tol), structC, structF, stayoff], axis=4)
 
 				if np.sum(logits_tol) == 0:
@@ -380,6 +379,9 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 				logits_tol = logits.numpy()
 				logits_tol[logits_tol <= 0.05] = 0
 				logits_tol[logits_tol > 0.05] = 1
+				logits_tol = logits_tol + structF.numpy() + structC.numpy() + stayoff.numpy()
+				logits_tol[logits_tol <= 0.0] = 0
+				logits_tol[logits_tol > 1.0] = 1
 				observation = tf.stack([tf.convert_to_tensor(logits_tol), structC, structF, stayoff], axis=4)
 				done = False
 				if np.sum(logits_tol) == 0:
