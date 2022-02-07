@@ -77,8 +77,8 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 				logits_tol = logits.numpy()
 				logits_tol[logits_tol <= 0.05] = 0
 				logits_tol[logits_tol > 0.05] = 1
-				#logits_tol = logits_tol + structF.numpy() + structC.numpy() + stayoff.numpy()
-				logits_tol = logits_tol + structF.numpy() + stayoff.numpy()
+				logits_tol = logits_tol + structF.numpy() + structC.numpy() + stayoff.numpy()
+				#logits_tol = logits_tol + structF.numpy() + stayoff.numpy()
 				logits_tol[logits_tol <= 0.0] = 0
 				logits_tol[logits_tol > 1.0] = 1
 				observation = tf.stack([tf.convert_to_tensor(logits_tol), structC, structF, stayoff], axis=4)
@@ -380,8 +380,8 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 				logits_tol = logits.numpy()
 				logits_tol[logits_tol <= 0.05] = 0
 				logits_tol[logits_tol > 0.05] = 1
-				#logits_tol = logits_tol + structF.numpy() + structC.numpy() + stayoff.numpy()
-				logits_tol = logits_tol + structF.numpy() + stayoff.numpy()
+				logits_tol = logits_tol + structF.numpy() + structC.numpy() + stayoff.numpy()
+				#logits_tol = logits_tol + structF.numpy() + stayoff.numpy()
 				logits_tol[logits_tol <= 0.0] = 0
 				logits_tol[logits_tol > 1.0] = 1
 				observation = tf.stack([tf.convert_to_tensor(logits_tol), structC, structF, stayoff], axis=4)
@@ -501,8 +501,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 
 	#eng = start_engine()
 
-	#structog, vGextC, vGextF, vGstayOff = eng.get_struct2(nargout=4)
-	structog, _, vGextC, vGextF, vGstayOff = eng.get_struct3(nargout=5)
+	structog, vGextC, vGextF, vGstayOff = eng.get_struct2(nargout=4)
+	#structog, _, vGextC, vGextF, vGstayOff = eng.get_struct3(nargout=5)
 	og_maxbending = eng.check_max_bend(structog, vGextC, vGextF, nargout=1)
 
 	struct = np.array(structog); structC = np.array(vGextC); structF = np.array(vGextF); structOff = np.array(vGstayOff)
