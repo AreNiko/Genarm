@@ -78,8 +78,8 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 				logits_tol[logits_tol <= 0.05] = 0
 				logits_tol[logits_tol > 0.05] = 1
 				logits_tol = logits_tol + structF + structC + stayoff 
-				logits_tol[1 > logits_tol] = 1
-				logits_tol[0 < logits_tol] = 0
+				logits_tol[1.0 < logits_tol] = 1
+				logits_tol[0.0 > logits_tol] = 0
 				stayoff = obser[:,:,:,:,3]
 				observation = tf.stack([tf.convert_to_tensor(logits_tol), structC, structF, stayoff], axis=4)
 
