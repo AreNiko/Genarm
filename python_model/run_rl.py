@@ -90,7 +90,8 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 							                                 convert_to_matlabint8(structC[0]), 
 							                                 convert_to_matlabint8(structF[0]), nargout=2)
 						if new_bend == 0 or np.isnan(new_bend) or np.isinf(new_bend):
-							new_bend = 100.0
+							new_bend = 10.0
+							done = True
 
 						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(logits_tol))
 						bend_diff = og_bend/new_bend
@@ -107,9 +108,10 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(logits_tol))
 						reward = - (vox_diff/100 + 100*(comps-1))
 						done = True
-
-				if best_reward < reward or best_reward is None:
-					best_struct = logits_tol
+						
+					if comps == 1:
+						if best_reward < reward or best_reward is None:
+							best_struct = logits_tol
 				rewards.append(reward)
 				print(reward)
 
@@ -391,6 +393,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						
 						if new_bend == 0 or np.isnan(new_bend):
 							new_bend = 10.0
+							done = True
 
 						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(logits_tol))
 						bend_diff = og_bend/new_bend
