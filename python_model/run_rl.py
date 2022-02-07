@@ -77,6 +77,10 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 				logits_tol = logits.numpy()
 				logits_tol[logits_tol <= 0.05] = 0
 				logits_tol[logits_tol > 0.05] = 1
+				logits_tol = logits_tol + structF + structC + stayoff 
+				logits_tol[1 > logits_tol] = 1
+				logits_tol[0 < logits_tol] = 0
+				stayoff = obser[:,:,:,:,3]
 				observation = tf.stack([tf.convert_to_tensor(logits_tol), structC, structF, stayoff], axis=4)
 
 				if np.sum(logits_tol) == 0:
@@ -108,7 +112,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(logits_tol))
 						reward = - (vox_diff/100 + 100*(comps-1))
 						done = True
-						
+
 					if comps == 1:
 						if best_reward < reward or best_reward is None:
 							best_struct = logits_tol
