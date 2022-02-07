@@ -59,16 +59,16 @@ function [vG, vGextC, vGextF, vGstayOff] = get_struct2()
     vGextC(:,:,1:max_radius+2) = vG(:,:,1:max_radius+2);
     vGextF(:,:,height+14:end) = vG(:,:,height+14:end);
     %}
-    env = zeros(10, 10, 30, 'int8');
+    env = zeros(30, 30, 50, 'int8');
     vG = env;
-    vG(3:7,3:7,2:20) = 1;
+    vG(10:20,10:20,2:40) = 1;
     vGextC = env;
     vGextF = env;
     vGstayOff = env;
     
-    vGstayOff(:,:,19:20) = vG(:,:,19:20); 
+    vGstayOff(:,:,39:40) = vG(:,:,39:40); 
     vGextC(:,:,2:3) = vG(:,:,2:3); 
-    vGextF(:,:,19:20) = vG(:,:,19:20);
+    vGextF(:,:,39:40) = vG(:,:,39:40);
     
     figure(1);clf;plotVg_safe(vG,'edgeOff');
     hold on;plotVg_safe(vGstayOff,'edgeOff','col',[0.9 0.9 0.5]);
