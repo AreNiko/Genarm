@@ -351,7 +351,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 	og_struct = obser[:,:,:,:,0]
 	structC = obser[:,:,:,:,1]
 	structF = obser[:,:,:,:,2]
-	#stayoff = obser[:,:,:,:,3]
+	stayoff = obser[:,:,:,:,3]
 	#eng = start_engine()
 	og_bend = eng.check_max_bend(convert_to_matlabint8(obser[0,:,:,:,0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]))
 
