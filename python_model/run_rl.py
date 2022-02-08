@@ -48,7 +48,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 	og_struct = obser[:,:,:,:,0]
 	structC = obser[:,:,:,:,1]
 	structF = obser[:,:,:,:,2]
-	stayoff = obser[:,:,:,:,3]
+	#stayoff = obser[:,:,:,:,3]
 	#eng = start_engine()
 	og_bend = eng.check_max_bend(convert_to_matlabint8(obser[0,:,:,:,0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]))
 	scores = []
@@ -77,7 +77,8 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 				logits_tol = logits.numpy()
 				logits_tol[logits_tol <= 0.05] = 0
 				logits_tol[logits_tol > 0.05] = 1
-				logits_tol = logits_tol + structF.numpy() + structC.numpy() + stayoff.numpy()
+				#logits_tol = logits_tol + structF.numpy() + structC.numpy() + stayoff.numpy()
+				logits_tol = logits_tol + structF.numpy() + structC.numpy()
 				#logits_tol = logits_tol + structF.numpy() + stayoff.numpy()
 				logits_tol[logits_tol <= 0.0] = 0
 				logits_tol[logits_tol > 1.0] = 1
@@ -350,7 +351,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 	og_struct = obser[:,:,:,:,0]
 	structC = obser[:,:,:,:,1]
 	structF = obser[:,:,:,:,2]
-	stayoff = obser[:,:,:,:,3]
+	#stayoff = obser[:,:,:,:,3]
 	#eng = start_engine()
 	og_bend = eng.check_max_bend(convert_to_matlabint8(obser[0,:,:,:,0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]))
 
@@ -380,11 +381,12 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 				logits_tol = logits.numpy()
 				logits_tol[logits_tol <= 0.05] = 0
 				logits_tol[logits_tol > 0.05] = 1
-				logits_tol = logits_tol + structF.numpy() + structC.numpy() + stayoff.numpy()
+				#logits_tol = logits_tol + structF.numpy() + structC.numpy() + stayoff.numpy()
+				logits_tol = logits_tol + structF.numpy() + structC.numpy()
 				#logits_tol = logits_tol + structF.numpy() + stayoff.numpy()
 				logits_tol[logits_tol <= 0.0] = 0
 				logits_tol[logits_tol > 1.0] = 1
-				observation = tf.stack([tf.convert_to_tensor(logits_tol), structC, structF, stayoff], axis=4)
+				observation = tf.stack([tf.convert_to_tensor(logits_tol), structC, structF], axis=4)
 				done = False
 				if np.sum(logits_tol) == 0:
 					r = -10000.0
