@@ -527,10 +527,10 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	#action_encoder = ActionEncoder()
 	feature_extractor = FeatureExtractor()
 	policy_network = PolicyNetwork(feature_extractor)
-	policy_network._set_inputs(np.zeros([1, xstruct,ystruct,zstruct, 4], dtype=np.float32))
+	policy_network._set_inputs(np.zeros([1, xstruct,ystruct,zstruct, 3], dtype=np.float32))
 	# Use to generate encoded actions (not just indices)
 	agent = Agent(policy_network)
-	agent._set_inputs(np.zeros([1, xstruct,ystruct,zstruct,4], dtype=np.float32))
+	agent._set_inputs(np.zeros([1, xstruct,ystruct,zstruct,3], dtype=np.float32))
 
 	# possibly share parameters with policy-network
 	value_network = ValueNetwork(feature_extractor)
@@ -637,7 +637,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 		########################### Generate dataset ###########################
 		start = time.time()
 		for struct, structC, structF, stayoff in new_dataset.take(1):
-			inpus = tf.stack([struct, structC, structF, stayoff], axis=4)
+			inpus = tf.stack([struct, structC, structF], axis=4)
 		dataset = create_dataset(inpus, policy_network, value_network,
 								 num_episodes, maxlen,
 								 action_repeat, gamma)
