@@ -2,9 +2,9 @@ function [vG2, vGc, vGextC2, vGextF2, vGstayOff2] = get_struct4()
 
     arm_height = 10;
     thickness = 6;
-    wrist_radius = 8;
-    max_radius = 9;
-    height = 50;
+    wrist_radius = 6;
+    max_radius = 5;
+    height = 30;
     xdim = 50;
     ydim = 50;
     % Initial enviornment
@@ -13,22 +13,22 @@ function [vG2, vGc, vGextC2, vGextF2, vGstayOff2] = get_struct4()
 
     [vG, vGc, vGextC, vGextF, vGstayOff] = genstructure(env, origo, max_radius, wrist_radius, height, thickness, arm_height);
     vGextC = vGextC - vGc;
-    cutz = max_radius*2 + thickness + arm_height+40;
-    cutxy = 11;
-    endz = 15;
+    cutz = max_radius*2 + thickness + arm_height+5;
+    cutxy = 15;
+    endz = 40;
     vG2 = vG(cutxy:end-cutxy,cutxy:end-cutxy,cutz:end-endz); 
     vGstayOff2 = vGstayOff(cutxy:end-cutxy,cutxy:end-cutxy,cutz:end-endz); 
     vGextF2 = vGextF(cutxy:end-cutxy,cutxy:end-cutxy,cutz:end-endz); 
     vGextC2 = vGextC(cutxy:end-cutxy,cutxy:end-cutxy,cutz:end-endz); 
     vGextC2(:,:,1:2) = vG2(:,:,1:2);
-    %{
+    
     figure(1);clf;plotVg(vG2,'edgeOff');
     hold on;plotVg(vGstayOff2,'edgeOff','col',[0.9 0.9 0.5]);
     hold on;plotVg(vGextF2,'edgeOff','col',[0.5 0.5 0.5]);
     hold on;plotVg(vGextC2,'edgeOff','col',[0.6 0.6 0.8]);
     title("Stay off (gul), extF (grå), låst (blå)");
     sun1;
-    
+    %{
     max_bend = check_max_bend(vG, vGextC, vGextF);
     disp(max_bend);
     
