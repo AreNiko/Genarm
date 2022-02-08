@@ -13,7 +13,7 @@ function [vG2, vGc, vGextC2, vGextF2, vGstayOff2] = get_struct4()
 
     [vG, vGc, vGextC, vGextF, vGstayOff] = genstructure(env, origo, max_radius, wrist_radius, height, thickness, arm_height);
     vGextC = vGextC - vGc;
-    cutz = max_radius*2 + thickness + arm_height+1;
+    cutz = max_radius*2 + thickness + arm_height+10;
     cutxy = 11;
     endz = 15;
     vG2 = vG(cutxy:end-cutxy,cutxy:end-cutxy,cutz:end-endz); 
