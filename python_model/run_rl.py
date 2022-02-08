@@ -110,7 +110,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 					except:
 						comps = eng.check_components(convert_to_matlabint8(logits_tol[0]), nargout=1)
 						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(logits_tol))
-						reward = - (vox_diff/100 + 100*(comps-1))
+						reward = - (vox_diff + 100*(comps-1))
 						done = True
 
 					if comps == 1:
@@ -406,7 +406,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(logits_tol))
 						bend_diff = og_bend/new_bend
 						#print(new_bend, vox_diff, comps)
-						r = 100*bend_diff - (vox_diff/1000 + 100*(comps-1))
+						r = 100*bend_diff - (vox_diff + 100*(comps-1))
 						#print("old vs new bending: ", og_bend, "/", new_bend)
 						#print("Difference in voxels: ", vox_diff)
 						if comps > 1:
@@ -503,6 +503,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 
 	structog, vGextC, vGextF, vGstayOff = eng.get_struct2(nargout=4)
 	#structog, _, vGextC, vGextF, vGstayOff = eng.get_struct3(nargout=5)
+	structog, _, vGextC, vGextF, vGstayOff = eng.get_struct4(nargout=5)
 	og_maxbending = eng.check_max_bend(structog, vGextC, vGextF, nargout=1)
 
 	struct = np.array(structog); structC = np.array(vGextC); structF = np.array(vGextF); structOff = np.array(vGstayOff)
