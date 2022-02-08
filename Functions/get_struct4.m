@@ -15,19 +15,20 @@ function [vG2, vGc, vGextC2, vGextF2, vGstayOff2] = get_struct4()
     vGextC = vGextC - vGc;
     cutz = max_radius*2 + thickness + arm_height+1;
     cutxy = 11;
-    vG2 = vG(cutxy:end-cutxy,cutxy:end-cutxy,cutz:end); 
-    vGstayOff2 = vGstayOff(cutxy:end-cutxy,cutxy:end-cutxy,cutz:end); 
-    vGextF2 = vGextF(cutxy:end-cutxy,cutxy:end-cutxy,cutz:end); 
-    vGextC2 = vGextC(cutxy:end-cutxy,cutxy:end-cutxy,cutz:end); 
+    endz = 15;
+    vG2 = vG(cutxy:end-cutxy,cutxy:end-cutxy,cutz:end-endz); 
+    vGstayOff2 = vGstayOff(cutxy:end-cutxy,cutxy:end-cutxy,cutz:end-endz); 
+    vGextF2 = vGextF(cutxy:end-cutxy,cutxy:end-cutxy,cutz:end-endz); 
+    vGextC2 = vGextC(cutxy:end-cutxy,cutxy:end-cutxy,cutz:end-endz); 
     vGextC2(:,:,1:2) = vG2(:,:,1:2);
-    
+    %{
     figure(1);clf;plotVg(vG2,'edgeOff');
     hold on;plotVg(vGstayOff2,'edgeOff','col',[0.9 0.9 0.5]);
     hold on;plotVg(vGextF2,'edgeOff','col',[0.5 0.5 0.5]);
     hold on;plotVg(vGextC2,'edgeOff','col',[0.6 0.6 0.8]);
     title("Stay off (gul), extF (grå), låst (blå)");
     sun1;
-    %{
+    
     max_bend = check_max_bend(vG, vGextC, vGextF);
     disp(max_bend);
     
