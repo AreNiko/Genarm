@@ -75,8 +75,8 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 			for _ in range(action_repeat):
 				t += 1
 				logits_tol = logits.numpy()
-				logits_tol[logits_tol <= 0.05] = 0
-				logits_tol[logits_tol > 0.05] = 1
+				logits_tol[logits_tol <= 0.2] = 0
+				logits_tol[logits_tol > 0.2] = 1
 				logits_tol = logits_tol + structF.numpy() + structC.numpy() + stayoff.numpy()
 				#logits_tol = logits_tol + structF.numpy() + structC.numpy()
 				#logits_tol = logits_tol + structF.numpy() + stayoff.numpy()
@@ -379,8 +379,8 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 
 			for _ in range(action_repeat):
 				logits_tol = logits.numpy()
-				logits_tol[logits_tol <= 0.05] = 0
-				logits_tol[logits_tol > 0.05] = 1
+				logits_tol[logits_tol <= 0.2] = 0
+				logits_tol[logits_tol > 0.2] = 1
 				#logits_tol = logits_tol + structF.numpy() + structC.numpy() + stayoff.numpy()
 				logits_tol = logits_tol + structF.numpy() + structC.numpy()
 				#logits_tol = logits_tol + structF.numpy() + stayoff.numpy()
@@ -741,7 +741,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 			plt.title("Iteration Reward Progress")
 			plt.xlabel("Iterations")
 			plt.ylabel("Reward")
-			plt.show(block=False)
+			plt.show()
 
 			print("Evaluated policy in %f sec. min, median, mean, max: (%g, %g, %g, %g)" %
 				  (time.time() - start, m, median, mean, M))
