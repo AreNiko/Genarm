@@ -730,6 +730,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 			median_list.append(median)
 			mean_list.append(mean)
 
+			plt.figure(1)
 			plt.plot(iteration_list, m_list)
 			plt.plot(iteration_list, M_list)
 			plt.plot(iteration_list, median_list)
