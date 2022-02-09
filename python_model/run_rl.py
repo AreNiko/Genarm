@@ -731,6 +731,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 			mean_list.append(mean)
 
 			plt.figure(1)
+			plt.clf()
 			plt.plot(iteration_list, m_list)
 			plt.plot(iteration_list, M_list)
 			plt.plot(iteration_list, median_list)
@@ -740,7 +741,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 			plt.title("Iteration Reward Progress")
 			plt.xlabel("Iterations")
 			plt.ylabel("Reward")
-			plt.draw()
+			plt.show(block=False)
 
 			print("Evaluated policy in %f sec. min, median, mean, max: (%g, %g, %g, %g)" %
 				  (time.time() - start, m, median, mean, M))
