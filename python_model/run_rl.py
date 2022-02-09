@@ -740,7 +740,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 			plt.title("Iteration Reward Progress")
 			plt.xlabel("Iterations")
 			plt.ylabel("Reward")
-			plt.show(block=False)
+			plt.draw()
 
 			print("Evaluated policy in %f sec. min, median, mean, max: (%g, %g, %g, %g)" %
 				  (time.time() - start, m, median, mean, M))
