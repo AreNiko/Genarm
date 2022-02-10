@@ -1,6 +1,6 @@
 function [vG, vGextC, vGextF, vGstayOff] = get_struct5()
 
-    voxSize = 2; % 1 mm på printern, kan forandres for bedre eller dårligere vokseloppløsning
+    voxSize = 3; % 1 mm på printern, kan forandres for bedre eller dårligere vokseloppløsning
     xDist1 = round(20/voxSize); % Avstand fra venstre vegg til rød aksel. Med voxSize = 1, blir det 20stk voksler 
     xDist2 = round(xDist1 + 40/voxSize); % Avstand fra rød aksel til første festeaksel
     xDist3 = round(xDist2 + 40/voxSize); % Avstand fra første til siste festeaksel
@@ -18,9 +18,9 @@ function [vG, vGextC, vGextF, vGstayOff] = get_struct5()
     vGextF = vGcylinder(vGextF,[xDist1,yCenter,2],1, radiusAxel,5);
     %%%%%%%%%%% Definerer stayOff voksler - gule
     vGstayOff = zeros(size(vG),'int8');
-    vGstayOff = vGcylinder(vGstayOff,[xDist1,yCenter,2],1, radiusAxel+3,5);
-    vGstayOff = vGcylinder(vGstayOff,[xDist2,yCenter,2],1, radiusAxel+3,5);
-    vGstayOff = vGcylinder(vGstayOff,[xDist3,yCenter,2],1, radiusAxel+3,5);
+    vGstayOff = vGcylinder(vGstayOff,[xDist1,yCenter,2],1, radiusAxel+1,5);
+    vGstayOff = vGcylinder(vGstayOff,[xDist2,yCenter,2],1, radiusAxel+1,5);
+    vGstayOff = vGcylinder(vGstayOff,[xDist3,yCenter,2],1, radiusAxel+1,5);
     figure(1);clf;plotVg(vG,'edgeOff');
     hold on;plotVg(vGstayOff,'edgeOff','col',[0.9 0.9 0.5]);
     hold on;plotVg(vGextF,'edgeOff','col',[0.5 0.5 0.5]);
