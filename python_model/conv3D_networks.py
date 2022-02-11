@@ -82,6 +82,7 @@ class PolicyNetwork(tf.keras.Model):
         x1d = self.conv3d(x1)
         x1d = self.conv3d(x1d)
         #x1d = self.dense128(x1)
+        
         #x1d = self.dense128(x1d)
 
         x2d = self.conv3d(x2)
@@ -96,7 +97,7 @@ class PolicyNetwork(tf.keras.Model):
         x4d = self.conv3d(x4d)
         #x4d = self.dense128(x4d)
         #x4d = self.dense128(x4d)
-        
+
         #xf = tf.concat([x1d, x2d], -1)
         xf = tf.concat([x1d, x2d, x3d, x4d], -1)
         
