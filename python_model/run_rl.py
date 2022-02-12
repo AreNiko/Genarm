@@ -75,8 +75,8 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 			for _ in range(action_repeat):
 				t += 1
 				logits_tol = logits.numpy()
-				logits_tol[logits_tol <= 0.5] = 0
-				logits_tol[logits_tol > 0.5] = 1
+				logits_tol[logits_tol <= 0.3] = 0
+				logits_tol[logits_tol > 0.3] = 1
 				logits_tol = logits_tol + structF.numpy() + structC.numpy() + stayoff.numpy()
 				#logits_tol = logits_tol + structF.numpy() + structC.numpy()
 				#logits_tol = logits_tol + structF.numpy() + stayoff.numpy()
@@ -379,8 +379,8 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 
 			for _ in range(action_repeat):
 				logits_tol = logits.numpy()
-				logits_tol[logits_tol <= 0.5] = 0
-				logits_tol[logits_tol > 0.5] = 1
+				logits_tol[logits_tol <= 0.3] = 0
+				logits_tol[logits_tol > 0.3] = 1
 				#logits_tol = logits_tol + structF.numpy() + structC.numpy() + stayoff.numpy()
 				logits_tol = logits_tol + structF.numpy() + structC.numpy()
 				#logits_tol = logits_tol + structF.numpy() + stayoff.numpy()
