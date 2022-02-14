@@ -57,6 +57,7 @@ class FeatureExtractor(tf.keras.Model):
         print(tf.shape(xf3))
         print(tf.shape(xf4))
         xf = tf.concat([xf1, xf2, xf3, xf4], -1)
+        xf = tf.squeeze(xf)
         print(tf.shape(xf))
         #model = models.Model(inputs=[struct, locked, forces, stayoff], outputs=xfd)
 
