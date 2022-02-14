@@ -70,7 +70,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 			logits = agent(observation)
 			# remove num_samples dimension and batch dimension
 			action = logits[0]
-			pi_old = activations.tanh(logits)[0]
+			pi_old = activations.sigmoid(logits)[0]
 
 			for _ in range(action_repeat):
 				t += 1
