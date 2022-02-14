@@ -8,10 +8,10 @@ class FeatureExtractor(tf.keras.Model):
     def __init__(self, **kwargs):
         super(FeatureExtractor, self).__init__(**kwargs)
 
-        self.conv3d1 = layers.Conv3D(16, 5, strides=3, padding='same', activation='relu')
-        self.conv3d2 = layers.Conv3D(16, 5, strides=3, padding='same', activation='relu')
-        self.conv3d3 = layers.Conv3D(16, 5, strides=3, padding='same', activation='relu')
-        self.conv3d4 = layers.Conv3D(16, 5, strides=3, padding='same', activation='relu')
+        self.conv3d1 = layers.Conv3D(16, 5, strides=1, padding='same', activation='relu')
+        self.conv3d2 = layers.Conv3D(16, 5, strides=1, padding='same', activation='relu')
+        self.conv3d3 = layers.Conv3D(16, 5, strides=1, padding='same', activation='relu')
+        self.conv3d4 = layers.Conv3D(16, 5, strides=1, padding='same', activation='relu')
         self.conv1x1 = layers.Conv3D(1, 1, strides=(1, 1, 1), padding='same', activation='relu')
         self.batchmeup = layers.BatchNormalization(momentum=0.8)
         self.flatten = layers.Flatten()
@@ -35,32 +35,32 @@ class FeatureExtractor(tf.keras.Model):
         #struct = layers.Input(input_shape)
 
         x1 = self.conv3d1(input_shape)
-        x1 = self.conv1x1(x1)
+        #x1 = self.conv1x1(x1)
         #x1 = self.conv3d1(x1)
         #x1 = self.batchmeup(x1)
         
         x2 = self.conv3d2(x1)
-        x2 = self.conv1x1(x2)
+        #x2 = self.conv1x1(x2)
         #x2 = self.conv3d2(x2)
         #x2 = self.batchmeup(x2)
         
         x3 = self.conv3d3(x2)
-        x3 = self.conv1x1(x3)
+        #x3 = self.conv1x1(x3)
         #x3 = self.conv3d3(x3)
         #x3 = self.batchmeup(x3)
         
         x4 = self.conv3d4(x3)
-        x4 = self.conv1x1(x4)
+        #x4 = self.conv1x1(x4)
         #x4 = self.batchmeup(x4)
         
-        xf1 = self.flatten(x1)
-        xf2 = self.flatten(x2)
-        xf3 = self.flatten(x3)
-        xf4 = self.flatten(x4)
-        xf = tf.concat([xf1, xf2, xf3, xf4], -1)
+        x1 = self.flatten(x1)
+        x2 = self.flatten(x2)
+        x3 = self.flatten(x3)
+        x4 = self.flatten(x4)
+        xf = tf.concat([x1, x2, x3, x4], -1)
         #xf = tf.squeeze(xf)
         #model = models.Model(inputs=[struct, locked, forces, stayoff], outputs=xfd)
-
+        #return x1,x2,x3,x4
         return xf
 
 class PolicyNetwork(tf.keras.Model):
@@ -91,6 +91,7 @@ class PolicyNetwork(tf.keras.Model):
         #x1d = self.conv3d(x1d)
         x1d = self.dense128(xf)
         #x1d = self.dense128(x1d)
+
 
         #x2d = self.conv3d(x2)
         #x2d = self.conv3d(x2d)
