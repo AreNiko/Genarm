@@ -57,13 +57,8 @@ class FeatureExtractor(tf.keras.Model):
         xf2 = self.flatten(x2)
         xf3 = self.flatten(x3)
         xf4 = self.flatten(x4)
-        print(tf.shape(xf1))
-        print(tf.shape(xf2))
-        print(tf.shape(xf3))
-        print(tf.shape(xf4))
         xf = tf.concat([xf1, xf2, xf3, xf4], -1)
         #xf = tf.squeeze(xf)
-        print(tf.shape(xf))
         #model = models.Model(inputs=[struct, locked, forces, stayoff], outputs=xfd)
 
         return xf
