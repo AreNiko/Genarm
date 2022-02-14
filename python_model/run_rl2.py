@@ -109,7 +109,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 
 					if comps == 1:
 						if best_reward < reward or best_reward is None:
-							best_struct = logits_tol
+							best_struct = new_struct[0]
 				rewards.append(reward)
 				print(reward)
 
