@@ -82,8 +82,8 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 					done = True
 				else:
 					try:
-						#eng.clf(nargout=0)
-						#eng.plotVg_safe(convert_to_matlabint8(logits_tol[0]), 'edgeOff', 'col',collist, nargout=0)
+						eng.clf(nargout=0)
+						eng.plotVg_safe(convert_to_matlabint8(new_struct[0]), 'edgeOff', 'col',collist, nargout=0)
 						new_bend, comps = eng.check_max_bend(convert_to_matlabint8(new_struct[0]), 
 							                                 convert_to_matlabint8(structC[0]), 
 							                                 convert_to_matlabint8(structF[0]), nargout=2)
@@ -109,7 +109,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 
 					if comps == 1:
 						if best_reward < reward or best_reward is None:
-							best_struct = new_struct[0]
+							best_struct = new_struct
 				rewards.append(reward)
 				print(reward)
 
