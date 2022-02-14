@@ -60,11 +60,14 @@ def runstuff(folder, test_number, step=None):
 			structi = convert_to_matlabint8(struct[i])
 			eng.clf(nargout=0)
 			eng.plotVg_safe(structi, 'edgeOff', 'col',collist, nargout=0)
-			new_bend = eng.check_max_bend(structi, vGextC, vGextF, nargout=1)
-			if new_bend == 0 or np.isnan(new_bend):
-				print("Doesn't work :P")
-			else:
-				print(new_bend, " / ", og_maxbending)
+			try:
+				new_bend = eng.check_max_bend(structi, vGextC, vGextF, nargout=1)
+				if new_bend == 0 or np.isnan(new_bend):
+					print("Doesn't work :P")
+				else:
+					print(new_bend, " / ", og_maxbending)
+			except:
+				print("Something went wrong :P")
 
 			print('Press enter to close')
 			input()
