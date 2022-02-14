@@ -333,13 +333,13 @@ def entropy_loss(pi):
 def flip_coord(pi_old, struct):
 	new_struct = struct.numpy()
 	batch, xdim, ydim, zdim = tf.shape(struct)
-	x = np.floor(pi_old[:,0]*tf.cast(xdim,tf.float32),dtype=int8)
-	y = np.floor(pi_old[:,1]*tf.cast(ydim,tf.float32),dtype=int8)
-	z = np.floor(pi_old[:,2]*tf.cast(zdim,tf.float32),dtype=int8)
+	x = np.floor(pi_old[:,0]*tf.cast(xdim,tf.float32),dtype=np.uint8)
+	y = np.floor(pi_old[:,1]*tf.cast(ydim,tf.float32),dtype=np.uint8)
+	z = np.floor(pi_old[:,2]*tf.cast(zdim,tf.float32),dtype=np.uint8)
 	#x = tf.cast(x,tf.int32)
 	#y = tf.cast(y,tf.int32)
 	#z = tf.cast(z,tf.int32)
-	print(np.concatenate((x, y, z), axis=1))
+	print(np.concatenate((x.T, y.T, z.T), axis=1))
 	for i in range(len(pi_old)):
 		if x[i] < xdim and y[i] < ydim and z[i] < zdim:
 			if struct[0,x[i],y[i],z[i]] == 0:
