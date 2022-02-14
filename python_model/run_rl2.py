@@ -23,7 +23,8 @@ from FEM.vGextC2extC import vGextC2extC
 from FEM.vGextF2extF import vGextF2extF
 
 collist = matlab.double([0, 0.68, 0.7647])
-
+collist2 = matlab.double([0, 0.7647, 0])
+collist3 = matlab.double([0.7647 0 0])
 
 def start_engine():
 	isengine = matlab.engine.find_matlab()
@@ -109,6 +110,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 
 					if best_reward < reward or best_reward is None:
 						best_struct = new_struct
+						best_differences = new_struct[0] - og_struct[0].numpy()
 
 				rewards.append(reward)
 				print(reward)
@@ -133,7 +135,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 
 	#eng.quit()
 
-	return scores, best_episode, best_struct
+	return scores, best_episode, best_struct, best_differences
 
 class Agent(tf.keras.models.Model):
 	"""Convenience wrapper around policy network, which returns *encoded*
@@ -339,7 +341,7 @@ def flip_coord(pi_old, struct):
 	x = tf.cast(x,tf.int32)
 	y = tf.cast(y,tf.int32)
 	z = tf.cast(z,tf.int32)
-	
+
 	for i in range(len(pi_old)):
 		if x[i] < xdim and y[i] < ydim and z[i] < zdim:
 			if struct[0,x[i],y[i],z[i]] == 0:
@@ -699,9 +701,6 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				# Update loss
 				train_loss.update_state(loss)
 			
-			out = pi.numpy()
-			out[out <= 0.1] = 0
-			out[out > 0.1] = 1
 			print("Time taken for one Epoch: ", time.time() - start1)
 			"""
 			if np.sum(out) != 0:
@@ -724,9 +723,11 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 		if step % eval_interval == 0:
 			start = time.time()
 
-			scores, best_episode, best_struct = eval_policy(inpus, agent, maxlen_environment, 
+			scores, best_episode, best_struct, best_differences = eval_policy(inpus, agent, maxlen_environment, 
 				eval_episodes, action_repeat=action_repeat
 			)
+			best_differences_minus = np.abs(best_differences[best_differences < 0])
+			best_differences_positive = np.abs(best_differences[best_differences > 0])
 			m, M = np.min(scores), np.max(scores)
 			median, mean = np.median(scores), np.mean(scores)
 
@@ -747,7 +748,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 			plt.title("Iteration Reward Progress")
 			plt.xlabel("Iterations")
 			plt.ylabel("Reward")
-			plt.savefig("RL_progress.png")
+			plt.savefig("RL_progress2.png")
 
 			print("Evaluated policy in %f sec. min, median, mean, max: (%g, %g, %g, %g)" %
 				  (time.time() - start, m, median, mean, M))
@@ -764,8 +765,9 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				tf.summary.scalar("return_median", median, step=step)
 			"""
 			eng.clf(nargout=0)
-			eng.plotVg_safe(convert_to_matlabint8(best_struct[0]), 'edgeOff', 'col',collist, nargout=0)
-
+			eng.plotVg_safe(convert_to_matlabint8(best_struct[0]), 'edgeOff', 'col',collist, alp=0.2, nargout=0)
+			eng.plotVg_safe(convert_to_matlabint8(best_differences_minus), 'edgeOff', 'col',collist3, alp=0.8, nargout=0)
+			eng.plotVg_safe(convert_to_matlabint8(best_differences_positive), 'edgeOff', 'col',collist2, alp=0.8, nargout=0)
 			
 
 			if mean > mean_high:
