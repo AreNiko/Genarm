@@ -331,6 +331,7 @@ def entropy_loss(pi):
 def flip_coord(pi_old, struct):
 	new_struct = struct
 	print(tf.shape(struct))
+	print(tf.shape(pi_old))
 	batch, xdim, ydim, zdim = tf.shape(struct)
 	x = pi_old[:,0]*xdim
 	y = pi_old[:,1]*ydim
