@@ -84,7 +84,7 @@ class PolicyNetwork(tf.keras.Model):
         #x1d = self.conv3d(x1)
         #x1d = self.conv3d(x1d)
         x1d = self.dense128(xf)
-        
+        print(tf.shape(x1d))
         #x1d = self.dense128(x1d)
 
         #x2d = self.conv3d(x2)
