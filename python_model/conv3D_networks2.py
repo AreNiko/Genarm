@@ -12,6 +12,7 @@ class FeatureExtractor(tf.keras.Model):
         self.conv3d2 = layers.Conv3D(16, 5, strides=3, padding='same', activation='relu')
         self.conv3d3 = layers.Conv3D(16, 5, strides=3, padding='same', activation='relu')
         self.conv3d4 = layers.Conv3D(16, 5, strides=3, padding='same', activation='relu')
+        self.conv1x1 = layers.Conv3D(1, 1, strides=(1, 1, 1), padding='same', activation='relu')
         self.batchmeup = layers.BatchNormalization(momentum=0.8)
         self.flatten = layers.Flatten()
 
@@ -34,18 +35,22 @@ class FeatureExtractor(tf.keras.Model):
         #struct = layers.Input(input_shape)
 
         x1 = self.conv3d1(input_shape)
+        x1 = self.conv1x1(x1)
         #x1 = self.conv3d1(x1)
         #x1 = self.batchmeup(x1)
         
         x2 = self.conv3d2(x1)
+        x2 = self.conv1x1(x2)
         #x2 = self.conv3d2(x2)
         #x2 = self.batchmeup(x2)
         
         x3 = self.conv3d3(x2)
+        x3 = self.conv1x1(x3)
         #x3 = self.conv3d3(x3)
         #x3 = self.batchmeup(x3)
         
         x4 = self.conv3d4(x3)
+        x4 = self.conv1x1(x4)
         #x4 = self.batchmeup(x4)
         
         xf1 = self.flatten(x1)
