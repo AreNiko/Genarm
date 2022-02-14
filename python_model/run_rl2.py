@@ -75,7 +75,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 			for _ in range(action_repeat):
 				t += 1
 				new_struct = flip_coord(pi_old, observation[:,:,:,:,0])
-				observation = tf.stack([new_struct, structC, structF, stayoff], axis=4)
+				observation = tf.stack([tf.convert_to_tensor(new_struct), structC, structF, stayoff], axis=4)
 				done = False
 				if np.sum(new_struct) == 0:
 					reward = -10000.0
@@ -330,8 +330,6 @@ def entropy_loss(pi):
 
 def flip_coord(pi_old, struct):
 	new_struct = struct.numpy()
-	print(tf.shape(struct))
-	print(tf.shape(pi_old))
 	batch, xdim, ydim, zdim = tf.shape(struct)
 	x = np.floor(pi_old[:,0]*tf.cast(xdim,tf.float32))
 	y = np.floor(pi_old[:,1]*tf.cast(ydim,tf.float32))
@@ -391,7 +389,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 
 			for _ in range(action_repeat):
 				new_struct = flip_coord(pi_old, observation[:,:,:,:,0])
-				observation = tf.stack([new_struct, structC, structF, stayoff], axis=4)
+				observation = tf.stack([tf.convert_to_tensor(new_struct), structC, structF, stayoff], axis=4)
 				done = False
 				if np.sum(new_struct) == 0:
 					r = -10000.0
