@@ -501,7 +501,9 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	#eng = start_engine()
 
 	#structog, vGextC, vGextF, vGstayOff = eng.get_struct2(nargout=4)
-	structog, _, vGextC, vGextF, vGstayOff = eng.get_struct3(nargout=5)
+	#structog, _, vGextC, vGextF, vGstayOff = eng.get_struct3(nargout=5)
+	structog, _, vGextC, vGextF, vGstayOff = eng.get_struct4(nargout=5)
+	#structog, vGextC, vGextF, vGstayOff = eng.get_struct5(nargout=4)
 	og_maxbending = eng.check_max_bend(structog, vGextC, vGextF, nargout=1)
 
 	struct = np.array(structog); structC = np.array(vGextC); structF = np.array(vGextF); structOff = np.array(vGstayOff)
