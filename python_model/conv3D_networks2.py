@@ -52,7 +52,12 @@ class FeatureExtractor(tf.keras.Model):
         xf2 = self.flatten(x2)
         xf3 = self.flatten(x3)
         xf4 = self.flatten(x4)
+        print(tf.shape(xf1))
+        print(tf.shape(xf2))
+        print(tf.shape(xf3))
+        print(tf.shape(xf4))
         xf = tf.concat([xf1, xf2, xf3, xf4], -1)
+        print(tf.shape(xf))
         #model = models.Model(inputs=[struct, locked, forces, stayoff], outputs=xfd)
 
         return xf
@@ -84,7 +89,7 @@ class PolicyNetwork(tf.keras.Model):
         #x1d = self.conv3d(x1)
         #x1d = self.conv3d(x1d)
         x1d = self.dense128(xf)
-        print(tf.shape(x1d))
+        
         #x1d = self.dense128(x1d)
 
         #x2d = self.conv3d(x2)
