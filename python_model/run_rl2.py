@@ -341,10 +341,11 @@ def flip_coord(pi_old, struct):
 	z = tf.cast(z,tf.int32)
 
 	for i in range(len(pi_old)):
-		if struct[0,x[i],y[i],z[i]] == 0:
-			new_struct[0,x[i],y[i],z[i]] = 1
-		else:
-			new_struct[0,x[i],y[i],z[i]] = 0
+		if x[i] < xdim and y[i] < ydim and z[i] < zdim:
+			if struct[0,x[i],y[i],z[i]] == 0:
+				new_struct[0,x[i],y[i],z[i]] = 1
+			else:
+				new_struct[0,x[i],y[i],z[i]] = 0
 
 	return new_struct
 
@@ -509,8 +510,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	#eng = start_engine()
 
 	#structog, vGextC, vGextF, vGstayOff = eng.get_struct2(nargout=4)
-	structog, _, vGextC, vGextF, vGstayOff = eng.get_struct3(nargout=5)
-	#structog, _, vGextC, vGextF, vGstayOff = eng.get_struct4(nargout=5)
+	#structog, _, vGextC, vGextF, vGstayOff = eng.get_struct3(nargout=5)
+	structog, _, vGextC, vGextF, vGstayOff = eng.get_struct4(nargout=5)
 	#structog, vGextC, vGextF, vGstayOff = eng.get_struct5(nargout=4)
 	og_maxbending = eng.check_max_bend(structog, vGextC, vGextF, nargout=1)
 
@@ -633,6 +634,9 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	avg_tol_val = 0
 	tol = np.linspace(0.0, 1.0, 101)
 
+	m_list, M_list = [], []
+	median_list, mean_list = [], []
+	iteration_list = []
 	#struct, extC, extF, stayoff = new_dataset
 	print("Starting from iteration: %d" % (start_iteration))
 	for iteration in range(start_iteration, iterations):
@@ -664,7 +668,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				obs, action, advantage, pi_old, value_target, t = batch
 				#action = tf.expand_dims(action, -1)
 				with tf.GradientTape() as tape:
-					pi = activations.sigmoid(policy_network.policy(obs))
+					pi = activations.tanh(policy_network.policy(obs))
 					v = value_network(obs, np.float32(maxlen)-t)
 					
 					#p_loss = policy_loss(pi, pi_old, advantage, epsilon)
@@ -726,10 +730,30 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 			m, M = np.min(scores), np.max(scores)
 			median, mean = np.median(scores), np.mean(scores)
 
+			iteration_list.append(iteration)
+			m_list.append(m)
+			M_list.append(M)
+			median_list.append(median)
+			mean_list.append(mean)
+
+			plt.figure(1)
+			plt.clf()
+			plt.plot(iteration_list, m_list)
+			plt.plot(iteration_list, M_list)
+			plt.plot(iteration_list, median_list)
+			plt.plot(iteration_list, mean_list)
+			plt.grid()
+			plt.legend(["Min", "Max", "Median", "Mean"])
+			plt.title("Iteration Reward Progress")
+			plt.xlabel("Iterations")
+			plt.ylabel("Reward")
+			plt.savefig("RL_progress.png")
+
 			print("Evaluated policy in %f sec. min, median, mean, max: (%g, %g, %g, %g)" %
 				  (time.time() - start, m, median, mean, M))
 
-			with open("results_structures/" + test_number + "-" + str(step) + ".txt", "wb+") as fp:
+
+			with open("results_structures2/" + test_number + "-" + str(step) + ".txt", "wb+") as fp:
 				print("Writing best structure to results_structures/" + test_number + "-" + str(step) + ".txt")
 				pickle.dump(best_struct, fp)
 			"""
