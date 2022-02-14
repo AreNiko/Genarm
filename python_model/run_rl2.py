@@ -336,8 +336,10 @@ def flip_coord(pi_old, struct):
 	x = np.floor(pi_old[:,0]*tf.cast(xdim,tf.float32))
 	y = np.floor(pi_old[:,1]*tf.cast(ydim,tf.float32))
 	z = np.floor(pi_old[:,2]*tf.cast(zdim,tf.float32))
-	print(x)
-	
+	x = tf.cast(x,tf.int32)
+	y = tf.cast(y,tf.int32)
+	z = tf.cast(z,tf.int32)
+
 	for i in range(len(pi_old)):
 		if struct[0,x[i],y[i],z[i]] == 0:
 			new_struct[0,x[i],y[i],z[i]] = 1
