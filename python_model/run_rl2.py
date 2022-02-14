@@ -333,9 +333,9 @@ def flip_coord(pi_old, struct):
 	print(tf.shape(struct))
 	print(tf.shape(pi_old))
 	batch, xdim, ydim, zdim = tf.shape(struct)
-	x = pi_old[:,0]*xdim
-	y = pi_old[:,1]*ydim
-	z = pi_old[:,2]*zdim
+	x = pi_old[:,0]*tf.cast(xdim,tf.float32)
+	y = pi_old[:,1]*tf.cast(ydim,tf.float32)
+	z = pi_old[:,2]*tf.cast(zdim,tf.float32)
 	for i in range(len(pi_old)):
 		if struct[0,x[i],y[i],z[i]] == 0:
 			new_struct[0,x[i],y[i],z[i]] = 1
