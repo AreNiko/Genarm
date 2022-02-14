@@ -339,7 +339,7 @@ def flip_coord(pi_old, struct):
 	x = tf.cast(x,tf.int32)
 	y = tf.cast(y,tf.int32)
 	z = tf.cast(z,tf.int32)
-
+	print(np.concatenate((x, y, z), axis=1))
 	for i in range(len(pi_old)):
 		if x[i] < xdim and y[i] < ydim and z[i] < zdim:
 			if struct[0,x[i],y[i],z[i]] == 0:
@@ -668,7 +668,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				obs, action, advantage, pi_old, value_target, t = batch
 				#action = tf.expand_dims(action, -1)
 				with tf.GradientTape() as tape:
-					pi = activations.tanh(policy_network.policy(obs))
+					pi = activations.sigmoid(policy_network.policy(obs))
 					v = value_network(obs, np.float32(maxlen)-t)
 					
 					#p_loss = policy_loss(pi, pi_old, advantage, epsilon)
