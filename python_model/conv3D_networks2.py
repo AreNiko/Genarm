@@ -100,11 +100,11 @@ class PolicyNetwork(tf.keras.Model):
 
         #x2d = self.conv3d(x2)
         #x2d = self.conv3d(x2d)
-        x2d = self.dense256(x1d)
+        x2d = layers.Dense(256)(x1d)
 
         #x3d = self.conv3d(x3)
         #x3d = self.conv3d(x3d)
-        x3d = self.dense256(x2d)
+        x3d = layers.Dense(256)(x2d)
 
         #x4d = self.conv3d(x4)
         #x4d = self.conv3d(x4d)
