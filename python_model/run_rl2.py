@@ -107,9 +107,9 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 						reward = - (vox_diff + 100*(comps-1))
 						done = True
 
-					if comps == 1:
-						if best_reward < reward or best_reward is None:
-							best_struct = new_struct
+					if best_reward < reward or best_reward is None:
+						best_struct = new_struct
+						
 				rewards.append(reward)
 				print(reward)
 
