@@ -24,7 +24,7 @@ from FEM.vGextF2extF import vGextF2extF
 
 collist = matlab.double([0, 0.68, 0.7647])
 collist2 = matlab.double([0, 0.7647, 0])
-collist3 = matlab.double([0.7647 0 0])
+collist3 = matlab.double([0.7647, 0, 0])
 
 def start_engine():
 	isengine = matlab.engine.find_matlab()
