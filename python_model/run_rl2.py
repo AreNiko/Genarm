@@ -387,7 +387,9 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			pi_oldx = activations.relu(logits[0][:,0], max_value=xdim)
 			pi_oldy = activations.relu(logits[0][:,1], max_value=ydim)
 			pi_oldz = activations.relu(logits[0][:,2], max_value=zdim)
-			pi_old = tf.concat([pi_oldx,pi_oldy,pi_oldz])
+			pi_old = tf.concat([pi_oldx,pi_oldy,pi_oldz],0)
+			print(tf.shape(action))
+			print(tf.shape(pi_old))
 			
 			episode.observations.append(observation[0])
 			episode.ts.append(np.float32(t))
