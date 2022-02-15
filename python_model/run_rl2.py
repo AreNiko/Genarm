@@ -404,7 +404,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 
 			for _ in range(action_repeat):
 				new_struct = flip_coord(pi_old, observation[:,:,:,:,0])
-				observation = tf.stack([tf.convert_to_tensor(new_struct), structC, structF, stayoff], axis=4)
+				
 				done = False
 				if np.sum(new_struct) == 0:
 					r = -10000.0
@@ -446,6 +446,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 				
 
 			episode.rewards.append(reward)
+			observation = tf.stack([tf.convert_to_tensor(new_struct), structC, structF, stayoff], axis=4)
 			if done:
 				break
 
