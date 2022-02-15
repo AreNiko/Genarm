@@ -71,7 +71,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 			logits = agent(observation)
 			# remove num_samples dimension and batch dimension
 			action = logits[0]
-			pi_old = activations.sigmoid(logits)[0]
+			pi_old = activations.hard_sigmoid(logits)[0]
 
 			for _ in range(action_repeat):
 				t += 1
@@ -383,7 +383,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			# remove num_samples dimension and batch dimension
 			#action = tf.random.categorical(logits, 1)[0][0]
 			action = logits[0]
-			pi_old = activations.sigmoid(logits)[0]
+			pi_old = activations.hard_sigmoid(logits)[0]
 			
 			episode.observations.append(observation[0])
 			episode.ts.append(np.float32(t))
@@ -671,7 +671,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				obs, action, advantage, pi_old, value_target, t = batch
 				#action = tf.expand_dims(action, -1)
 				with tf.GradientTape() as tape:
-					pi = activations.sigmoid(policy_network.policy(obs))
+					pi = activations.hard_sigmoid(policy_network.policy(obs))
 					v = value_network(obs, np.float32(maxlen)-t)
 					
 					#p_loss = policy_loss(pi, pi_old, advantage, epsilon)
