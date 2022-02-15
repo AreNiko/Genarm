@@ -85,7 +85,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 				done = False
 				if np.sum(new_struct) == 0:
 					reward = -10000.0
-					done = True
+					#done = True
 				else:
 					try:
 						#eng.clf(nargout=0)
@@ -95,7 +95,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 							                                 convert_to_matlabint8(structF[0]), nargout=2)
 						if new_bend == 0 or np.isnan(new_bend) or np.isinf(new_bend):
 							new_bend = 10.0
-							done = True
+							#done = True
 
 						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(new_struct))
 						bend_diff = og_bend/new_bend
@@ -421,7 +421,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						
 						if new_bend == 0 or np.isnan(new_bend):
 							new_bend = 10.0
-							done = True
+							#done = True
 
 						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(new_struct))
 						bend_diff = og_bend/new_bend
@@ -494,7 +494,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	K = 3
 	num_episodes = 32#2 #8
 	maxlen_environment = 32
-	action_repeat = 1
+	action_repeat = 4
 	maxlen = maxlen_environment // action_repeat # max number of actions
 	batch_size = 1
 	checkpoint_interval = 5
