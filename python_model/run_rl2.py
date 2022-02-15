@@ -73,10 +73,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 			logits = agent(observation)
 			# remove num_samples dimension and batch dimension
 			action = logits[0]
-			pi_oldx = activations.relu(logits[0][:,0], max_value=xdim)
-			pi_oldy = activations.relu(logits[0][:,1], max_value=ydim)
-			pi_oldz = activations.relu(logits[0][:,2], max_value=zdim)
-			pi_old = tf.stack([pi_oldx,pi_oldy,pi_oldz],axis=1)
+			pi_old = activations.relu(logits[0])
 
 			for _ in range(action_repeat):
 				t += 1
@@ -340,10 +337,9 @@ def entropy_loss(pi):
 def flip_coord(pi_old, struct):
 	new_struct = struct.numpy()
 	batch, xdim, ydim, zdim = tf.shape(struct)
-	x = pi_old[:,0]
-	y = pi_old[:,1]
-	z = pi_old[:,2]
-	print(x)
+	x = np.floor(pi_old[:,0]*tf.cast(xdim,tf.float32))
+	y = np.floor(pi_old[:,1]*tf.cast(ydim,tf.float32))
+	z = np.floor(pi_old[:,2]*tf.cast(zdim,tf.float32))
 	x = tf.cast(x,tf.int32)
 	y = tf.cast(y,tf.int32)
 	z = tf.cast(z,tf.int32)
@@ -390,10 +386,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			# remove num_samples dimension and batch dimension
 			#action = tf.random.categorical(logits, 1)[0][0]
 			action = logits[0]
-			pi_oldx = activations.relu(logits[0][:,0], max_value=xdim)
-			pi_oldy = activations.relu(logits[0][:,1], max_value=ydim)
-			pi_oldz = activations.relu(logits[0][:,2], max_value=zdim)
-			pi_old = tf.stack([pi_oldx,pi_oldy,pi_oldz],axis=1)
+			pi_old = activations.relu(logits[0])
 			
 			episode.observations.append(observation[0])
 			episode.ts.append(np.float32(t))
@@ -684,12 +677,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				obs, action, advantage, pi_old, value_target, t = batch
 				#action = tf.expand_dims(action, -1)
 				with tf.GradientTape() as tape:
-					pi = policy_network.policy(obs)
-					pi_x = activations.relu(pi[0][:,0], max_value=xdim)
-					pi_y = activations.relu(pi[0][:,1], max_value=ydim)
-					pi_z = activations.relu(pi[0][:,2], max_value=zdim)
-					pi = tf.stack([pi_x,pi_y,pi_z],axis=1)
-
+					pi = activations.relu(policy_network.policy(obs))
 					v = value_network(obs, np.float32(maxlen)-t)
 					
 					#p_loss = policy_loss(pi, pi_old, advantage, epsilon)
