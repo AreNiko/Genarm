@@ -368,7 +368,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 	structF = obser[:,:,:,:,2]
 	stayoff = obser[:,:,:,:,3]
 
-	xdim, ydim, zdim = tf.shape(og_struct[0])
+	xdim, ydim, zdim = tf.cast(tf.shape(og_struct[0]),tf.float32)
 	#eng = start_engine()
 	og_bend = eng.check_max_bend(convert_to_matlabint8(obser[0,:,:,:,0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]))
 
@@ -384,9 +384,9 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			# remove num_samples dimension and batch dimension
 			#action = tf.random.categorical(logits, 1)[0][0]
 			action = logits[0]
-			pi_oldx = activations.relu(logits[0][:,0], max_value=tf.cast(xdim,tf.float32))
-			pi_oldy = activations.relu(logits[0][:,1], max_value=tf.cast(ydim,tf.float32))
-			pi_oldz = activations.relu(logits[0][:,2], max_value=tf.cast(zdim,tf.float32))
+			pi_oldx = activations.relu(logits[0][:,0], max_value=xdim)
+			pi_oldy = activations.relu(logits[0][:,1], max_value=ydim)
+			pi_oldz = activations.relu(logits[0][:,2], max_value=zdim)
 			pi_old = tf.concat([pi_oldx,pi_oldy,pi_oldz])
 			
 			episode.observations.append(observation[0])
