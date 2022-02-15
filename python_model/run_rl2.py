@@ -51,6 +51,8 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 	structF = obser[:,:,:,:,2]
 	stayoff = obser[:,:,:,:,3]
 	#eng = start_engine()
+	xdim, ydim, zdim = tf.cast(tf.shape(og_struct[0]),tf.float32)
+
 	og_bend = eng.check_max_bend(convert_to_matlabint8(obser[0,:,:,:,0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]))
 	scores = []
 	best_reward = -1000000000
@@ -71,7 +73,10 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 			logits = agent(observation)
 			# remove num_samples dimension and batch dimension
 			action = logits[0]
-			pi_old = activations.hard_sigmoid(logits)[0]
+			pi_oldx = activations.relu(logits[0][:,0], max_value=xdim)
+			pi_oldy = activations.relu(logits[0][:,1], max_value=ydim)
+			pi_oldz = activations.relu(logits[0][:,2], max_value=zdim)
+			pi_old = tf.stack([pi_oldx,pi_oldy,pi_oldz],axis=1)
 
 			for _ in range(action_repeat):
 				t += 1
@@ -388,8 +393,6 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			pi_oldy = activations.relu(logits[0][:,1], max_value=ydim)
 			pi_oldz = activations.relu(logits[0][:,2], max_value=zdim)
 			pi_old = tf.stack([pi_oldx,pi_oldy,pi_oldz],axis=1)
-			print(tf.shape(action))
-			print(tf.shape(pi_old))
 			
 			episode.observations.append(observation[0])
 			episode.ts.append(np.float32(t))
@@ -643,6 +646,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	avg_tol_val = 0
 	tol = np.linspace(0.0, 1.0, 101)
 
+
 	m_list, M_list = [], []
 	median_list, mean_list = [], []
 	iteration_list = []
@@ -659,6 +663,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 		start = time.time()
 		for struct, structC, structF, stayoff in new_dataset.take(1):
 			inpus = tf.stack([struct, structC, structF, stayoff], axis=4)
+			xdim, ydim, zdim = tf.cast(tf.shape(struct[0]),tf.float32)
 		dataset = create_dataset(inpus, policy_network, value_network,
 								 num_episodes, maxlen,
 								 action_repeat, gamma)
@@ -677,7 +682,12 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				obs, action, advantage, pi_old, value_target, t = batch
 				#action = tf.expand_dims(action, -1)
 				with tf.GradientTape() as tape:
-					pi = activations.hard_sigmoid(policy_network.policy(obs))
+					pi = policy_network.policy(obs)
+					pi_x = activations.relu(pi[0][:,0], max_value=xdim)
+					pi_y = activations.relu(pi[0][:,1], max_value=ydim)
+					pi_z = activations.relu(pi[0][:,2], max_value=zdim)
+					pi = tf.stack([pi_x,pi_y,pi_z],axis=1)
+
 					v = value_network(obs, np.float32(maxlen)-t)
 					
 					#p_loss = policy_loss(pi, pi_old, advantage, epsilon)
