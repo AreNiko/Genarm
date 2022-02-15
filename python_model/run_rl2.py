@@ -81,7 +81,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 			for _ in range(action_repeat):
 				t += 1
 				new_struct = flip_coord(pi_old, observation[:,:,:,:,0])
-				observation = tf.stack([tf.convert_to_tensor(new_struct), structC, structF, stayoff], axis=4)
+				
 				done = False
 				if np.sum(new_struct) == 0:
 					reward = -10000.0
@@ -125,7 +125,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 				if maxlen_environment >= 0 and t == maxlen_environment:
 					break
 				
-
+			observation = tf.stack([tf.convert_to_tensor(new_struct), structC, structF, stayoff], axis=4)
 			if done:
 				print("Episode finished after {} timesteps".format(t+1))
 				break
