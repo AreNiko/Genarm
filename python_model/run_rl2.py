@@ -438,7 +438,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						
 					except:
 						comps = eng.check_components(convert_to_matlabint8(new_struct[0]), nargout=1)
-						r = - (vox_diff/10000 + (comps-1))
+						r = - (vox_diff/10000 + (comps-1)) - r
 						#done = True
 				reward = reward + r
 				
