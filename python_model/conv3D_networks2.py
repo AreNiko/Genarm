@@ -77,8 +77,8 @@ class PolicyNetwork(tf.keras.Model):
         self.dense256_1 = layers.Dense(256)
         self.dense256_2 = layers.Dense(256)
         self.dense128 = layers.Dense(128)
-        self.dense_coord = layers.Dense(30)
-        self.reshape = layers.Reshape((10, 3))
+        self.dense_coord = layers.Dense(75)
+        self.reshape = layers.Reshape((25, 3))
 
     def policy(self, inpu):
         batch, xdim, ydim, zdim, channels = tf.shape(inpu)
