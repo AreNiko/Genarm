@@ -389,9 +389,9 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			#action = tf.random.categorical(logits, 1)[0][0]
 			action = tf.random.categorical(logits, 30)[0]
 			#action = tf.math.sigmoid(tf.cast(action,tf.float32))
-			action = tf.reshape(action, [10,3])
+			action = tf.cast(tf.reshape(action, [10,3]),tf.float32)
 			print(action)
-			action = tf.math.sigmoid(tf.cast(action,tf.float32))
+			action = action/tf.math.reduce_max(action)
 			print(action)
 			pi_old = activations.softmax(logits)[0]
 			
