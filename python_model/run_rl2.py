@@ -74,7 +74,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 			# remove num_samples dimension and batch dimension
 			#action = tf.random.categorical(logits, 30)[0]
 			#action = tf.math.sigmoid(tf.cast(action,tf.float32))
-			action = tf.cast(tf.reshape(action, [10,3]),tf.float32)
+			action = tf.cast(tf.reshape(action[0], [10,3]),tf.float32)
 			#action = action/150
 			#pi_old = activations.softmax(logits)[0]
 
