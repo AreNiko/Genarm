@@ -334,17 +334,17 @@ def entropy_loss(pi):
 	#print("Entropy: ", loss)
 	return loss
 
-def flip_coord(pi_old, struct):
+def flip_coord(action, struct):
 	new_struct = struct.numpy()
 	batch, xdim, ydim, zdim = tf.shape(struct)
-	x = np.floor(pi_old[:,0]*tf.cast(xdim,tf.float32))
-	y = np.floor(pi_old[:,1]*tf.cast(ydim,tf.float32))
-	z = np.floor(pi_old[:,2]*tf.cast(zdim,tf.float32))
+	x = np.floor(action[:,0]*tf.cast(xdim,tf.float32))
+	y = np.floor(action[:,1]*tf.cast(ydim,tf.float32))
+	z = np.floor(action[:,2]*tf.cast(zdim,tf.float32))
 	x = tf.cast(x,tf.int32)
 	y = tf.cast(y,tf.int32)
 	z = tf.cast(z,tf.int32)
 
-	for i in range(len(pi_old)):
+	for i in range(len(action)):
 		#print(x[i].numpy(),y[i].numpy(),z[i].numpy())
 		if x[i] < xdim and y[i] < ydim and z[i] < zdim:
 			if struct[0,x[i],y[i],z[i]] == 0:
@@ -385,13 +385,11 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			logits = policy_network.policy(observation)
 			# remove num_samples dimension and batch dimension
 			#action = tf.random.categorical(logits, 1)[0][0]
-			actionx = tf.random.categorical(logits[0][0:49], 50)[0]
-			actiony = tf.random.categorical(logits[0][50:99], 50)[0]
-			actionz = tf.random.categorical(logits[0][100:150], 50)[0]
-			print(actionx)
-			print(actiony)
-			print(actionz)
-			pi_old = activations.relu(logits[0])
+			action = tf.random.categorical(logits, 30)[0]
+			action = tf.math.sigmoid(action)
+			action = tf.reshape(action, [10,3])
+			print(action)
+			pi_old = activations.softmax(logits)[0]
 			
 			episode.observations.append(observation[0])
 			episode.ts.append(np.float32(t))
