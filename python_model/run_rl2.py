@@ -75,14 +75,14 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 			action = tf.random.categorical(logits, 30)[0]
 			action = tf.math.sigmoid(tf.cast(action,tf.float32))
 			action = tf.reshape(action, [10,3])
-			pi_old = activations.softmax(logits[0])
+			pi_old = activations.softmax(logits)[0]
 
 			for _ in range(action_repeat):
 				t += 1
 				new_struct = flip_coord(action, observation[:,:,:,:,0])
 				
 				done = False
-				if np.sum(new_struct) == 0:
+				if np.sum(new_struct) == 0 or np.sum(new_struct[0] - observation[0,:,:,:,0]) == 0:
 					reward = -10000.0
 					#done = True
 				else:
