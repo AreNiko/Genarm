@@ -405,7 +405,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 				new_struct = flip_coord(action, observation[:,:,:,:,0])
 				
 				done = False
-				if np.sum(new_struct) == 0 or new_struct[0] == observation[0,:,:,:,0]:
+				if np.sum(new_struct) == 0 or np.sum(new_struct[0] - observation[0,:,:,:,0]) == 0:
 					r = -1000.0
 					done = True
 
