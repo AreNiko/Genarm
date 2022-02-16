@@ -8,10 +8,10 @@ class FeatureExtractor(tf.keras.Model):
     def __init__(self, **kwargs):
         super(FeatureExtractor, self).__init__(**kwargs)
 
-        self.conv3d1 = layers.Conv3D(16, 5, strides=3, padding='same', activation='relu')
-        self.conv3d2 = layers.Conv3D(16, 5, strides=3, padding='same', activation='relu')
-        self.conv3d3 = layers.Conv3D(16, 5, strides=3, padding='same', activation='relu')
-        self.conv3d4 = layers.Conv3D(16, 5, strides=3, padding='same', activation='relu')
+        self.conv3d1 = layers.Conv3D(16, 5, strides=1, padding='same', activation='relu')
+        self.conv3d2 = layers.Conv3D(16, 5, strides=1, padding='same', activation='relu')
+        self.conv3d3 = layers.Conv3D(16, 5, strides=1, padding='same', activation='relu')
+        self.conv3d4 = layers.Conv3D(16, 5, strides=1, padding='same', activation='relu')
         self.conv1x1 = layers.Conv3D(1, 1, strides=(1, 1, 1), padding='same', activation='relu')
         self.batchmeup = layers.BatchNormalization(momentum=0.8)
         self.flatten = layers.Flatten()
@@ -72,7 +72,7 @@ class PolicyNetwork(tf.keras.Model):
         super(PolicyNetwork, self).__init__(**kwargs)
 
         self.feature_extractor = feature_extractor
-        self.conv3d = layers.Conv3D(32, 5, strides=(1, 1, 1), padding='same', activation='relu')
+        self.conv3d1 = layers.Conv3D(32, 5, strides=(1, 1, 1), padding='same', activation='relu')
         self.dense512 = layers.Dense(512)
         self.dense256_1 = layers.Dense(256)
         self.dense256_2 = layers.Dense(256)

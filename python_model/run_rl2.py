@@ -401,7 +401,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			episode.ts.append(np.float32(t))
 			episode.actions.append(action.numpy())
 			episode.probs_old.append(pi_old.numpy())
-
+			r = 0.0
 			reward = 0.0 # accumulate reward accross actions
 			#action = action_encoder.index2action(action).numpy()
 
@@ -430,7 +430,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						place_diff = np.abs(np.sum(og_struct.numpy() - new_struct))
 						bend_diff = og_bend/new_bend
 						#print(new_bend, vox_diff, comps)
-						r = bend_diff + place_diff - (vox_diff/10000 + (comps-1))
+						r = bend_diff + place_diff - (vox_diff/10000 + (comps-1)) - r
 						#print("old vs new bending: ", og_bend, "/", new_bend)
 						#print("Difference in voxels: ", vox_diff)
 						#if comps > 1:
