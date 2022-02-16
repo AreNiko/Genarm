@@ -385,9 +385,12 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			logits = policy_network.policy(observation)
 			# remove num_samples dimension and batch dimension
 			#action = tf.random.categorical(logits, 1)[0][0]
-			print(logits)
-			action = tf.random.categorical(logits, 50)[0]
-			print(action)
+			actionx = tf.random.categorical(logits[0][0:49], 50)[0]
+			actiony = tf.random.categorical(logits[0][50:99], 50)[0]
+			actionz = tf.random.categorical(logits[0][100:150], 50)[0]
+			print(actionx)
+			print(actiony)
+			print(actionz)
 			pi_old = activations.relu(logits[0])
 			
 			episode.observations.append(observation[0])
