@@ -117,8 +117,8 @@ class PolicyNetwork(tf.keras.Model):
         
         #xfd = tf.keras.activations.tanh(xfd)
         #xfd = tf.keras.activations.sigmoid(xfd)
-        x4d = layers.Dense(150)(x3d)
-        xfd = layers.Reshape((50, 3))(x4d) 
+        x4d = layers.Dense(30)(x3d)
+        xfd = layers.Reshape((10, 3))(x4d) 
 
         return xfd
 
