@@ -502,7 +502,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	batch_size = 1
 	checkpoint_interval = 5
 	eval_interval = 1
-	eval_episodes = 20
+	eval_episodes = 1
 
 	alpha_start = 1
 	alpha_end = 0.0
