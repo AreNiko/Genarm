@@ -72,12 +72,14 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 			observations.append(observation)
 			logits = agent(observation)
 			# remove num_samples dimension and batch dimension
-			action = logits[0]
-			pi_old = activations.relu(logits[0])
+			action = tf.random.categorical(logits, 30)[0]
+			action = tf.math.sigmoid(tf.cast(action,tf.float32))
+			action = tf.reshape(action, [10,3])
+			pi_old = activations.softmax(logits[0])
 
 			for _ in range(action_repeat):
 				t += 1
-				new_struct = flip_coord(pi_old, observation[:,:,:,:,0])
+				new_struct = flip_coord(action, observation[:,:,:,:,0])
 				
 				done = False
 				if np.sum(new_struct) == 0:
@@ -388,7 +390,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			action = tf.random.categorical(logits, 30)[0]
 			action = tf.math.sigmoid(tf.cast(action,tf.float32))
 			action = tf.reshape(action, [10,3])
-			print(action)
+			
 			pi_old = activations.softmax(logits)[0]
 			
 			episode.observations.append(observation[0])
@@ -449,6 +451,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 
 		episodes.append(episode)
 
+	print(action)
 	return episodes
 
 def create_dataset(obser, policy_network, value_network, num_episodes, maxlen, action_repeat, gamma):
@@ -680,7 +683,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				obs, action, advantage, pi_old, value_target, t = batch
 				#action = tf.expand_dims(action, -1)
 				with tf.GradientTape() as tape:
-					pi = activations.relu(policy_network.policy(obs))
+					pi = activations.softmax(policy_network.policy(obs))
 					v = value_network(obs, np.float32(maxlen)-t)
 					
 					#p_loss = policy_loss(pi, pi_old, advantage, epsilon)
