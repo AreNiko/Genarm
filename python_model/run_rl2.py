@@ -350,7 +350,7 @@ def flip_coord(action, struct):
 	y = tf.cast(y,tf.int32)
 	z = tf.cast(z,tf.int32)
 
-	for i in range(int(np.floor(len(action)*0.5))):
+	for i in range(len(action)):
 		#print(x[i].numpy(),y[i].numpy(),z[i].numpy())
 		if x[i] < xdim and y[i] < ydim and z[i] < zdim:
 			if struct[0,x[i],y[i],z[i]] == 0:
@@ -391,10 +391,11 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			logits = policy_network.policy(observation)
 			# remove num_samples dimension and batch dimension
 			#action = tf.random.categorical(logits, 1)[0][0]
-			action = tf.random.categorical(logits, 150)[0]
+			#action = tf.random.categorical(logits, 150)[0]
 			#action = tf.math.sigmoid(tf.cast(action,tf.float32))
-			action = tf.cast(tf.reshape(action, [50,3]),tf.float32)
-			action = action/150
+			noise = tf.random_normal(shape = tf.shape(action), mean = 0.0, stddev = 0.05, dtype = tf.float32)
+			action = tf.reshape(action, [50,3]) + noise
+			#action = action/150
 			pi_old = activations.softmax(logits)[0]
 			
 			episode.observations.append(observation[0])
