@@ -398,6 +398,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			action = tf.reshape(logits[0], [50,3])
 			noise = tf.random.normal(shape = tf.shape(action), mean = 0.0, stddev = 0.1, dtype = tf.float32)
 			action = action + noise
+			action = tf.clip_by_value(action, 0, 1)
 			#action = action/150
 			pi_old = activations.softmax(logits)[0]
 			
@@ -463,7 +464,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 		best_differences_minus = np.abs(best_differences[best_differences < 0])
 		best_differences_positive = np.abs(best_differences[best_differences > 0])
 		eng.clf(nargout=0)
-		eng.plotVg_safe(convert_to_matlabint8(new_struct[0]), 'edgeOff', 'col',collist, 'alp', 0.2, nargout=0)
+		eng.plotVg_safe(convert_to_matlabint8(new_struct[0]), 'edgeOff', 'col',collist, 'alp', 0.05, nargout=0)
 		eng.plotVg_safe(convert_to_matlabint8(diff_struct[0]), 'edgeOff', 'col',collist3, 'alp', 0.8, nargout=0)
 		#eng.plotVg_safe(convert_to_matlabint8(best_differences_positive), 'edgeOff', 'col',collist2, 'alp', 0.8, nargout=0)
 
