@@ -103,7 +103,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 						bend_diff = og_bend/new_bend
 						#print(new_bend, vox_diff, comps)
 						
-						reward = bend_diff + place_diff - (vox_diff + 10*(comps-1))
+						reward = bend_diff + place_diff - (vox_diff/10000 + (comps-1))
 						print("old vs new bending: ", og_bend, "/", new_bend)
 						print("Difference in voxels: ", vox_diff)
 
@@ -113,7 +113,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 					except:
 						comps = eng.check_components(convert_to_matlabint8(new_struct[0]), nargout=1)
 						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(new_struct))
-						reward = - (vox_diff + 10*(comps-1))
+						reward = - (vox_diff/10000 + (comps-1))
 						done = True
 
 					if best_reward < reward or best_reward is None:
@@ -437,7 +437,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						place_diff = np.abs(np.sum(og_struct.numpy() - new_struct))
 						bend_diff = og_bend/new_bend
 						#print(new_bend, vox_diff, comps)
-						r = bend_diff + place_diff - (vox_diff + 10*(comps-1)) - r
+						r = bend_diff + place_diff - (vox_diff/10000 + 10*(comps-1)) - r
 						#print("old vs new bending: ", og_bend, "/", new_bend)
 						#print("Difference in voxels: ", vox_diff)
 						if comps > 1:
@@ -445,7 +445,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						
 					except:
 						comps = eng.check_components(convert_to_matlabint8(new_struct[0]), nargout=1)
-						r = - (vox_diff + 10*(comps-1)) - r
+						r = - (vox_diff/10000 + 10*(comps-1)) - r
 						done = True
 				reward = reward + r
 				
@@ -463,14 +463,8 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 
 		episodes.append(episode)
 		best_differences = new_struct[0] - og_struct[0].numpy()
-		best_differences_minus = best_differences
-		best_differences_positive = best_differences
-
-		best_differences_minus[best_differences_minus > 0] = 0
-		best_differences_minus[best_differences_minus < 0] = 1
-
-		best_differences_positive[best_differences_positive < 0] = 0
-		best_differences_positive[best_differences_positive > 0] = 1
+		best_differences_minus = np.abs(best_differences[best_differences < 0])
+		best_differences_positive = np.abs(best_differences[best_differences > 0])
 		eng.clf(nargout=0)
 		eng.plotVg_safe(convert_to_matlabint8(new_struct[0]), 'edgeOff', 'col',collist, 'alp', 0.05, nargout=0)
 		eng.plotVg_safe(convert_to_matlabint8(best_differences_minus), 'edgeOff', 'col',collist3, 'alp', 0.8, nargout=0)
