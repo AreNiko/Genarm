@@ -78,7 +78,7 @@ class PolicyNetwork(tf.keras.Model):
         self.dense256_2 = layers.Dense(256)
         self.dense128 = layers.Dense(128)
         self.dense_coord = layers.Dense(150)
-        #self.reshape = layers.Reshape((50, 3))
+        self.reshape = layers.Reshape((50, 3))
 
     def policy(self, inpu):
         batch, xdim, ydim, zdim, channels = tf.shape(inpu)
@@ -97,9 +97,10 @@ class PolicyNetwork(tf.keras.Model):
         #x2d = self.conv3d(x2d)
         x2d = self.dense256_1(x1d)
 
+        x3d = self.dense512(x2d)
         #x3d = self.conv3d(x3)
         #x3d = self.conv3d(x3d)
-        x3d = self.dense256_2(x2d)
+        x4d = self.dense256_2(x3d)
 
         #x4d = self.conv3d(x4)
         #x4d = self.conv3d(x4d)
@@ -117,9 +118,9 @@ class PolicyNetwork(tf.keras.Model):
         
         #xfd = tf.keras.activations.tanh(xfd)
         #xfd = tf.keras.activations.sigmoid(xfd)
-        xfd = self.dense_coord(x3d)
+        xfd = self.dense_coord(x4d)
+        xfd = self.reshape(xfd)
         xfd = activations.sigmoid(xfd)
-        #xfd = self.reshape(x4d) 
 
         return xfd
 

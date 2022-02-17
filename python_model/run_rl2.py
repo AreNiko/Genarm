@@ -75,13 +75,13 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 			#action = tf.random.categorical(logits, 30)[0]
 			#action = tf.math.sigmoid(tf.cast(action,tf.float32))
 			print(action)
-			action = tf.cast(tf.reshape(action[0], [50,3]),tf.float32)
+			#action = tf.cast(tf.reshape(action[0], [50,3]),tf.float32)
 			#action = action/150
 			#pi_old = activations.softmax(logits)[0]
 
 			for _ in range(action_repeat):
 				t += 1
-				new_struct, diff_struct = flip_coord(action, observation[:,:,:,:,0])
+				new_struct = flip_coord(action, observation[:,:,:,:,0])
 				
 				done = False
 				if np.sum(new_struct) == 0 or np.sum(new_struct[0] - observation[0,:,:,:,0]) == 0:
@@ -103,7 +103,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 						bend_diff = og_bend/new_bend
 						#print(new_bend, vox_diff, comps)
 						
-						reward = bend_diff + place_diff - (vox_diff/10000 + (comps-1))
+						reward = bend_diff + place_diff - (vox_diff + 10*(comps-1))
 						print("old vs new bending: ", og_bend, "/", new_bend)
 						print("Difference in voxels: ", vox_diff)
 
@@ -113,7 +113,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 					except:
 						comps = eng.check_components(convert_to_matlabint8(new_struct[0]), nargout=1)
 						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(new_struct))
-						reward = - (vox_diff/10000 + (comps-1))
+						reward = - (vox_diff + 10*(comps-1))
 						done = True
 
 					if best_reward < reward or best_reward is None:
@@ -342,7 +342,6 @@ def entropy_loss(pi):
 
 def flip_coord(action, struct):
 	new_struct = struct.numpy()
-	diff_struct = np.zeros(np.shape(new_struct))
 	batch, xdim, ydim, zdim = tf.shape(struct)
 	x = np.floor(action[:,0]*tf.cast(xdim,tf.float32))
 	y = np.floor(action[:,1]*tf.cast(ydim,tf.float32))
@@ -358,9 +357,8 @@ def flip_coord(action, struct):
 				new_struct[0,x[i],y[i],z[i]] = 1
 			else:
 				new_struct[0,x[i],y[i],z[i]] = 0
-			diff_struct[0,x[i],y[i],z[i]] = 1
 
-	return new_struct, diff_struct
+	return new_struct
 
 class EpisodeData:
 	def __init__(self):
@@ -395,9 +393,9 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			#action = tf.random.categorical(logits, 1)[0][0]
 			#action = tf.random.categorical(logits, 150)[0]
 			#action = tf.math.sigmoid(tf.cast(action,tf.float32))
-			action = tf.reshape(logits[0], [50,3])
-			noise = tf.random.normal(shape = tf.shape(action), mean = 0.0, stddev = 0.05, dtype = tf.float32)
-			action = action + noise
+			#action = tf.reshape(logits[0], [50,3])
+			noise = tf.random.normal(shape = tf.shape(logits[0]), mean = 0.0, stddev = 0.05, dtype = tf.float32)
+			action = logits[0] + noise
 			action = tf.clip_by_value(action, 0, 1)
 			#action = action/150
 			pi_old = activations.softmax(logits)[0]
@@ -411,7 +409,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			#action = action_encoder.index2action(action).numpy()
 
 			for _ in range(action_repeat):
-				new_struct, diff_struct = flip_coord(action, observation[:,:,:,:,0])
+				new_struct = flip_coord(action, observation[:,:,:,:,0])
 				
 				done = False
 				if np.sum(new_struct) == 0:
@@ -439,7 +437,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						place_diff = np.abs(np.sum(og_struct.numpy() - new_struct))
 						bend_diff = og_bend/new_bend
 						#print(new_bend, vox_diff, comps)
-						r = bend_diff + place_diff - (vox_diff/10000 + 10*(comps-1)) 
+						r = bend_diff + place_diff - (vox_diff + 10*(comps-1)) - r
 						#print("old vs new bending: ", og_bend, "/", new_bend)
 						#print("Difference in voxels: ", vox_diff)
 						if comps > 1:
@@ -447,7 +445,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						
 					except:
 						comps = eng.check_components(convert_to_matlabint8(new_struct[0]), nargout=1)
-						r = - (vox_diff/10000 + 10*(comps-1))
+						r = - (vox_diff + 10*(comps-1)) - r
 						done = True
 				reward = reward + r
 				
@@ -465,12 +463,18 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 
 		episodes.append(episode)
 		best_differences = new_struct[0] - og_struct[0].numpy()
-		best_differences_minus = np.abs(best_differences[best_differences < 0])
-		best_differences_positive = np.abs(best_differences[best_differences > 0])
+		best_differences_minus = best_differences
+		best_differences_positive = best_differences
+
+		best_differences_minus[best_differences_minus > 0] = 0
+		best_differences_minus[best_differences_minus < 0] = 1
+
+		best_differences_positive[best_differences_positive < 0] = 0
+		best_differences_positive[best_differences_positive > 0] = 1
 		eng.clf(nargout=0)
 		eng.plotVg_safe(convert_to_matlabint8(new_struct[0]), 'edgeOff', 'col',collist, 'alp', 0.05, nargout=0)
-		eng.plotVg_safe(convert_to_matlabint8(diff_struct[0]), 'edgeOff', 'col',collist3, 'alp', 0.8, nargout=0)
-		#eng.plotVg_safe(convert_to_matlabint8(best_differences_positive), 'edgeOff', 'col',collist2, 'alp', 0.8, nargout=0)
+		eng.plotVg_safe(convert_to_matlabint8(best_differences_minus), 'edgeOff', 'col',collist3, 'alp', 0.8, nargout=0)
+		eng.plotVg_safe(convert_to_matlabint8(best_differences_positive), 'edgeOff', 'col',collist2, 'alp', 0.8, nargout=0)
 
 
 	print(action)
