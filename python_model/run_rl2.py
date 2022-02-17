@@ -350,7 +350,7 @@ def flip_coord(action, struct):
 	y = tf.cast(y,tf.int32)
 	z = tf.cast(z,tf.int32)
 
-	for i in range(np.floor(len(action)*0.5)):
+	for i in range(int(np.floor(len(action)*0.5))):
 		#print(x[i].numpy(),y[i].numpy(),z[i].numpy())
 		if x[i] < xdim and y[i] < ydim and z[i] < zdim:
 			if struct[0,x[i],y[i],z[i]] == 0:
