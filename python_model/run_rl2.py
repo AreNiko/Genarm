@@ -81,7 +81,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 
 			for _ in range(action_repeat):
 				t += 1
-				new_struct = flip_coord(action, observation[:,:,:,:,0])
+				new_struct, diff_struct = flip_coord(action, observation[:,:,:,:,0])
 				
 				done = False
 				if np.sum(new_struct) == 0 or np.sum(new_struct[0] - observation[0,:,:,:,0]) == 0:
@@ -342,6 +342,7 @@ def entropy_loss(pi):
 
 def flip_coord(action, struct):
 	new_struct = struct.numpy()
+	diff_struct = np.zeros(np.shape(new_struct))
 	batch, xdim, ydim, zdim = tf.shape(struct)
 	x = np.floor(action[:,0]*tf.cast(xdim,tf.float32))
 	y = np.floor(action[:,1]*tf.cast(ydim,tf.float32))
@@ -357,8 +358,9 @@ def flip_coord(action, struct):
 				new_struct[0,x[i],y[i],z[i]] = 1
 			else:
 				new_struct[0,x[i],y[i],z[i]] = 0
+			diff_struct[0,x[i],y[i],z[i]] = 1
 
-	return new_struct
+	return new_struct, diff_struct
 
 class EpisodeData:
 	def __init__(self):
@@ -408,7 +410,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			#action = action_encoder.index2action(action).numpy()
 
 			for _ in range(action_repeat):
-				new_struct = flip_coord(action, observation[:,:,:,:,0])
+				new_struct, diff_struct = flip_coord(action, observation[:,:,:,:,0])
 				
 				done = False
 				if np.sum(new_struct) == 0 or np.sum(new_struct[0] - observation[0,:,:,:,0]) == 0:
@@ -461,8 +463,8 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 		best_differences_minus = np.abs(best_differences[best_differences < 0])
 		best_differences_positive = np.abs(best_differences[best_differences > 0])
 		eng.clf(nargout=0)
-		eng.plotVg_safe(convert_to_matlabint8(new_struct[0]), 'edgeOff', 'col',collist, 'alp', 1, nargout=0)
-		#eng.plotVg_safe(convert_to_matlabint8(best_differences_minus), 'edgeOff', 'col',collist3, 'alp', 0.8, nargout=0)
+		eng.plotVg_safe(convert_to_matlabint8(new_struct[0]), 'edgeOff', 'col',collist, 'alp', 0.2, nargout=0)
+		eng.plotVg_safe(convert_to_matlabint8(diff_struct[0]), 'edgeOff', 'col',collist3, 'alp', 0.8, nargout=0)
 		#eng.plotVg_safe(convert_to_matlabint8(best_differences_positive), 'edgeOff', 'col',collist2, 'alp', 0.8, nargout=0)
 
 
