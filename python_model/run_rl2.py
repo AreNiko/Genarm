@@ -573,7 +573,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	agent._set_inputs(np.zeros([1, xstruct,ystruct,zstruct,4], dtype=np.float32))
 
 	# possibly share parameters with policy-network
-	value_network = ValueNetwork(feature_extractor)
+	value_network = ValueNetwork(feature_extractor, 100)
 
 	mse = losses.MeanSquaredError()
 	train_loss = metrics.Mean()

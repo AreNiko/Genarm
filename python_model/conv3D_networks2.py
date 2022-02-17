@@ -137,7 +137,7 @@ class PolicyNetwork(tf.keras.Model):
 
 class ValueNetwork(tf.keras.Model):
 
-    def __init__(self, feature_extractor=None, hidden_units=32, **kwargs):
+    def __init__(self, feature_extractor=None, hidden_units=0, **kwargs):
         super(ValueNetwork, self).__init__(**kwargs)
 
         self.feature_extractor = feature_extractor
