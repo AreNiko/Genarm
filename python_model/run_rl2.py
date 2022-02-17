@@ -103,8 +103,8 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 						bend_diff = og_bend/new_bend
 						#print(new_bend, vox_diff, comps)
 						
-						reward = bend_diff + place_diff - (vox_diff/10 + (comps-1))
-						print("old vs new bending: ", og_bend, "/", new_bend)
+						reward = bend_diff + place_diff/10 - (vox_diff + (comps-1))
+						print("old / new bending: ", og_bend, "/", new_bend)
 						print("Difference in voxels: ", vox_diff)
 
 						if comps > 1:
@@ -436,9 +436,9 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(new_struct))
 						place_diff = np.abs(np.sum(og_struct.numpy() - new_struct))
 						bend_diff = og_bend/new_bend
-						#print(new_bend, vox_diff, comps)
-						r = bend_diff + place_diff - (vox_diff/10 + 10*(comps-1)) - r
-						print("old vs new bending: ", og_bend, "/", new_bend)
+						print(new_bend, vox_diff, comps)
+						r = bend_diff + place_diff/10 - (vox_diff + 10*(comps-1)) - r
+						print("old / new bending: ", og_bend, "/", new_bend)
 						print("Difference in voxels: ", vox_diff)
 						if comps > 1:
 							done = True
@@ -520,7 +520,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	iterations = 500
 	epoch_range = 20
 	K = 3
-	num_episodes = 32#2 #8
+	num_episodes = 12#2 #8
 	maxlen_environment = 32
 	action_repeat = 1
 	maxlen = maxlen_environment // action_repeat # max number of actions
