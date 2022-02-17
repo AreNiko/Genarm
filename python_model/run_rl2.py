@@ -70,7 +70,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 		while True:
 			#observation = preprocess(observation)
 			observations.append(observation)
-			action = agent(observation)
+			action = agent(observation)[0]
 			# remove num_samples dimension and batch dimension
 			#action = tf.random.categorical(logits, 30)[0]
 			#action = tf.math.sigmoid(tf.cast(action,tf.float32))
