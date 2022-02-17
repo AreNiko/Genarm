@@ -414,8 +414,12 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 				new_struct, diff_struct = flip_coord(action, observation[:,:,:,:,0])
 				
 				done = False
-				if np.sum(new_struct) == 0 or np.sum(new_struct[0] - observation[0,:,:,:,0]) == 0:
+				if np.sum(new_struct) == 0:
 					r = -10000.0
+					done = True
+
+				if np.sum(new_struct[0] - observation[0,:,:,:,0]) == 0:
+					r = 0
 					done = True
 
 				else:
@@ -465,7 +469,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 		best_differences_positive = np.abs(best_differences[best_differences > 0])
 		eng.clf(nargout=0)
 		eng.plotVg_safe(convert_to_matlabint8(new_struct[0]), 'edgeOff', 'col',collist, 'alp', 0.05, nargout=0)
-		#eng.plotVg_safe(convert_to_matlabint8(diff_struct[0]), 'edgeOff', 'col',collist3, 'alp', 0.8, nargout=0)
+		eng.plotVg_safe(convert_to_matlabint8(diff_struct[0]), 'edgeOff', 'col',collist3, 'alp', 0.8, nargout=0)
 		#eng.plotVg_safe(convert_to_matlabint8(best_differences_positive), 'edgeOff', 'col',collist2, 'alp', 0.8, nargout=0)
 
 
