@@ -438,8 +438,8 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						bend_diff = og_bend/new_bend
 						#print(new_bend, vox_diff, comps)
 						r = bend_diff + place_diff - (vox_diff/10000 + 10*(comps-1)) - r
-						#print("old vs new bending: ", og_bend, "/", new_bend)
-						#print("Difference in voxels: ", vox_diff)
+						print("old vs new bending: ", og_bend, "/", new_bend)
+						print("Difference in voxels: ", vox_diff)
 						if comps > 1:
 							done = True
 						
@@ -475,6 +475,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 		eng.plotVg_safe(convert_to_matlabint8(new_struct[0]), 'edgeOff', 'col',collist, 'alp', 0.05, nargout=0)
 		eng.plotVg_safe(convert_to_matlabint8(best_differences_minus), 'edgeOff', 'col',collist3, 'alp', 0.8, nargout=0)
 		eng.plotVg_safe(convert_to_matlabint8(best_differences_positive), 'edgeOff', 'col',collist2, 'alp', 0.8, nargout=0)
+		eng.sun1(nargout=0)
 
 
 	print(action)
