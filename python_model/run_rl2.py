@@ -85,7 +85,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 				
 				done = False
 				if np.sum(new_struct) == 0:
-					reward = -10000.0
+					reward = -100.0
 					#done = True
 
 				elif np.sum(new_struct[0] - observation[0,:,:,:,0]) == 0:
@@ -108,7 +108,8 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 						bend_diff = og_bend/new_bend
 						#print(new_bend, vox_diff, comps)
 						
-						reward = bend_diff + place_diff/5 - (vox_diff/10 + (comps-1))
+						#reward = bend_diff + place_diff/5 - (vox_diff/10 + (comps-1))
+						reward = bend_diff
 						print("old / new bending: ", og_bend, "/", new_bend)
 						print("Difference in voxels: ", vox_diff)
 
@@ -118,7 +119,8 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 					except:
 						comps = eng.check_components(convert_to_matlabint8(new_struct[0]), nargout=1)
 						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(new_struct))
-						reward = - (vox_diff/10 + (comps-1))
+						#reward = - (vox_diff/10 + (comps-1))
+						reward = 0
 						done = True
 
 					if best_reward < reward or best_reward is None:
@@ -442,7 +444,8 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						place_diff = np.abs(np.sum(og_struct.numpy() - new_struct))
 						bend_diff = og_bend/new_bend
 						print(new_bend, vox_diff, comps)
-						r = bend_diff + place_diff/5 - (vox_diff/10 + 10*(comps-1)) - r
+						#r = bend_diff + place_diff/5 - (vox_diff/10 + 10*(comps-1)) - r
+						r = bend_diff
 						print("old / new bending: ", og_bend, "/", new_bend)
 						print("Difference in voxels: ", vox_diff)
 						if comps > 1:
@@ -450,7 +453,8 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						
 					except:
 						comps = eng.check_components(convert_to_matlabint8(new_struct[0]), nargout=1)
-						r = - (vox_diff/10 + 10*(comps-1)) - r
+						#r = - (vox_diff/10 + 10*(comps-1)) - r
+						r = 0
 						done = True
 				reward = reward + r
 				
