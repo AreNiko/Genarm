@@ -109,7 +109,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 						#print(new_bend, vox_diff, comps)
 						
 						#reward = bend_diff + place_diff/5 - (vox_diff/10 + (comps-1))
-						reward = bend_diff
+						reward = 10*bend_diff
 						print("old / new bending: ", og_bend, "/", new_bend)
 						print("Difference in voxels: ", vox_diff)
 
@@ -445,7 +445,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						bend_diff = og_bend/new_bend
 						print(new_bend, vox_diff, comps)
 						#r = bend_diff + place_diff/5 - (vox_diff/10 + 10*(comps-1)) - r
-						r = bend_diff
+						r = 10*bend_diff - r
 						print("old / new bending: ", og_bend, "/", new_bend)
 						print("Difference in voxels: ", vox_diff)
 						if comps > 1:
