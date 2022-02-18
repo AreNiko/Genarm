@@ -84,9 +84,14 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 				new_struct = flip_coord(action, observation[:,:,:,:,0])
 				
 				done = False
-				if np.sum(new_struct) == 0 or np.sum(new_struct[0] - observation[0,:,:,:,0]) == 0:
+				if np.sum(new_struct) == 0:
 					reward = -10000.0
 					#done = True
+
+				elif np.sum(new_struct[0] - observation[0,:,:,:,0]) == 0:
+					reward = 0
+					done = True
+					
 				else:
 					try:
 						#eng.clf(nargout=0)
@@ -413,10 +418,10 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 				
 				done = False
 				if np.sum(new_struct) == 0:
-					r = -10000.0
+					r = -100.0
 					done = True
 
-				if np.sum(new_struct[0] - observation[0,:,:,:,0]) == 0:
+				elif np.sum(new_struct[0] - observation[0,:,:,:,0]) == 0:
 					r = 0
 					done = True
 
@@ -437,7 +442,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						place_diff = np.abs(np.sum(og_struct.numpy() - new_struct))
 						bend_diff = og_bend/new_bend
 						print(new_bend, vox_diff, comps)
-						r = bend_diff + place_diff/10 - (vox_diff + 10*(comps-1)) - r
+						r = bend_diff + place_diff/10 - (vox_diff/10 + 10*(comps-1)) - r
 						print("old / new bending: ", og_bend, "/", new_bend)
 						print("Difference in voxels: ", vox_diff)
 						if comps > 1:
