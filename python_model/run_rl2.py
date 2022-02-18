@@ -91,7 +91,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 				elif np.sum(new_struct[0] - observation[0,:,:,:,0]) == 0:
 					reward = 0
 					done = True
-					
+
 				else:
 					try:
 						#eng.clf(nargout=0)
@@ -108,7 +108,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 						bend_diff = og_bend/new_bend
 						#print(new_bend, vox_diff, comps)
 						
-						reward = bend_diff + place_diff/10 - (vox_diff + (comps-1))
+						reward = bend_diff + place_diff/5 - (vox_diff/10 + (comps-1))
 						print("old / new bending: ", og_bend, "/", new_bend)
 						print("Difference in voxels: ", vox_diff)
 
@@ -399,7 +399,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			#action = tf.random.categorical(logits, 150)[0]
 			#action = tf.math.sigmoid(tf.cast(action,tf.float32))
 			#action = tf.reshape(logits[0], [50,3])
-			noise = tf.random.normal(shape = tf.shape(logits[0]), mean = 0.0, stddev = 0.05, dtype = tf.float32)
+			noise = tf.random.normal(shape = tf.shape(logits[0]), mean = 0.0, stddev = 0.1, dtype = tf.float32)
 			action = logits[0] + noise
 			action = tf.clip_by_value(action, 0, 1)
 			#action = action/150
@@ -442,7 +442,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						place_diff = np.abs(np.sum(og_struct.numpy() - new_struct))
 						bend_diff = og_bend/new_bend
 						print(new_bend, vox_diff, comps)
-						r = bend_diff + place_diff/10 - (vox_diff/10 + 10*(comps-1)) - r
+						r = bend_diff + place_diff/5 - (vox_diff/10 + 10*(comps-1)) - r
 						print("old / new bending: ", og_bend, "/", new_bend)
 						print("Difference in voxels: ", vox_diff)
 						if comps > 1:
@@ -477,9 +477,9 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 		best_differences_positive[best_differences_positive < 0] = 0
 		best_differences_positive[best_differences_positive > 0] = 1
 		eng.clf(nargout=0)
-		eng.plotVg_safe(convert_to_matlabint8(new_struct[0]), 'edgeOff', 'col',collist, 'alp', 0.05, nargout=0)
 		eng.plotVg_safe(convert_to_matlabint8(best_differences_minus), 'edgeOff', 'col',collist3, 'alp', 0.8, nargout=0)
 		eng.plotVg_safe(convert_to_matlabint8(best_differences_positive), 'edgeOff', 'col',collist2, 'alp', 0.8, nargout=0)
+		eng.plotVg_safe(convert_to_matlabint8(new_struct[0]), 'edgeOff', 'col',collist, 'alp', 0.05, nargout=0)
 		eng.sun1(nargout=0)
 
 
