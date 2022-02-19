@@ -402,11 +402,11 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			#action = tf.random.categorical(logits, 150)[0]
 			#action = tf.math.sigmoid(tf.cast(action,tf.float32))
 			#action = tf.reshape(logits[0], [50,3])
-			noise = tf.random.normal(shape = tf.shape(logits[0]), mean = 0.0, stddev = 0.05, dtype = tf.float32)
+			noise = tf.random.normal(shape = tf.shape(logits[0]), mean = 0.0, stddev = 0.2, dtype = tf.float32)
 			action = logits[0] + noise
 			action = tf.clip_by_value(action, 0, 1)
 			#action = action/150
-			pi_old = activations.softmax(logits)[0]
+			pi_old = logits[0]
 			
 			episode.observations.append(observation[0])
 			episode.ts.append(np.float32(t))
@@ -446,7 +446,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						bend_diff = og_bend/new_bend
 						
 						#r = bend_diff + place_diff/5 - (vox_diff/10 + 10*(comps-1)) - r
-						r = 100*(bend_diff) - r
+						r = 100*(bend_diff) - (vox_diff/10 + 10*(comps-1)) - r
 						print('| {:14s} | {:14f} |'.format('Old bending:', og_bend))
 						print('| {:14s} | {:14f} |'.format('New bending:', new_bend))
 						print('| {:14s} | {:14d} |'.format('Voxels diff:', int(vox_diff)))
@@ -461,8 +461,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						done = True
 				reward = reward + r
 				
-				print('| {:14s} | {:14f} |'.format('Reward:', reward))
-				print("__________________________________")
+				print('| {:14s} | {:14f} |\n'.format('Reward:', reward))
 
 				if done:
 					break
