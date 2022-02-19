@@ -447,10 +447,10 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						
 						#r = bend_diff + place_diff/5 - (vox_diff/10 + 10*(comps-1)) - r
 						r = 100*(bend_diff-1) - r
-						print('| {:16s} | {:12f} |'.format('Old bending:', og_bend))
-						print('| {:16s} | {:12f} |'.format('New bending:', new_bend))
-						print('| {:16s} | {:12d} |'.format('Voxels diff:', int(vox_diff)))
-						print('| {:16s} | {:12d} |'.format('Nr components:', int(comps)))
+						print('| {:14s} | {:14f} |'.format('Old bending:', og_bend))
+						print('| {:14s} | {:14f} |'.format('New bending:', new_bend))
+						print('| {:14s} | {:14d} |'.format('Voxels diff:', int(vox_diff)))
+						print('| {:14s} | {:14d} |'.format('Nr components:', int(comps)))
 						if comps > 1:
 							done = True
 						
@@ -461,7 +461,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						done = True
 				reward = reward + r
 				
-				print('| {:16s} | {:10.6f} |'.format('Reward:', reward))
+				print('| {:14s} | {:14f} |'.format('Reward:', reward))
 				print("__________________________________")
 
 				if done:
