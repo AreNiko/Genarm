@@ -449,7 +449,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						r = 1000*(bend_diff-1) - r
 						print('| {:16s} | {:3.6f} |'.format('Old bending:', og_bend))
 						print('| {:16s} | {:3.6f} |'.format('New bending:', new_bend))
-						print('| {:16s} | {:9d} |'.format('Voxels diff:', vox_diff, comps))
+						print('| {:16s} | {:9d} |'.format('Voxels diff:', vox_diff))
 						print('| {:16s} | {:9d} |'.format('Nr components:', comps))
 						if comps > 1:
 							done = True
