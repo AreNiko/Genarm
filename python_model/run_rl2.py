@@ -105,13 +105,19 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 
 						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(new_struct))
 						place_diff = np.abs(np.sum(og_struct.numpy() - new_struct))
-						bend_diff = og_bend/new_bend
+						
+						if new_bend > og_bend:
+							bend_diff = 0
+						else:
+							bend_diff = og_bend/new_bend
 						#print(new_bend, vox_diff, comps)
 						
 						#reward = bend_diff + place_diff/5 - (vox_diff/10 + (comps-1))
-						reward = 100*(bend_diff)
-						print("old / new bending: ", og_bend, "/", new_bend)
-						print("Difference in voxels: ", vox_diff)
+						reward = 100*(bend_diff) - (vox_diff/10 + 10*(comps-1))
+						print('| {:14s} | {:14f} |'.format('Old bending:', og_bend))
+						print('| {:14s} | {:14f} |'.format('New bending:', new_bend))
+						print('| {:14s} | {:14d} |'.format('Voxels diff:', int(vox_diff)))
+						print('| {:14s} | {:14d} |'.format('Nr components:', int(comps)))
 
 						if comps > 1:
 							done = True
@@ -127,6 +133,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 						best_struct = new_struct
 						best_differences = new_struct[0] - og_struct[0].numpy()
 
+				print('| {:14s} | {:14f} |\n'.format('Reward:', reward))
 				rewards.append(reward)
 				print(reward)
 
@@ -443,7 +450,10 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 
 						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(new_struct))
 						place_diff = np.abs(np.sum(og_struct.numpy() - new_struct))
-						bend_diff = og_bend/new_bend
+						if new_bend > og_bend:
+							bend_diff = 0
+						else:
+							bend_diff = og_bend/new_bend
 						
 						#r = bend_diff + place_diff/5 - (vox_diff/10 + 10*(comps-1)) - r
 						r = 100*(bend_diff) - (vox_diff/10 + 10*(comps-1)) - r
