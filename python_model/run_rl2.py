@@ -541,8 +541,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	os.makedirs("results_structures2/", exist_ok=True)
 
 	iterations = 500
-	epoch_range = 20
-	K = 3
+	epoch_range = 3
 	num_episodes = 12#2 #8
 	maxlen_environment = 32
 	action_repeat = 1
