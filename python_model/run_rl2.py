@@ -109,7 +109,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 						#print(new_bend, vox_diff, comps)
 						
 						#reward = bend_diff + place_diff/5 - (vox_diff/10 + (comps-1))
-						reward = 10*bend_diff
+						reward = 1000*(bend_diff-1)
 						print("old / new bending: ", og_bend, "/", new_bend)
 						print("Difference in voxels: ", vox_diff)
 
@@ -391,6 +391,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 	for i in range(num_episodes):
 		episode = EpisodeData()
 		observation = obser
+		print("__________________________________")
 		print("Episode: ", i)
 		for t in range(maxlen):
 			#observation = preprocess(observation)
@@ -443,11 +444,11 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(new_struct))
 						place_diff = np.abs(np.sum(og_struct.numpy() - new_struct))
 						bend_diff = og_bend/new_bend
-						print(new_bend, vox_diff, comps)
+						
 						#r = bend_diff + place_diff/5 - (vox_diff/10 + 10*(comps-1)) - r
-						r = 10*bend_diff - r
-						print("old / new bending: ", og_bend, "/", new_bend)
-						print("Difference in voxels: ", vox_diff)
+						r = 1000*(bend_diff-1) - r
+						print('{:16s} | {:.6f} | {:.6f}'.format('old | new bending:', og_bend, new_bend))
+						print('{:16s} | {:3d} | {:3d}'.format('Voxels diff:', vox_diff, comps))
 						if comps > 1:
 							done = True
 						
@@ -458,7 +459,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						done = True
 				reward = reward + r
 				
-				print(reward)
+				print('{:16s} {:.6f}'.format('Reward:', reward))
 
 				if done:
 					break
