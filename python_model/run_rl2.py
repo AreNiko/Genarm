@@ -540,6 +540,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	base_dir = os.path.join("reinforcement_model2", test_number)
 	os.makedirs(base_dir, exist_ok=True)
 	os.makedirs("results_structures2/", exist_ok=True)
+	os.makedirs("rl_plots/", exist_ok=True)
+
 
 	iterations = 500
 	epoch_range = 3
@@ -727,7 +729,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 		for epoch in range(epoch_range):
 			print(epoch, "/", epoch_range)
 			start1 = time.time()
-			
+
 			if epoch == 0:
 				episode_legend = []
 				ep_number = 0
