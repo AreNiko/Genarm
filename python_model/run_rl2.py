@@ -72,8 +72,10 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 			observations.append(observation)
 			action = agent(observation)[0]
 			# remove num_samples dimension and batch dimension
-			#action = tf.random.categorical(logits, 30)[0]
-			#action = tf.math.sigmoid(tf.cast(action,tf.float32))
+			action[:,0] = np.floor(action[:,0]*tf.cast(xdim,tf.float32))
+			action[:,1] = np.floor(action[:,1]*tf.cast(ydim,tf.float32))
+			action[:,2] = np.floor(action[:,2]*tf.cast(zdim,tf.float32))
+			action = tf.cast(action,tf.int32)
 			print(action)
 			#action = tf.cast(tf.reshape(action[0], [50,3]),tf.float32)
 			#action = action/150
@@ -357,20 +359,14 @@ def entropy_loss(pi):
 def flip_coord(action, struct):
 	new_struct = struct.numpy()
 	batch, xdim, ydim, zdim = tf.shape(struct)
-	x = np.floor(action[:,0]*tf.cast(xdim,tf.float32))
-	y = np.floor(action[:,1]*tf.cast(ydim,tf.float32))
-	z = np.floor(action[:,2]*tf.cast(zdim,tf.float32))
-	x = tf.cast(x,tf.int32)
-	y = tf.cast(y,tf.int32)
-	z = tf.cast(z,tf.int32)
 
 	for i in range(len(action)):
 		#print(x[i].numpy(),y[i].numpy(),z[i].numpy())
-		if x[i] < xdim and y[i] < ydim and z[i] < zdim:
-			if struct[0,x[i],y[i],z[i]] == 0:
-				new_struct[0,x[i],y[i],z[i]] = 1
+		if action[i,0] < xdim and action[i,1] < ydim and action[i,2] < zdim:
+			if struct[0,action[i,0],action[i,1],action[i,2]] == 0:
+				new_struct[0,action[i,0],action[i,1],action[i,2]] = 1
 			else:
-				new_struct[0,x[i],y[i],z[i]] = 0
+				new_struct[0,action[i,0],action[i,1],action[i,2]] = 0
 
 	return new_struct
 
@@ -412,6 +408,10 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			noise = tf.random.normal(shape = tf.shape(logits[0]), mean = 0.0, stddev = 0.05, dtype = tf.float32)
 			action = logits[0] + noise
 			action = tf.clip_by_value(action, 0, 1)
+			action[:,0] = np.floor(action[:,0]*tf.cast(xdim,tf.float32))
+			action[:,1] = np.floor(action[:,1]*tf.cast(ydim,tf.float32))
+			action[:,2] = np.floor(action[:,2]*tf.cast(zdim,tf.float32))
+			action = tf.cast(action,tf.int32)
 			#action = action/150
 			pi_old = logits[0]
 			episode.observations.append(observation[0])
