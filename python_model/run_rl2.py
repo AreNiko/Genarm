@@ -505,11 +505,14 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 	print(action)
 	return episodes
 
-def create_dataset(obser, policy_network, value_network, num_episodes, maxlen, action_repeat, gamma):
+def create_dataset(obser, policy_network, value_network, num_episodes, maxlen, action_repeat, gamma, iteration):
 
 	episodes = sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=action_repeat)
 
 	dataset_size = 0
+	ep_number = 0
+	plt.figure(1)
+	plt.clf()
 	for episode in episodes:
 		# Could also get this when sampling episodes for efficiency
 		# use predict?
@@ -520,6 +523,16 @@ def create_dataset(obser, policy_network, value_network, num_episodes, maxlen, a
 		episode.returns = returns
 		episode.advantages = advantages
 		dataset_size += len(episode.observations)
+
+		plt.plot(episode.ts, episode.rewards)
+		episode_legend.append("Episode " + str(ep_number))
+		ep_number += 1
+	plt.grid()
+	plt.legend(episode_legend)
+	plt.title("Training Episode Reward Progress")
+	plt.xlabel("Time Step")
+	plt.ylabel("Reward")
+	plt.savefig("rl_plots/iteration_" + str(iteration) + ".png")
 
 	slices = (
 		tf.concat([e.observations for e in episodes], axis=0), # policy loss and value loss
@@ -719,7 +732,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 			xdim, ydim, zdim = tf.cast(tf.shape(struct[0]),tf.float32)
 		dataset = create_dataset(inpus, policy_network, value_network,
 								 num_episodes, maxlen,
-								 action_repeat, gamma)
+								 action_repeat, gamma, iteration)
 
 		print("Iteration: %d. Generated dataset in %f sec." %
 			  (iteration, time.time() - start))
@@ -735,14 +748,10 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				t_values = []
 				reward_values = []
 				ep_number = 0
-				plt.figure(1)
-				plt.clf()
 			# Trains model on structures with a truth structure created from
 			# The direct stiffness method and shifted voxels
 			for batch in dataset:
 				obs, action, advantage, pi_old, value_target, t = batch
-				t_values.append(t[0])
-				reward_values.append(value_target[0])
 				#action = tf.expand_dims(action, -1)
 				with tf.GradientTape() as tape:
 					pi = activations.softmax(policy_network.policy(obs))
@@ -764,16 +773,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				# Update loss
 				train_loss.update_state(loss)
 
-			if epoch == 0:
-				plt.plot(t_values, reward_values)
-				episode_legend.append("Episode " + str(ep_number))
-				ep_number += 1
-				plt.grid()
-				plt.legend(episode_legend)
-				plt.title("Training Episode Reward Progress")
-				plt.xlabel("Time Step")
-				plt.ylabel("Reward")
-				plt.savefig("rl_plots/epoch" + str(epoch) + ".png")
+			
 			print("Time taken for one epoch: ", time.time() - start1)
 			"""
 			if np.sum(out) != 0:
