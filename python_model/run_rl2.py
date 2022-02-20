@@ -529,7 +529,7 @@ def create_dataset(obser, policy_network, value_network, num_episodes, maxlen, a
 		episode_legend.append("Episode " + str(ep_number))
 		ep_number += 1
 	plt.grid()
-	plt.legend(episode_legend)
+	plt.legend(episode_legend, bbox_to_anchor=(1.04,1), loc="upper left")
 	plt.title("Training Episode Reward Progress")
 	plt.xlabel("Time Step")
 	plt.ylabel("Reward")
