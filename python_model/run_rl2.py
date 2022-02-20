@@ -414,7 +414,6 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			action = tf.clip_by_value(action, 0, 1)
 			#action = action/150
 			pi_old = logits[0]
-			print(action)
 			episode.observations.append(observation[0])
 			episode.ts.append(np.float32(t))
 			episode.actions.append(action.numpy())
@@ -731,8 +730,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 			for batch in dataset:
 				obs, action, advantage, pi_old, value_target, t = batch
 				#action = tf.expand_dims(action, -1)
-				print(tf.shape(pi_old))
-				print(tf.shape(action))
+				print(pi_old)
+				print(action)
 				with tf.GradientTape() as tape:
 					pi = activations.softmax(policy_network.policy(obs))
 					v = value_network(obs, np.float32(maxlen)-t)
