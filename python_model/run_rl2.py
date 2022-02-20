@@ -511,6 +511,7 @@ def create_dataset(obser, policy_network, value_network, num_episodes, maxlen, a
 
 	dataset_size = 0
 	ep_number = 0
+	episode_legend = []
 	plt.figure(1)
 	plt.clf()
 	for episode in episodes:
