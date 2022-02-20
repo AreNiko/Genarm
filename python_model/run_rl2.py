@@ -727,6 +727,10 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 		for epoch in range(epoch_range):
 			print(epoch, "/", epoch_range)
 			start1 = time.time()
+			episode_legend = []
+			ep_number = 0
+			plt.figure(1)
+			plt.clf()
 			# Trains model on structures with a truth structure created from
 			# The direct stiffness method and shifted voxels
 			for batch in dataset:
@@ -751,8 +755,18 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				#print(loss.numpy())
 				# Update loss
 				train_loss.update_state(loss)
-			
-			print("Time taken for one Epoch: ", time.time() - start1)
+
+				
+				plt.plot(t, value_target)
+				episode_legend.append("Episode " + str(ep_number))
+				ep_number += 1
+			plt.grid()
+			plt.legend(episode_legend)
+			plt.title("Training Episode Reward Progress")
+			plt.xlabel("Time Step")
+			plt.ylabel("Reward")
+			plt.savefig("rl_plots/epoch" + str(epoch) + ".png")
+			print("Time taken for one epoch: ", time.time() - start1)
 			"""
 			if np.sum(out) != 0:
 				try:
@@ -788,7 +802,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 			median_list.append(median)
 			mean_list.append(mean)
 
-			plt.figure(1)
+			plt.figure(2)
 			plt.clf()
 			plt.plot(iteration_list, m_list)
 			plt.plot(iteration_list, M_list)
