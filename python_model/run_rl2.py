@@ -505,7 +505,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 	print(action)
 	return episodes
 
-def create_dataset(obser, policy_network, value_network, num_episodes, maxlen, action_repeat, gamma, iteration):
+def create_dataset(obser, policy_network, value_network, num_episodes, maxlen, action_repeat, gamma, iteration, test_number):
 
 	episodes = sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=action_repeat)
 
@@ -533,7 +533,7 @@ def create_dataset(obser, policy_network, value_network, num_episodes, maxlen, a
 	plt.title("Training Episode Reward Progress")
 	plt.xlabel("Time Step")
 	plt.ylabel("Reward")
-	plt.savefig("rl_plots/iteration_" + str(iteration) + ".png")
+	plt.savefig("rl2_plots/"+ test_number + "/iteration_" + str(iteration) + ".png")
 
 	slices = (
 		tf.concat([e.observations for e in episodes], axis=0), # policy loss and value loss
@@ -554,7 +554,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	base_dir = os.path.join("reinforcement_model2", test_number)
 	os.makedirs(base_dir, exist_ok=True)
 	os.makedirs("results_structures2/", exist_ok=True)
-	os.makedirs("rl_plots/", exist_ok=True)
+	os.makedirs("rl2_plots/", exist_ok=True)
 
 
 	iterations = 500
@@ -733,7 +733,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 			xdim, ydim, zdim = tf.cast(tf.shape(struct[0]),tf.float32)
 		dataset = create_dataset(inpus, policy_network, value_network,
 								 num_episodes, maxlen,
-								 action_repeat, gamma, iteration)
+								 action_repeat, gamma, iteration, test_number)
 
 		print("Iteration: %d. Generated dataset in %f sec." %
 			  (iteration, time.time() - start))
