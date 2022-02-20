@@ -739,6 +739,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 			# The direct stiffness method and shifted voxels
 			for batch in dataset:
 				obs, action, advantage, pi_old, value_target, t = batch
+				print(t)
+				print(value_target)
 				#action = tf.expand_dims(action, -1)
 				with tf.GradientTape() as tape:
 					pi = activations.softmax(policy_network.policy(obs))
