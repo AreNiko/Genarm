@@ -360,17 +360,15 @@ def flip_coord(action, struct):
 	x = np.floor(action[:,0]*tf.cast(xdim,tf.float32))
 	y = np.floor(action[:,1]*tf.cast(ydim,tf.float32))
 	z = np.floor(action[:,2]*tf.cast(zdim,tf.float32))
-	x = tf.cast(x,tf.int32)
-	y = tf.cast(y,tf.int32)
-	z = tf.cast(z,tf.int32)
+
 
 	for i in range(len(action)):
 		#print(x[i].numpy(),y[i].numpy(),z[i].numpy())
 		if x[i] < xdim and y[i] < ydim and z[i] < zdim:
-			if struct[0,x[i],y[i],z[i]] == 0:
-				new_struct[0,x[i],y[i],z[i]] = 1
+			if struct[0,int(x[i]),int(y[i]),int(z[i])] == 0:
+				new_struct[0,int(x[i]),int(y[i]),int(z[i])] = 1
 			else:
-				new_struct[0,x[i],y[i],z[i]] = 0
+				new_struct[0,int(x[i]),int(y[i]),int(z[i])] = 0
 
 	return new_struct
 
