@@ -72,6 +72,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 			observations.append(observation)
 			action = agent(observation)[0]
 			# remove num_samples dimension and batch dimension
+			action = action.numpy()
 			action[:,0] = np.floor(action[:,0]*tf.cast(xdim,tf.float32))
 			action[:,1] = np.floor(action[:,1]*tf.cast(ydim,tf.float32))
 			action[:,2] = np.floor(action[:,2]*tf.cast(zdim,tf.float32))
@@ -408,6 +409,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			noise = tf.random.normal(shape = tf.shape(logits[0]), mean = 0.0, stddev = 0.05, dtype = tf.float32)
 			action = logits[0] + noise
 			action = tf.clip_by_value(action, 0, 1)
+			action = action.numpy()
 			action[:,0] = np.floor(action[:,0]*tf.cast(xdim,tf.float32))
 			action[:,1] = np.floor(action[:,1]*tf.cast(ydim,tf.float32))
 			action[:,2] = np.floor(action[:,2]*tf.cast(zdim,tf.float32))
