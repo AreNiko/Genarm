@@ -731,6 +731,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 			for batch in dataset:
 				obs, action, advantage, pi_old, value_target, t = batch
 				#action = tf.expand_dims(action, -1)
+				print(tf.shape(pi_old))
 				print(tf.shape(action))
 				with tf.GradientTape() as tape:
 					pi = activations.softmax(policy_network.policy(obs))
