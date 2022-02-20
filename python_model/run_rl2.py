@@ -732,6 +732,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 
 			if epoch == 0:
 				episode_legend = []
+				t_values = []
+				reward_values = []
 				ep_number = 0
 				plt.figure(1)
 				plt.clf()
@@ -739,8 +741,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 			# The direct stiffness method and shifted voxels
 			for batch in dataset:
 				obs, action, advantage, pi_old, value_target, t = batch
-				print(t)
-				print(value_target)
+				t_values.append(t[0])
+				reward_values.append(value_target[0])
 				#action = tf.expand_dims(action, -1)
 				with tf.GradientTape() as tape:
 					pi = activations.softmax(policy_network.policy(obs))
@@ -762,12 +764,10 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				# Update loss
 				train_loss.update_state(loss)
 
-				if epoch == 0:
-					plt.plot(t, value_target)
-					episode_legend.append("Episode " + str(ep_number))
-					ep_number += 1
-
 			if epoch == 0:
+				plt.plot(t_values, reward_values)
+				episode_legend.append("Episode " + str(ep_number))
+				ep_number += 1
 				plt.grid()
 				plt.legend(episode_legend)
 				plt.title("Training Episode Reward Progress")
