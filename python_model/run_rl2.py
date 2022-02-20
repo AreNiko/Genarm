@@ -736,7 +736,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 					v = value_network(obs, np.float32(maxlen)-t)
 
 					pi_a = tf.squeeze(tf.gather(pi, action, batch_dims=1), -1)
-                    pi_old_a = tf.squeeze(tf.gather(pi_old, action, batch_dims=1), -1)
+					pi_old_a = tf.squeeze(tf.gather(pi_old, action, batch_dims=1), -1)
 
 					loss = policy_loss(pi, pi_old, advantage, epsilon) \
 						 + c1*value_loss(value_target, v) \
