@@ -554,7 +554,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	base_dir = os.path.join("reinforcement_model2", test_number)
 	os.makedirs(base_dir, exist_ok=True)
 	os.makedirs("results_structures2/", exist_ok=True)
-	os.makedirs("rl2_plots/", exist_ok=True)
+	os.makedirs("rl2_plots/" + test_number + "/", exist_ok=True)
 
 
 	iterations = 500
