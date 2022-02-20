@@ -414,7 +414,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			action = tf.clip_by_value(action, 0, 1)
 			#action = action/150
 			pi_old = logits[0]
-			
+			print(action)
 			episode.observations.append(observation[0])
 			episode.ts.append(np.float32(t))
 			episode.actions.append(action.numpy())
