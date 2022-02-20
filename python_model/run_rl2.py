@@ -360,15 +360,17 @@ def flip_coord(action, struct):
 	x = np.floor(action[:,0]*tf.cast(xdim,tf.float32))
 	y = np.floor(action[:,1]*tf.cast(ydim,tf.float32))
 	z = np.floor(action[:,2]*tf.cast(zdim,tf.float32))
-
+	x = tf.cast(x,tf.int32)
+	y = tf.cast(y,tf.int32)
+	z = tf.cast(z,tf.int32)
 
 	for i in range(len(action)):
 		#print(x[i].numpy(),y[i].numpy(),z[i].numpy())
 		if x[i] < xdim and y[i] < ydim and z[i] < zdim:
-			if struct[0,int(x[i]),int(y[i]),int(z[i])] == 0:
-				new_struct[0,int(x[i]),int(y[i]),int(z[i])] = 1
+			if struct[0,x[i],y[i],z[i]] == 0:
+				new_struct[0,x[i],y[i],z[i]] = 1
 			else:
-				new_struct[0,int(x[i]),int(y[i]),int(z[i])] = 0
+				new_struct[0,x[i],y[i],z[i]] = 0
 
 	return new_struct
 
@@ -729,6 +731,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 			for batch in dataset:
 				obs, action, advantage, pi_old, value_target, t = batch
 				#action = tf.expand_dims(action, -1)
+				print(tf.shape(action))
 				with tf.GradientTape() as tape:
 					pi = activations.softmax(policy_network.policy(obs))
 					v = value_network(obs, np.float32(maxlen)-t)
