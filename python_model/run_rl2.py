@@ -456,7 +456,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 							bend_diff = og_bend/new_bend
 						
 						#r = bend_diff + place_diff/5 - (vox_diff/10 + 10*(comps-1)) - r
-						r = 100*(bend_diff) - (vox_diff/10 + 10*(comps-1)) - r
+						r = 100*(bend_diff) - (vox_diff/10 + 10*(comps-1))
 						print('| {:14s} | {:14f} |'.format('Old bending:', og_bend))
 						print('| {:14s} | {:14f} |'.format('New bending:', new_bend))
 						print('| {:14s} | {:14d} |'.format('Voxels diff:', int(vox_diff)))
