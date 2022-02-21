@@ -160,7 +160,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 
 	#eng.quit()
 
-	return scores, best_episode, best_struct, best_differences
+	return scores, best_episode, best_struct
 
 class Agent(tf.keras.models.Model):
 	"""Convenience wrapper around policy network, which returns *encoded*
@@ -797,11 +797,11 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 		if step % eval_interval == 0:
 			start = time.time()
 
-			scores, best_episode, best_struct, best_differences = eval_policy(inpus, agent, maxlen_environment, 
+			scores, best_episode, best_struct = eval_policy(inpus, agent, maxlen_environment, 
 				eval_episodes, action_repeat=action_repeat
 			)
-			best_differences_minus = np.abs(best_differences[best_differences < 0])
-			best_differences_positive = np.abs(best_differences[best_differences > 0])
+			#best_differences_minus = np.abs(best_differences[best_differences < 0])
+			#best_differences_positive = np.abs(best_differences[best_differences > 0])
 			m, M = np.min(scores), np.max(scores)
 			median, mean = np.median(scores), np.mean(scores)
 
