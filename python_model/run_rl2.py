@@ -460,7 +460,9 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						print('| {:14s} | {:14f} |'.format('New bending:', new_bend))
 						print('| {:14s} | {:14d} |'.format('Voxels diff:', int(vox_diff)))
 						print('| {:14s} | {:14d} |'.format('Nr components:', int(comps)))
-						og_bend = new_bend
+						if new_bend != 1.0:
+							og_bend = new_bend
+							
 						if comps > 1:
 							done = True
 						
