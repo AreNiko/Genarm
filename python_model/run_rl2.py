@@ -76,7 +76,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 			action[:,0] = np.floor(action[:,0]*tf.cast(xdim,tf.float32))
 			action[:,1] = np.floor(action[:,1]*tf.cast(ydim,tf.float32))
 			action[:,2] = np.floor(action[:,2]*tf.cast(zdim,tf.float32))
-			action = tf.cast(action,tf.int32)
+
 			#action = tf.cast(tf.reshape(action[0], [50,3]),tf.float32)
 			#action = action/150
 			#pi_old = activations.softmax(logits)[0]
@@ -359,6 +359,7 @@ def entropy_loss(pi):
 def flip_coord(action, struct):
 	new_struct = struct.numpy()
 	batch, xdim, ydim, zdim = tf.shape(struct)
+	action = tf.cast(action,tf.int32)
 
 	for i in range(len(action)):
 		#print(x[i].numpy(),y[i].numpy(),z[i].numpy())
@@ -412,7 +413,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			action[:,0] = np.floor(action[:,0]*tf.cast(xdim,tf.float32))
 			action[:,1] = np.floor(action[:,1]*tf.cast(ydim,tf.float32))
 			action[:,2] = np.floor(action[:,2]*tf.cast(zdim,tf.float32))
-			action = tf.cast(action,tf.int32)
+			
 			#action = action/150
 			pi_old = logits[0]
 			episode.observations.append(observation[0])
