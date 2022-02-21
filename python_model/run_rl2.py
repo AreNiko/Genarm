@@ -389,12 +389,13 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 
 	xdim, ydim, zdim = tf.cast(tf.shape(og_struct[0]),tf.float32)
 	#eng = start_engine()
-	og_bend = eng.check_max_bend(convert_to_matlabint8(obser[0,:,:,:,0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]))
+	original_bend = eng.check_max_bend(convert_to_matlabint8(obser[0,:,:,:,0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]))
 
 	print("Generating episodes:")
 	for i in range(num_episodes):
 		episode = EpisodeData()
 		observation = obser
+		og_bend = original_bend
 		print("__________________________________")
 		print("Episode: ", i)
 		for t in range(maxlen):
@@ -462,7 +463,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						print('| {:14s} | {:14d} |'.format('Nr components:', int(comps)))
 						if new_bend != 1.0:
 							og_bend = new_bend
-							
+
 						if comps > 1:
 							done = True
 						
