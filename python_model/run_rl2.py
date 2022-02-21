@@ -453,7 +453,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						place_diff = np.abs(np.sum(og_struct.numpy() - new_struct))
 
 						bend_diff = og_bend/new_bend
-						
+						og_bend = new_bend
 						#r = bend_diff + place_diff/5 - (vox_diff/10 + 10*(comps-1))
 						r = (bend_diff)
 						print('| {:14s} | {:14f} |'.format('Old bending:', og_bend))
