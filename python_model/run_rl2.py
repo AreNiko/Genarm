@@ -132,9 +132,9 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 						reward = 0
 						done = True
 
-					if best_reward < reward or best_reward is None:
-						best_struct = new_struct
-						best_differences = new_struct[0] - og_struct[0].numpy()
+				if best_reward < reward or best_reward is None:
+					best_struct = new_struct
+					best_differences = new_struct[0] - og_struct[0].numpy()
 
 				print('| {:14s} | {:14f} |\n'.format('Reward:', reward))
 				rewards.append(reward)
