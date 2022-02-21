@@ -418,7 +418,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			pi_old = logits[0]
 			episode.observations.append(observation[0])
 			episode.ts.append(np.float32(t))
-			episode.actions.append(action.numpy())
+			episode.actions.append(action)
 			episode.probs_old.append(pi_old.numpy())
 			r = 0.0
 			reward = 0.0 # accumulate reward accross actions
