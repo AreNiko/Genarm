@@ -446,7 +446,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 							                                 convert_to_matlabint8(structF[0]), nargout=2)
 						
 						if new_bend == 0 or np.isnan(new_bend):
-							new_bend = -10.0
+							new_bend = 1.0
 							#done = True
 
 						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(new_struct))
@@ -495,7 +495,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 		best_differences_positive[best_differences_positive < 0] = 0
 		best_differences_positive[best_differences_positive > 0] = 1
 		eng.clf(nargout=0)
-		eng.plotVg_safe(convert_to_matlabint8(new_struct[0]), 'edgeOff', 'col',collist, 'alp', 0.05, nargout=0)
+		#eng.plotVg_safe(convert_to_matlabint8(new_struct[0]), 'edgeOff', 'col',collist, 'alp', 0.05, nargout=0)
 		eng.plotVg_safe(convert_to_matlabint8(best_differences_minus), 'edgeOff', 'col',collist3, 'alp', 0.5, nargout=0)
 		eng.plotVg_safe(convert_to_matlabint8(best_differences_positive), 'edgeOff', 'col',collist2, 'alp', 0.5, nargout=0)
 		
