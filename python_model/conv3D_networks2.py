@@ -8,11 +8,11 @@ class FeatureExtractor(tf.keras.Model):
     def __init__(self, **kwargs):
         super(FeatureExtractor, self).__init__(**kwargs)
 
-        self.conv3d1 = layers.Conv3D(16, 5, strides=1, padding='same', activation='relu')
-        self.conv3d2 = layers.Conv3D(16, 5, strides=1, padding='same', activation='relu')
-        self.conv3d3 = layers.Conv3D(16, 5, strides=1, padding='same', activation='relu')
-        self.conv3d4 = layers.Conv3D(16, 5, strides=1, padding='same', activation='relu')
-        self.conv1x1 = layers.Conv3D(1, 1, strides=(1, 1, 1), padding='same', activation='relu')
+        self.conv3d1 = layers.Conv3D(16, 5, strides=1, padding='same')
+        self.conv3d2 = layers.Conv3D(16, 5, strides=1, padding='same')
+        self.conv3d3 = layers.Conv3D(16, 5, strides=1, padding='same')
+        self.conv3d4 = layers.Conv3D(16, 5, strides=1, padding='same')
+        self.conv1x1 = layers.Conv3D(1, 1, strides=(1, 1, 1), padding='same')
         self.batchmeup = layers.BatchNormalization(momentum=0.8)
         self.flatten = layers.Flatten()
 
@@ -73,7 +73,8 @@ class PolicyNetwork(tf.keras.Model):
 
         self.feature_extractor = feature_extractor
         self.conv3d1 = layers.Conv3D(32, 5, strides=(1, 1, 1), padding='same', activation='relu')
-        self.dense512 = layers.Dense(512)
+        self.dense512_1 = layers.Dense(512)
+        self.dense512_2 = layers.Dense(512)
         self.dense256_1 = layers.Dense(256)
         self.dense256_2 = layers.Dense(256)
         self.dense128 = layers.Dense(128)
@@ -97,10 +98,15 @@ class PolicyNetwork(tf.keras.Model):
         #x2d = self.conv3d(x2d)
         x2d = self.dense256_1(x1d)
 
-        x3d = self.dense512(x2d)
+        x3d = self.dense512_1(x2d)
         #x3d = self.conv3d(x3)
         #x3d = self.conv3d(x3d)
-        x4d = self.dense256_2(x3d)
+
+        x4d = self.dense512_1(x3d)
+        #x4d = self.conv3d(x3)
+        #x4d = self.conv3d(x3d)
+        
+        x5d = self.dense256_2(x4d)
 
         #x4d = self.conv3d(x4)
         #x4d = self.conv3d(x4d)
