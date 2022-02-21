@@ -77,7 +77,6 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 			action[:,1] = np.floor(action[:,1]*tf.cast(ydim,tf.float32))
 			action[:,2] = np.floor(action[:,2]*tf.cast(zdim,tf.float32))
 			action = tf.cast(action,tf.int32)
-			print(action)
 			#action = tf.cast(tf.reshape(action[0], [50,3]),tf.float32)
 			#action = action/150
 			#pi_old = activations.softmax(logits)[0]
@@ -761,7 +760,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 					pi_a = tf.squeeze(tf.gather(pi, action, batch_dims=1), 0)
 					pi_old_a = tf.squeeze(tf.gather(pi_old, action, batch_dims=1), 0)
 
-					loss = policy_loss(pi, pi_old, advantage, epsilon) \
+					loss = policy_loss(pi_a, pi_old_a, advantage, epsilon) \
 						 + c1*value_loss(value_target, v) \
 						 + c2*entropy_loss(pi)
 
