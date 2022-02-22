@@ -487,7 +487,8 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 				break
 
 		episodes.append(episode)
-		best_differences = new_struct[0] - og_struct[0].numpy()
+		best_differences = np.abs(new_struct[0] - og_struct[0].numpy())
+		"""
 		best_differences_minus = best_differences
 		best_differences_positive = best_differences
 
@@ -500,7 +501,8 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 		#eng.plotVg_safe(convert_to_matlabint8(new_struct[0]), 'edgeOff', 'col',collist, 'alp', 0.05, nargout=0)
 		eng.plotVg_safe(convert_to_matlabint8(best_differences_minus), 'edgeOff', 'col',collist3, 'alp', 0.5, nargout=0)
 		eng.plotVg_safe(convert_to_matlabint8(best_differences_positive), 'edgeOff', 'col',collist2, 'alp', 0.5, nargout=0)
-		
+		"""
+		eng.plotVg_safe(convert_to_matlabint8(best_differences), 'edgeOff', 'col',collist3, 'alp', 0.5, nargout=0)
 		eng.sun1(nargout=0)
 
 
@@ -514,6 +516,7 @@ def create_dataset(obser, policy_network, value_network, num_episodes, maxlen, a
 	dataset_size = 0
 	ep_number = 0
 	episode_legend = []
+	episode_avg = 0
 	plt.figure(1)
 	plt.clf()
 	for episode in episodes:
@@ -527,6 +530,7 @@ def create_dataset(obser, policy_network, value_network, num_episodes, maxlen, a
 		episode.advantages = advantages
 		dataset_size += len(episode.observations)
 
+		episode_avg += np.sum(episode.rewards)
 		plt.plot(episode.ts, episode.rewards)
 		episode_legend.append("Episode " + str(ep_number))
 		ep_number += 1
@@ -537,6 +541,9 @@ def create_dataset(obser, policy_network, value_network, num_episodes, maxlen, a
 	plt.ylabel("Reward")
 	plt.savefig("rl2_plots/"+ test_number + "/iteration_" + str(iteration) + ".png")
 
+	episode_avg /= num_episodes
+	with open("rl2_data/" + test_number + "/" + "Episode-avg_" + str(iteration) + ".txt", "wb+") as fp:
+		pickle.dump([iteration, episode_avg], fp)
 	slices = (
 		tf.concat([e.observations for e in episodes], axis=0), # policy loss and value loss
 		tf.concat([e.actions for e in episodes], axis=0), # policy loss
@@ -557,6 +564,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	os.makedirs(base_dir, exist_ok=True)
 	os.makedirs("results_structures2/", exist_ok=True)
 	os.makedirs("rl2_plots/" + test_number + "/", exist_ok=True)
+	os.makedirs("rl2_data/" + test_number + "/", exist_ok=True)
 
 
 	iterations = 500
