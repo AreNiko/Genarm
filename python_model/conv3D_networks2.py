@@ -73,11 +73,11 @@ class PolicyNetwork(tf.keras.Model):
 
         self.feature_extractor = feature_extractor
         self.conv3d1 = layers.Conv3D(32, 5, strides=(1, 1, 1), padding='same', activation='relu')
-        self.dense512_1 = layers.Dense(512)
-        self.dense512_2 = layers.Dense(512)
-        self.dense256_1 = layers.Dense(256)
-        self.dense256_2 = layers.Dense(256)
-        self.dense128 = layers.Dense(128)
+        self.dense512_1 = layers.Dense(512, activation='relu')
+        self.dense512_2 = layers.Dense(512, activation='relu')
+        self.dense256_1 = layers.Dense(256, activation='relu')
+        self.dense256_2 = layers.Dense(256, activation='relu')
+        self.dense128 = layers.Dense(128, activation='relu')
         self.dense_coord = layers.Dense(150)
         self.reshape = layers.Reshape((50, 3))
 
