@@ -414,7 +414,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			action = logits[0] + noise
 			#action = tf.clip_by_value(action, 0, 1)
 			action = action.numpy()
-			print(action)
+			print(logits)
 			action[:,0] = np.floor(action[:,0]*tf.cast(xdim,tf.float32))
 			action[:,0] = tf.clip_by_value(action[:,0], 0, xdim)
 			action[:,1] = np.floor(action[:,1]*tf.cast(ydim,tf.float32))
