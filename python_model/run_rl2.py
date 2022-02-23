@@ -799,7 +799,10 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				obs, action, advantage, pi_old, value_target, t = batch
 				#action = tf.expand_dims(action, -1)
 				with tf.GradientTape() as tape:
-					pi = activations.softmax(policy_network.policy(obs))
+					#pi = activations.softmax(policy_network.policy(obs))
+					logitsx,logitsy,logitsz = policy_network.policy(obs)
+					pi = tf.concat([logitsx[0], logitsy[0], logitsz[0]], 1)
+					pi = activations.softmax(pi)
 					v = value_network(obs, np.float32(maxlen)-t)
 
 					#pi_a = tf.squeeze(tf.gather(pi, action, batch_dims=1), 0)
