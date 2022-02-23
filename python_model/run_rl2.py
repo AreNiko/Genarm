@@ -404,14 +404,19 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 		for t in range(maxlen):
 			#observation = preprocess(observation)
 
-			logits = policy_network.policy(observation)
+			logitsx,logitsy,logitsz = policy_network.policy(observation)
 			# remove num_samples dimension and batch dimension
 			#action = tf.random.categorical(logits, 1)[0][0]
-			action = tf.random.categorical(logits[0], 1)
-			print(action)
+			actionx = tf.random.categorical(logitsx[0], 1)[0]
+			actiony = tf.random.categorical(logitsy[0], 1)[0]
+			actionz = tf.random.categorical(logitsz[0], 1)[0]
+			print(actionx)
+			print(actiony)
+			print(actionz)
 			#action = tf.math.sigmoid(tf.cast(action,tf.float32))
 			#action = tf.reshape(logits[0], [50,3])
 			#print(logits)
+			"""
 			noise = tf.random.normal(shape = tf.shape(logits[0]), mean = 0.0, stddev = 0.05, dtype = tf.float32)
 			action = logits[0] + noise
 			#action = tf.clip_by_value(action, 0, 1)
@@ -423,7 +428,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			action[:,1] = tf.clip_by_value(action[:,1], 0, ydim)
 			action[:,2] = np.floor(action[:,2]*tf.cast(zdim,tf.float32))
 			action[:,2] = tf.clip_by_value(action[:,2], 0, zdim)
-			
+			"""
 			#action = action/150
 			pi_old = logits[0]
 			episode.observations.append(observation[0])

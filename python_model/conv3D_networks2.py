@@ -70,7 +70,7 @@ class PolicyNetwork(tf.keras.Model):
 
     def __init__(self, feature_extractor, **kwargs):
         super(PolicyNetwork, self).__init__(**kwargs)
-
+        batch, xdim, ydim, zdim, channels = tf.shape(feature_extractor)
         self.feature_extractor = feature_extractor
         self.conv3d1 = layers.Conv3D(32, 5, strides=(1, 1, 1), padding='same', activation='relu')
         self.dense512_1 = layers.Dense(512, activation='relu')
@@ -78,8 +78,10 @@ class PolicyNetwork(tf.keras.Model):
         self.dense256_1 = layers.Dense(256, activation='relu')
         self.dense256_2 = layers.Dense(256, activation='relu')
         self.dense128 = layers.Dense(128, activation='relu')
-        self.dense_coord = layers.Dense(150)
-        self.reshape = layers.Reshape((50, 3))
+        self.dense_coordx = layers.Dense(10*xdim, activation='relu')
+        self.dense_coordy = layers.Dense(10*ydim, activation='relu')
+        self.dense_coordz = layers.Dense(10*zdim, activation='relu')
+        self.reshape = layers.Reshape((10, 3))
 
     def policy(self, inpu):
         batch, xdim, ydim, zdim, channels = tf.shape(inpu)
@@ -124,11 +126,17 @@ class PolicyNetwork(tf.keras.Model):
         
         #xfd = tf.keras.activations.tanh(xfd)
         #xfd = tf.keras.activations.sigmoid(xfd)
-        xfd = self.dense_coord(x5d)
-        xfd = layers.Reshape((50, zdim))(xfd)
-        xfd = activations.hard_sigmoid(xfd)
+        #xfd = self.dense_coord(x5d)
+        #xfd = layers.Reshape((50, zdim))(xfd)
+        #xfd = activations.hard_sigmoid(xfd)
 
-        return xfd
+        x = self.dense_coordx(x5d)
+        y = self.dense_coordy(x5d)
+        z = self.dense_coordz(x5d)
+        x = layers.Reshape((10, xdim))(x)
+        y = layers.Reshape((10, ydim))(y)
+        z = layers.Reshape((10, zdim))(z)
+        return x,y,z
 
     def _sample_action(self, logits):
 
