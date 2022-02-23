@@ -70,15 +70,33 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 		while True:
 			#observation = preprocess(observation)
 			observations.append(observation)
-			action = agent(observation)[0]
+			logitsx,logitsy,logitsz = policy_network.policy(observation)
 			# remove num_samples dimension and batch dimension
+			#action = tf.random.categorical(logits, 1)[0][0]
+
+			actionx = tf.random.categorical(logitsx[0], 1)
+			actiony = tf.random.categorical(logitsy[0], 1)
+			actionz = tf.random.categorical(logitsz[0], 1)
+			action = tf.stack([actionx[:,0], actiony[:,0], actionz[:,0]], axis=0)
+
+			#action = tf.math.sigmoid(tf.cast(action,tf.float32))
+			#action = tf.reshape(logits[0], [50,3])
+			#print(logits)
+			"""
+			noise = tf.random.normal(shape = tf.shape(logits[0]), mean = 0.0, stddev = 0.05, dtype = tf.float32)
+			action = logits[0] + noise
+			#action = tf.clip_by_value(action, 0, 1)
 			action = action.numpy()
+
 			action[:,0] = np.floor(action[:,0]*tf.cast(xdim,tf.float32))
 			action[:,0] = tf.clip_by_value(action[:,0], 0, xdim)
 			action[:,1] = np.floor(action[:,1]*tf.cast(ydim,tf.float32))
 			action[:,1] = tf.clip_by_value(action[:,1], 0, ydim)
 			action[:,2] = np.floor(action[:,2]*tf.cast(zdim,tf.float32))
 			action[:,2] = tf.clip_by_value(action[:,2], 0, zdim)
+			"""
+			#action = action/150
+			pi_old = tf.stack([logitsx[0], logitsy[0], logitsz[0]], axis=0)
 
 			#action = tf.cast(tf.reshape(action[0], [50,3]),tf.float32)
 			#action = action/150
@@ -360,6 +378,7 @@ def entropy_loss(pi):
 	return loss
 
 def flip_coord(action, struct):
+	action = action.numpy().T
 	new_struct = struct.numpy()
 	batch, xdim, ydim, zdim = tf.shape(struct)
 	action = tf.cast(action,tf.int32)
@@ -407,11 +426,11 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			logitsx,logitsy,logitsz = policy_network.policy(observation)
 			# remove num_samples dimension and batch dimension
 			#action = tf.random.categorical(logits, 1)[0][0]
-			print(logitsx)
+
 			actionx = tf.random.categorical(logitsx[0], 1)
 			actiony = tf.random.categorical(logitsy[0], 1)
 			actionz = tf.random.categorical(logitsz[0], 1)
-			action = tf.stack([actionx[:,0], actiony[:,0], actionz[:,0]], axis=0).numpy().T
+			action = tf.stack([actionx[:,0], actiony[:,0], actionz[:,0]], axis=0)
 			print(action)
 			#action = tf.math.sigmoid(tf.cast(action,tf.float32))
 			#action = tf.reshape(logits[0], [50,3])
@@ -430,7 +449,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			action[:,2] = tf.clip_by_value(action[:,2], 0, zdim)
 			"""
 			#action = action/150
-			pi_old = logits[0]
+			pi_old = tf.stack([logitsx[0], logitsy[0], logitsz[0]], axis=0)
 			episode.observations.append(observation[0])
 			episode.ts.append(np.float32(t))
 			episode.actions.append(action)
