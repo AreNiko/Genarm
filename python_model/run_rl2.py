@@ -410,7 +410,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			#action = tf.random.categorical(logits, 150)[0]
 			#action = tf.math.sigmoid(tf.cast(action,tf.float32))
 			#action = tf.reshape(logits[0], [50,3])
-			noise = tf.random.normal(shape = tf.shape(logits[0]), mean = 0.0, stddev = 0.05, dtype = tf.float32)
+			noise = tf.random.normal(shape = tf.shape(logits[0]), mean = 0.0, stddev = 0.25, dtype = tf.float32)
 			action = logits[0] + noise
 			#action = tf.clip_by_value(action, 0, 1)
 			action = action.numpy()
