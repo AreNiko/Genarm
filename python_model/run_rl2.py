@@ -409,7 +409,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			#action = tf.random.categorical(logits[0][:,0], 1)[0][0]
 			action = logits[0].numpy()
 			print(action)
-			action[149, 2] = 0.99
+			action[49, 2] = 0.99
 			action = tf.random.categorical(action, 150)[0]
 			print(action)
 			#action = tf.math.sigmoid(tf.cast(action,tf.float32))
