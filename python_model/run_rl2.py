@@ -96,7 +96,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 			action[:,2] = tf.clip_by_value(action[:,2], 0, zdim)
 			"""
 			#action = action/150
-			pi_old = tf.stack([logitsx[0], logitsy[0], logitsz[0]], axis=0)
+			pi_old = tf.concat([logitsx[0], logitsy[0], logitsz[0]], 0)
 
 			#action = tf.cast(tf.reshape(action[0], [50,3]),tf.float32)
 			#action = action/150
