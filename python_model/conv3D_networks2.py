@@ -125,7 +125,7 @@ class PolicyNetwork(tf.keras.Model):
         #xfd = tf.keras.activations.tanh(xfd)
         #xfd = tf.keras.activations.sigmoid(xfd)
         xfd = self.dense_coord(x5d)
-        xfd = self.reshape(xfd)
+        xfd = layers.Reshape((50, zdim))(xfd)
         xfd = activations.hard_sigmoid(xfd)
 
         return xfd
