@@ -406,22 +406,29 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 
 			logits = policy_network.policy(observation)
 			# remove num_samples dimension and batch dimension
-			#action = tf.random.categorical(logits, 1)[0][0]
-			#action = tf.random.categorical(logits, 150)[0]
+			#action = tf.random.categorical(logits[0][:,0], 1)[0][0]
+			action = logits[0]
+			action[:,0] = tf.random.categorical(action[:,0], xdim)[0]
+			action[:,1] = tf.random.categorical(action[:,1], ydim)[0]
+			action[:,2] = tf.random.categorical(action[:,2], zdim)[0]
+			print(action)
 			#action = tf.math.sigmoid(tf.cast(action,tf.float32))
 			#action = tf.reshape(logits[0], [50,3])
-			noise = tf.random.normal(shape = tf.shape(logits[0]), mean = 0.0, stddev = 0.1, dtype = tf.float32)
-			action = logits[0] + noise
+			#noise = tf.random.normal(shape = tf.shape(logits[0]), mean = 0.0, stddev = 0.1, dtype = tf.float32)
+			
+			#action = logits[0] + noise
 			#action = tf.clip_by_value(action, 0, 1)
-			action = action.numpy()
+			#action = action.numpy()
 
+			"""
 			action[:,0] = np.floor(action[:,0]*tf.cast(xdim,tf.float32))
 			action[:,0] = tf.clip_by_value(action[:,0], 0, xdim)
 			action[:,1] = np.floor(action[:,1]*tf.cast(ydim,tf.float32))
 			action[:,1] = tf.clip_by_value(action[:,1], 0, ydim)
 			action[:,2] = np.floor(action[:,2]*tf.cast(zdim,tf.float32))
 			action[:,2] = tf.clip_by_value(action[:,2], 0, zdim)
-			
+			"""
+
 			#action = action/150
 			pi_old = logits[0]
 			episode.observations.append(observation[0])
