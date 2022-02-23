@@ -78,9 +78,6 @@ class PolicyNetwork(tf.keras.Model):
         self.dense256_1 = layers.Dense(256, activation='relu')
         self.dense256_2 = layers.Dense(256, activation='relu')
         self.dense128 = layers.Dense(128, activation='relu')
-        self.dense_coordx = layers.Dense(10*xdim, activation='relu')
-        self.dense_coordy = layers.Dense(10*ydim, activation='relu')
-        self.dense_coordz = layers.Dense(10*zdim, activation='relu')
         self.reshape = layers.Reshape((10, 3))
 
     def set_coords(self, struct):
