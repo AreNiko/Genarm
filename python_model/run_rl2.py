@@ -449,7 +449,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			action[:,2] = tf.clip_by_value(action[:,2], 0, zdim)
 			"""
 			#action = action/150
-			pi_old = tf.stack([logitsx[0], logitsy[0], logitsz[0]], axis=0)
+			pi_old = tf.concat([logitsx[0], logitsy[0], logitsz[0]], 0)
 			episode.observations.append(observation[0])
 			episode.ts.append(np.float32(t))
 			episode.actions.append(action)
