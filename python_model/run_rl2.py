@@ -408,7 +408,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			# remove num_samples dimension and batch dimension
 			#action = tf.random.categorical(logits[0][:,0], 1)[0][0]
 			action = logits[0]
-			print(xdim,ydim,zdim)
+			print(action)
 			action = tf.random.categorical(action, 150)[0]
 			print(action)
 			#action = tf.math.sigmoid(tf.cast(action,tf.float32))
