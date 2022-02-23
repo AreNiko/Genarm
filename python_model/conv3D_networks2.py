@@ -137,9 +137,9 @@ class PolicyNetwork(tf.keras.Model):
         x = self.dense_coordx(x5d)
         y = self.dense_coordy(x5d)
         z = self.dense_coordz(x5d)
-        x = layers.Reshape((10, xdim))(x)
-        y = layers.Reshape((10, ydim))(y)
-        z = layers.Reshape((10, zdim))(z)
+        x = layers.Reshape((self.actions, xdim))(x)
+        y = layers.Reshape((self.actions, ydim))(y)
+        z = layers.Reshape((self.actions, zdim))(z)
         return x,y,z
 
     def _sample_action(self, logits):
