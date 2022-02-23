@@ -409,9 +409,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			#action = tf.random.categorical(logits[0][:,0], 1)[0][0]
 			action = logits[0]
 			print(xdim,ydim,zdim)
-			action[:,0] = tf.random.categorical(action[:,0], tf.cast(xdim,tf.int32))[0]
-			action[:,1] = tf.random.categorical(action[:,1], tf.cast(ydim,tf.int32))[0]
-			action[:,2] = tf.random.categorical(action[:,2], tf.cast(zdim,tf.int32))[0]
+			action = tf.random.categorical(action, tf.cast(xdim,tf.int32))[0]
 			print(action)
 			#action = tf.math.sigmoid(tf.cast(action,tf.float32))
 			#action = tf.reshape(logits[0], [50,3])
