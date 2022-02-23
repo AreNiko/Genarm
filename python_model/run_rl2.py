@@ -411,7 +411,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			actionx = tf.random.categorical(logitsx[0], 1)
 			actiony = tf.random.categorical(logitsy[0], 1)
 			actionz = tf.random.categorical(logitsz[0], 1)
-			action = tf.stack([actionx[:,0], actiony[:,0], actionz[:,0]], axis=0)
+			action = tf.stack([actionx[:,0], actiony[:,0], actionz[:,0]], axis=0).numpy().T
 			print(action)
 			#action = tf.math.sigmoid(tf.cast(action,tf.float32))
 			#action = tf.reshape(logits[0], [50,3])
