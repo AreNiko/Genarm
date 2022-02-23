@@ -8,10 +8,10 @@ class FeatureExtractor(tf.keras.Model):
     def __init__(self, **kwargs):
         super(FeatureExtractor, self).__init__(**kwargs)
 
-        self.conv3d1 = layers.Conv3D(16, 5, strides=1, padding='same')
-        self.conv3d2 = layers.Conv3D(16, 5, strides=1, padding='same')
-        self.conv3d3 = layers.Conv3D(16, 5, strides=1, padding='same')
-        self.conv3d4 = layers.Conv3D(16, 5, strides=1, padding='same')
+        self.conv3d1 = layers.Conv3D(16, 5, strides=1, padding='same', activation='relu')
+        self.conv3d2 = layers.Conv3D(16, 5, strides=1, padding='same', activation='relu')
+        self.conv3d3 = layers.Conv3D(16, 5, strides=1, padding='same', activation='relu')
+        self.conv3d4 = layers.Conv3D(16, 5, strides=1, padding='same', activation='relu')
         self.conv1x1 = layers.Conv3D(1, 1, strides=(1, 1, 1), padding='same')
         self.batchmeup = layers.BatchNormalization(momentum=0.8)
         self.flatten = layers.Flatten()
@@ -126,7 +126,7 @@ class PolicyNetwork(tf.keras.Model):
         #xfd = tf.keras.activations.sigmoid(xfd)
         xfd = self.dense_coord(x5d)
         xfd = self.reshape(xfd)
-        xfd = activations.sigmoid(xfd)
+        xfd = activations.relu(xfd)
 
         return xfd
 

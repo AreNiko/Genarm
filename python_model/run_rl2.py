@@ -74,8 +74,11 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 			# remove num_samples dimension and batch dimension
 			action = action.numpy()
 			action[:,0] = np.floor(action[:,0]*tf.cast(xdim,tf.float32))
+			action[:,0] = tf.clip_by_value(action[:,0], 0, xdim)
 			action[:,1] = np.floor(action[:,1]*tf.cast(ydim,tf.float32))
+			action[:,1] = tf.clip_by_value(action[:,1], 0, ydim)
 			action[:,2] = np.floor(action[:,2]*tf.cast(zdim,tf.float32))
+			action[:,2] = tf.clip_by_value(action[:,2], 0, zdim)
 
 			#action = tf.cast(tf.reshape(action[0], [50,3]),tf.float32)
 			#action = action/150
@@ -409,11 +412,14 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			#action = tf.reshape(logits[0], [50,3])
 			noise = tf.random.normal(shape = tf.shape(logits[0]), mean = 0.0, stddev = 0.05, dtype = tf.float32)
 			action = logits[0] + noise
-			action = tf.clip_by_value(action, 0, 1)
+			#action = tf.clip_by_value(action, 0, 1)
 			action = action.numpy()
 			action[:,0] = np.floor(action[:,0]*tf.cast(xdim,tf.float32))
+			action[:,0] = tf.clip_by_value(action[:,0], 0, xdim)
 			action[:,1] = np.floor(action[:,1]*tf.cast(ydim,tf.float32))
+			action[:,1] = tf.clip_by_value(action[:,1], 0, ydim)
 			action[:,2] = np.floor(action[:,2]*tf.cast(zdim,tf.float32))
+			action[:,2] = tf.clip_by_value(action[:,2], 0, zdim)
 			
 			#action = action/150
 			pi_old = logits[0]
