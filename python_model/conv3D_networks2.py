@@ -70,7 +70,7 @@ class PolicyNetwork(tf.keras.Model):
 
     def __init__(self, feature_extractor, **kwargs):
         super(PolicyNetwork, self).__init__(**kwargs)
-        batch, xdim, ydim, zdim, channels = tf.shape(feature_extractor)
+        
         self.feature_extractor = feature_extractor
         self.conv3d1 = layers.Conv3D(32, 5, strides=(1, 1, 1), padding='same', activation='relu')
         self.dense512_1 = layers.Dense(512, activation='relu')
@@ -82,6 +82,12 @@ class PolicyNetwork(tf.keras.Model):
         self.dense_coordy = layers.Dense(10*ydim, activation='relu')
         self.dense_coordz = layers.Dense(10*zdim, activation='relu')
         self.reshape = layers.Reshape((10, 3))
+
+    def set_coords(self, struct):
+        batch, xdim, ydim, zdim, channels = tf.shape(struct)
+        self.dense_coordx = layers.Dense(10*xdim, activation='relu')
+        self.dense_coordy = layers.Dense(10*ydim, activation='relu')
+        self.dense_coordz = layers.Dense(10*zdim, activation='relu')
 
     def policy(self, inpu):
         batch, xdim, ydim, zdim, channels = tf.shape(inpu)

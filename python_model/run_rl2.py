@@ -640,6 +640,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	feature_extractor = FeatureExtractor()
 	policy_network = PolicyNetwork(feature_extractor)
 	policy_network._set_inputs(np.zeros([1, xstruct,ystruct,zstruct, 4], dtype=np.float32))
+	policy_network.set_coords([1, xstruct,ystruct,zstruct, 4])
 	# Use to generate encoded actions (not just indices)
 	agent = Agent(policy_network)
 	agent._set_inputs(np.zeros([1, xstruct,ystruct,zstruct,4], dtype=np.float32))
