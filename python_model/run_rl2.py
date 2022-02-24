@@ -431,10 +431,11 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			#actiony = tf.random.categorical(logitsy[0], 1)
 			#actionz = tf.random.categorical(logitsz[0], 1)
 			#action = tf.stack([actionx[:,0], actiony[:,0], actionz[:,0]], axis=0)
+			print(action)
 			action[:,0] = tf.clip_by_value(action[:,0], 0, xdim)
 			action[:,1] = tf.clip_by_value(action[:,1], 0, ydim)
 			action[:,2] = tf.clip_by_value(action[:,2], 0, zdim)
-			print(action)
+			
 			#action = tf.math.sigmoid(tf.cast(action,tf.float32))
 			#action = tf.reshape(logits[0], [50,3])
 			#print(logits)
