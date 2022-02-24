@@ -146,7 +146,7 @@ class PolicyNetwork(tf.keras.Model):
 
     def _sample_action(self, logits):
 
-        index = tf.random.categorical(logits, 1)
+        index = tf.random.categorical(logits[0], 1)
         # [batch_size, 1] ==> [batch_size]
         #index = tf.squeeze(index, axis=-1)
 
