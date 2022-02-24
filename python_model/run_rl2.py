@@ -70,7 +70,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 		while True:
 			#observation = preprocess(observation)
 			observations.append(observation)
-			logits = policy_network.policy(observation)
+			logits = agent(observation)
 			# remove num_samples dimension and batch dimension
 			action = tf.random.categorical(logits[0], 1)
 
