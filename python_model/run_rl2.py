@@ -436,7 +436,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			#action = tf.random.categorical(logits, 1)[0][0]
 
 			action = tf.random.categorical(logits[0], 1)
-			action = action.numpy().T
+			action = action.numpy().T[0]
 			print(action)
 			#actiony = tf.random.categorical(logitsy[0], 1)
 			#actionz = tf.random.categorical(logitsz[0], 1)
