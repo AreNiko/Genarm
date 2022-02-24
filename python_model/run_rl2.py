@@ -386,11 +386,11 @@ def flip_coord(action, struct):
 
 	for i in range(len(action)):
 		if action[i,0] >= xdim:
-			action[i,0] = xdim
+			action[i,0] = xdim-1
 		if action[i,1] >= ydim:
-			action[i,1] = ydim
+			action[i,1] = ydim-1
 		if action[i,2] >= zdim:
-			action[i,2] = zdim
+			action[i,2] = zdim-1
 
 		#print(x[i].numpy(),y[i].numpy(),z[i].numpy())
 		if action[i,0] < xdim and action[i,1] < ydim and action[i,2] < zdim:
