@@ -820,8 +820,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 					print(action)
 					#pi_a = tf.squeeze(tf.gather(pi, action, batch_dims=1), -1)
 					#pi_old_a = tf.squeeze(tf.gather(pi_old, action, batch_dims=1), -1)
-					pi_a = tf.concat([pi, action], axis=-1)
-					pi_old_a = tf.concat([pi_old, action], axis=-1)
+					pi_a = tf.concat([pi, tf.cast(action, tf.float32)], axis=-1)
+					pi_old_a = tf.concat([pi_old, tf.cast(action, tf.float32)], axis=-1)
 					#pi_a = tf.stack([pi, action], axis=2)
 					#pi_old_a = tf.stack([pi_old, action], axis=2)
 
