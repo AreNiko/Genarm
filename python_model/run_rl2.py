@@ -437,7 +437,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 
 			action = tf.random.categorical(logits[0], 1)
 			
-			print(action)
+			#print(action)
 			#actiony = tf.random.categorical(logitsy[0], 1)
 			#actionz = tf.random.categorical(logitsz[0], 1)
 			#action = tf.stack([actionx[:,0], actiony[:,0], actionz[:,0]], axis=0)
@@ -816,8 +816,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 					#pi = tf.concat([logitsx[0], logitsy[0], logitsz[0]], 1)
 					#pi = activations.softmax(pi)
 					v = value_network(obs, np.float32(maxlen)-t)
-					print(pi)
-					print(action)
+					#print(pi)
+					#print(action)
 					#pi_a = tf.squeeze(tf.gather(pi, action, batch_dims=1), -1)
 					#pi_old_a = tf.squeeze(tf.gather(pi_old, action, batch_dims=1), -1)
 					pi_a = tf.concat([pi, tf.cast(action, tf.float32)], axis=-1)
