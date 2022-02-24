@@ -436,7 +436,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			#action = tf.random.categorical(logits, 1)[0][0]
 
 			action = tf.random.categorical(logits[0], 1)
-			action = action.numpy().T[0]
+			action = action.numpy().T
 			print(action)
 			#actiony = tf.random.categorical(logitsy[0], 1)
 			#actionz = tf.random.categorical(logitsz[0], 1)
@@ -818,8 +818,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 					v = value_network(obs, np.float32(maxlen)-t)
 					print(pi)
 					print(action)
-					pi_a = tf.squeeze(tf.gather(pi, action, batch_dims=1), -1)
-					pi_old_a = tf.squeeze(tf.gather(pi_old, action, batch_dims=1), -1)
+					pi_a = tf.squeeze(tf.gather(pi, action, batch_dims=1, axis=1), -1)
+					pi_old_a = tf.squeeze(tf.gather(pi_old, action, batch_dims=1, axis=1), -1)
 
 					#pi_a = tf.stack([pi, action], axis=2)
 					#pi_old_a = tf.stack([pi_old, action], axis=2)
