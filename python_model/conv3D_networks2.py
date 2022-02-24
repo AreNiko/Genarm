@@ -78,14 +78,15 @@ class PolicyNetwork(tf.keras.Model):
         self.dense256_1 = layers.Dense(256, activation='relu')
         self.dense256_2 = layers.Dense(256, activation='relu')
         self.dense128 = layers.Dense(128, activation='relu')
-        
-        self.actions = 1
+
+        self.actions = 3
         self.reshape = layers.Reshape((self.actions, 3))
 
     def set_coords(self, struct):
-        self.dense_coordx = layers.Dense(self.actions*struct[1], activation='relu')
-        self.dense_coordy = layers.Dense(self.actions*struct[2], activation='relu')
-        self.dense_coordz = layers.Dense(self.actions*struct[3], activation='relu')
+        self.max_dim = np.max(struct)
+        self.dense_coord = layers.Dense(self.actions*max_dim, activation='relu')
+        #self.dense_coordy = layers.Dense(self.actions*max_dim, activation='relu')
+        #self.dense_coordz = layers.Dense(self.actions*max_dim, activation='relu')
 
     def policy(self, inpu):
         batch, xdim, ydim, zdim, channels = tf.shape(inpu)
@@ -134,13 +135,14 @@ class PolicyNetwork(tf.keras.Model):
         #xfd = layers.Reshape((50, zdim))(xfd)
         #xfd = activations.hard_sigmoid(xfd)
 
-        x = self.dense_coordx(x5d)
-        y = self.dense_coordy(x5d)
-        z = self.dense_coordz(x5d)
-        x = layers.Reshape((self.actions, xdim))(x)
-        y = layers.Reshape((self.actions, ydim))(y)
-        z = layers.Reshape((self.actions, zdim))(z)
-        return x,y,z
+        #x = self.dense_coordx(x5d)
+        #y = self.dense_coordy(x5d)
+        #z = self.dense_coordz(x5d)
+        xyz = self.dense_coord(x5d)
+        xyz = layers.Reshape((self.actions, self.max_dim))(xyz)
+        #y = layers.Reshape((self.actions, ydim))(y)
+        #z = layers.Reshape((self.actions, zdim))(z)
+        return xyz
 
     def _sample_action(self, logits):
 
