@@ -815,8 +815,8 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 					#pi = activations.softmax(pi)
 					v = value_network(obs, np.float32(maxlen)-t)
 
-					pi_a = tf.squeeze(tf.gather(pi, action, batch_dims=1), 0)
-					pi_old_a = tf.squeeze(tf.gather(pi_old, action, batch_dims=1), 0)
+					pi_a = tf.squeeze(tf.gather(pi, action, batch_dims=1), -1)
+					pi_old_a = tf.squeeze(tf.gather(pi_old, action, batch_dims=1), -1)
 
 					#pi_a = tf.stack([pi, action], axis=2)
 					#pi_old_a = tf.stack([pi_old, action], axis=2)
