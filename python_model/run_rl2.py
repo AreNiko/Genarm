@@ -70,9 +70,10 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 		while True:
 			#observation = preprocess(observation)
 			observations.append(observation)
-			logits = agent(observation)
+			action = agent(observation)
+			print(action)
 			# remove num_samples dimension and batch dimension
-			action = tf.random.categorical(logits[0], 1)
+			#action = tf.random.categorical(logits[0], 1)
 
 			for _ in range(action_repeat):
 				t += 1
@@ -351,7 +352,6 @@ def entropy_loss(pi):
 
 def flip_coord(action, struct):
 	action = action.numpy().T
-	print(action)
 	new_struct = struct.numpy()
 	batch, xdim, ydim, zdim = tf.shape(struct)
 	#action = tf.cast(action,tf.int32)

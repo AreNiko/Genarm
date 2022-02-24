@@ -146,15 +146,18 @@ class PolicyNetwork(tf.keras.Model):
 
     def _sample_action(self, logits):
 
-        xfd = layers.Reshape((xdim, ydim, zdim))(xfd) 
-        return xfd
+        index = tf.random.categorical(logits, 1)
+        # [batch_size, 1] ==> [batch_size]
+        #index = tf.squeeze(index, axis=-1)
+
+        return index
 
     def call(self, x):
 
         logits = self.policy(x)
-        #action = self._sample_action(logits)
+        action = self._sample_action(logits)
 
-        return logits
+        return action
 
 class ValueNetwork(tf.keras.Model):
 
