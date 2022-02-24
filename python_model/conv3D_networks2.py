@@ -84,7 +84,7 @@ class PolicyNetwork(tf.keras.Model):
 
     def set_coords(self, struct):
         self.max_dim = tf.math.reduce_max(struct)
-        self.dense_coord = layers.Dense(self.actions*max_dim, activation='relu')
+        self.dense_coord = layers.Dense(self.actions*self.max_dim, activation='relu')
         #self.dense_coordy = layers.Dense(self.actions*max_dim, activation='relu')
         #self.dense_coordz = layers.Dense(self.actions*max_dim, activation='relu')
 
