@@ -381,7 +381,7 @@ def flip_coord(action, struct):
 	action = action.numpy().T
 	new_struct = struct.numpy()
 	batch, xdim, ydim, zdim = tf.shape(struct)
-	print(action)
+	#print(action)
 	#action = tf.cast(action,tf.int32)
 
 	for i in range(len(action)):
@@ -391,7 +391,7 @@ def flip_coord(action, struct):
 			action[i,1] = ydim
 		if action[i,2] >= zdim:
 			action[i,2] = zdim
-		
+
 		#print(x[i].numpy(),y[i].numpy(),z[i].numpy())
 		if action[i,0] < xdim and action[i,1] < ydim and action[i,2] < zdim:
 			if struct[0,action[i,0],action[i,1],action[i,2]] == 0:
@@ -439,7 +439,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			#actiony = tf.random.categorical(logitsy[0], 1)
 			#actionz = tf.random.categorical(logitsz[0], 1)
 			#action = tf.stack([actionx[:,0], actiony[:,0], actionz[:,0]], axis=0)
-			print(action)
+			#print(action)
 			
 			#action = tf.math.sigmoid(tf.cast(action,tf.float32))
 			#action = tf.reshape(logits[0], [50,3])
@@ -810,9 +810,9 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				#action = tf.expand_dims(action, -1)
 				with tf.GradientTape() as tape:
 					#pi = activations.softmax(policy_network.policy(obs))
-					logitsx,logitsy,logitsz = policy_network.policy(obs)
-					pi = tf.concat([logitsx[0], logitsy[0], logitsz[0]], 1)
-					pi = activations.softmax(pi)
+					logits = activations.softmax(policy_network.policy(obs))
+					#pi = tf.concat([logitsx[0], logitsy[0], logitsz[0]], 1)
+					#pi = activations.softmax(pi)
 					v = value_network(obs, np.float32(maxlen)-t)
 
 					pi_a = tf.squeeze(tf.gather(pi, action, batch_dims=1), 0)
