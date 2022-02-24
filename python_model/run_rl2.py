@@ -382,7 +382,6 @@ def flip_coord(action, struct):
 	print(action)
 	new_struct = struct.numpy()
 	batch, xdim, ydim, zdim = tf.shape(struct)
-	#print(action)
 	#action = tf.cast(action,tf.int32)
 
 	for i in range(len(action)):
@@ -436,7 +435,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 			# remove num_samples dimension and batch dimension
 			#action = tf.random.categorical(logits, 1)[0][0]
 
-			action = tf.random.categorical(logits[0], 1)[0]
+			action = tf.random.categorical(logits[0], 1)
 			print(action)
 			#actiony = tf.random.categorical(logitsy[0], 1)
 			#actionz = tf.random.categorical(logitsz[0], 1)
