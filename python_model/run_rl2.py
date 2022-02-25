@@ -109,7 +109,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 						#print(new_bend, vox_diff, comps)
 						
 						#reward = bend_diff + place_diff/5 - (vox_diff/10 + (comps-1))
-						reward = (bend_diff)
+						reward = (bend_diff - 1) - (vox_diff + (comps-1))/10
 						print('| {:14s} | {:14f} |'.format('Old bending:', og_bend))
 						print('| {:14s} | {:14f} |'.format('New bending:', new_bend))
 						print('| {:14s} | {:14d} |'.format('Voxels diff:', int(vox_diff)))
@@ -473,7 +473,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						bend_diff = og_bend/new_bend
 						
 						#r = bend_diff + place_diff/5 - (vox_diff/10 + 10*(comps-1))
-						r = (bend_diff)
+						r = (bend_diff - 1) - (vox_diff + (comps-1))/10
 						print('| {:14s} | {:14f} |'.format('Old bending:', og_bend))
 						print('| {:14s} | {:14f} |'.format('New bending:', new_bend))
 						print('| {:14s} | {:14d} |'.format('Voxels diff:', int(vox_diff)))
@@ -486,8 +486,8 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						
 					except:
 						comps = eng.check_components(convert_to_matlabint8(new_struct[0]), nargout=1)
-						#r = - (vox_diff/10 + 10*(comps-1)) - r
-						r = 0
+						r = - (vox_diff + (comps-1))/10
+						#r = 0
 						done = True
 				reward = reward + r
 				
