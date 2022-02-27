@@ -95,22 +95,19 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 						new_bend, comps = eng.check_max_bend(convert_to_matlabint8(new_struct[0]), 
 							                                 convert_to_matlabint8(structC[0]), 
 							                                 convert_to_matlabint8(structF[0]), nargout=2)
-						if new_bend == 0 or np.isnan(new_bend) or np.isinf(new_bend):
-							new_bend = 1.0
+						if new_bend == 0 or np.isnan(new_bend):
+							new_bend = og_bend
 							#done = True
 
 						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(new_struct))
 						place_diff = np.abs(np.sum(og_struct.numpy() - new_struct))
 
-						if new_bend > og_bend:
-							bend_diff = 0
-						else:
-							bend_diff = og_bend/new_bend
-						#print(new_bend, vox_diff, comps)
+						bend_diff = og_bend/new_bend
 						
-						#reward = bend_diff + place_diff/5 - (vox_diff/10 + (comps-1))
-						#reward = 10*(bend_diff - 1) - (vox_diff + (comps-1))/100
-						reward = 2*(bend_diff - 1)
+						#r = bend_diff + place_diff/5 - (vox_diff/10 + 10*(comps-1))
+						#r = 10*(bend_diff - 1) - (vox_diff + (comps-1))/100
+						#r = 2*(bend_diff - 1)
+						reward = 1000*(og_bend - new_bend) - (vox_diff + 5*(comps-1))/100
 						print('| {:14s} | {:14f} |'.format('Old bending:', og_bend))
 						print('| {:14s} | {:14f} |'.format('New bending:', new_bend))
 						print('| {:14s} | {:14d} |'.format('Voxels diff:', int(vox_diff)))
