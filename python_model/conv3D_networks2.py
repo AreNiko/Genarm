@@ -77,10 +77,13 @@ class PolicyNetwork(tf.keras.Model):
         self.dense512_2 = layers.Dense(512, activation='relu')
         self.dense256_1 = layers.Dense(256, activation='relu')
         self.dense256_2 = layers.Dense(256, activation='relu')
-        self.dense128 = layers.Dense(128, activation='relu')
+        self.dense128_1 = layers.Dense(128, activation='relu')
+        self.dense128_2 = layers.Dense(128, activation='relu')
+        self.dense64_1 = layers.Dense(64, activation='relu')
+        self.dense32_1 = layers.Dense(32, activation='relu')
+        self.dense16_1 = layers.Dense(32, activation='relu')
 
         self.actions = 3
-        self.reshape = layers.Reshape((self.actions, 3))
 
     def set_coords(self, struct):
         self.max_dim = tf.math.reduce_max(struct)
@@ -97,23 +100,29 @@ class PolicyNetwork(tf.keras.Model):
         print(tf.shape(xf))
         #x1d = self.conv3d(x1)
         #x1d = self.conv3d(x1d)
-        x1d = self.dense128(xf)
+        x = self.dense128_1(xf)
         #x1d = self.dense128(x1d)
 
-        print(tf.shape(x1d))
+        print(tf.shape(x))
         #x2d = self.conv3d(x2)
         #x2d = self.conv3d(x2d)
-        x2d = self.dense256_1(x1d)
+        x = self.dense256_1(x)
 
-        x3d = self.dense512_1(x2d)
+        x = self.dense512_1(x)
         #x3d = self.conv3d(x3)
         #x3d = self.conv3d(x3d)
 
-        x4d = self.dense512_2(x3d)
+        x = self.dense256_2(x)
         #x4d = self.conv3d(x3)
         #x4d = self.conv3d(x3d)
         
-        x5d = self.dense256_2(x4d)
+        x = self.dense128_2(x)
+
+        x = self.dense64_1(x)
+        x = self.dense32_1(x)
+        x = self.dense16_1(x)
+
+        x = self.flatten(x)
 
         #x4d = self.conv3d(x4)
         #x4d = self.conv3d(x4d)
@@ -138,7 +147,7 @@ class PolicyNetwork(tf.keras.Model):
         #x = self.dense_coordx(x5d)
         #y = self.dense_coordy(x5d)
         #z = self.dense_coordz(x5d)
-        xyz = self.dense_coord(x5d)
+        xyz = self.dense_coord(x)
         xyz = layers.Reshape((self.actions, self.max_dim))(xyz)
         #y = layers.Reshape((self.actions, ydim))(y)
         #z = layers.Reshape((self.actions, zdim))(z)
