@@ -587,14 +587,14 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	os.makedirs("rl2_data/" + test_number + "/", exist_ok=True)
 
 
-	iterations = 500
+	iterations = 2000
 	epoch_range = 3
 	num_episodes = 12#2 #8
 	maxlen_environment = 32
 	action_repeat = 1
 	maxlen = maxlen_environment // action_repeat # max number of actions
 	batch_size = 1
-	checkpoint_interval = 50
+	checkpoint_interval = 999
 	eval_interval = 1
 	eval_episodes = 32
 
