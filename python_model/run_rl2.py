@@ -519,6 +519,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 		eng.plotVg_safe(convert_to_matlabint8(best_differences_minus), 'edgeOff', 'col',collist3, 'alp', 0.5, nargout=0)
 		eng.plotVg_safe(convert_to_matlabint8(best_differences_positive), 'edgeOff', 'col',collist2, 'alp', 0.5, nargout=0)
 		"""
+		eng.clf(nargout=0)
 		eng.plotVg_safe(convert_to_matlabint8(best_differences), 'edgeOff', 'col',collist3, 'alp', 0.5, nargout=0)
 		eng.sun1(nargout=0)
 
