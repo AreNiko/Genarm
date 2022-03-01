@@ -830,7 +830,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 
 		if step % checkpoint_interval == 0:
 			print("Checkpointing model after %d iterations of training." % step)
-			ckpt_manager.save(step)
+			ckpt_manager.save()
 
 		if step % eval_interval == 0:
 			start = time.time()
