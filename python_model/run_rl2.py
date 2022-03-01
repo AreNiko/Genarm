@@ -113,8 +113,8 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 						print('| {:14s} | {:14d} |'.format('Voxels diff:', int(vox_diff)))
 						print('| {:14s} | {:14d} |'.format('Nr components:', int(comps)))
 
-						#if comps > 1:
-						#	done = True
+						if comps > 1:
+							done = True
 						
 					except:
 						comps = eng.check_components(convert_to_matlabint8(new_struct[0]), nargout=1)
@@ -482,8 +482,8 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						if new_bend != 1.0:
 							og_bend = new_bend
 
-						#if comps > 1:
-						#	done = True
+						if comps > 1:
+							done = True
 						
 					except:
 						comps = eng.check_components(convert_to_matlabint8(new_struct[0]), nargout=1)
