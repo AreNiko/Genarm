@@ -593,7 +593,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	action_repeat = 1
 	maxlen = maxlen_environment // action_repeat # max number of actions
 	batch_size = 1
-	checkpoint_interval = 999
+	checkpoint_interval = 1
 	eval_interval = 1
 	eval_episodes = 32
 
