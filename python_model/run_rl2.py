@@ -107,7 +107,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 						#r = 10*(bend_diff - 1) - (vox_diff + (comps-1))/100
 						#r = 2*(bend_diff - 1)
 						#reward = 1000*(og_bend - new_bend) - (vox_diff + 5*(comps-1))/100
-						reward = 1000*(og_bend - new_bend)
+						reward = 1000*(og_bend - new_bend) + (32 - (comps-1))/1000
 						print('| {:14s} | {:14f} |'.format('Old bending:', og_bend))
 						print('| {:14s} | {:14f} |'.format('New bending:', new_bend))
 						print('| {:14s} | {:14d} |'.format('Voxels diff:', int(vox_diff)))
@@ -594,7 +594,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	batch_size = 1
 	checkpoint_interval = 1
 	eval_interval = 1
-	eval_episodes = 32
+	eval_episodes = 12
 
 	alpha_start = 1
 	alpha_end = 0.0
