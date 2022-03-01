@@ -71,7 +71,6 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 			#observation = preprocess(observation)
 			observations.append(observation)
 			action = agent(observation)
-			print(action)
 			# remove num_samples dimension and batch dimension
 			#action = tf.random.categorical(logits[0], 1)
 
@@ -475,7 +474,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						#r = 10*(bend_diff - 1) - (vox_diff + (comps-1))/100
 						#r = 2*(bend_diff - 1)
 						#r = 1000*(og_bend - new_bend) - (vox_diff + 5*(comps-1))/100
-						r = 1000*(og_bend - new_bend)
+						r = 1000*(og_bend - new_bend) - (32 - (comps-1))/1000
 						print('| {:14s} | {:14f} |'.format('Old bending:', og_bend))
 						print('| {:14s} | {:14f} |'.format('New bending:', new_bend))
 						print('| {:14s} | {:14d} |'.format('Voxels diff:', int(vox_diff)))
@@ -526,8 +525,6 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 		eng.plotVg_safe(convert_to_matlabint8(best_differences), 'edgeOff', 'col',collist3, 'alp', 0.5, nargout=0)
 		eng.sun1(nargout=0)
 
-
-	print(action)
 	return episodes
 
 def create_dataset(obser, policy_network, value_network, num_episodes, maxlen, action_repeat, gamma, iteration, test_number):
