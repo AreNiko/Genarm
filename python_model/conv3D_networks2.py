@@ -73,6 +73,8 @@ class PolicyNetwork(tf.keras.Model):
         
         self.feature_extractor = feature_extractor
         self.conv3d1 = layers.Conv3D(32, 5, strides=(1, 1, 1), padding='same', activation='relu')
+        self.conv3d2 = layers.Conv3D(16, 5, strides=(1, 1, 1), padding='same', activation='relu')
+        self.conv3d3 = layers.Conv3D(8, 5, strides=(1, 1, 1), padding='same', activation='relu')
         self.dense512_1 = layers.Dense(512, activation='relu')
         self.dense512_2 = layers.Dense(512, activation='relu')
         self.dense256_1 = layers.Dense(256, activation='relu')
@@ -98,30 +100,19 @@ class PolicyNetwork(tf.keras.Model):
         #x1,x2 = self.feature_extractor(inpu)
         #x1,x2,x3,x4 = self.feature_extractor(inpu)
         xf = self.feature_extractor(inpu)
-
-        #x1d = self.conv3d(x1)
-        #x1d = self.conv3d(x1d)
+        x = self.conv3d1(x)
+        x = self.conv3d2(x)
+        x = self.conv3d3(x)
+        """
         x = self.dense128_1(xf)
-        #x1d = self.dense128(x1d)
-
-        #x2d = self.conv3d(x2)
-        #x2d = self.conv3d(x2d)
         x = self.dense256_1(x)
-
         x = self.dense512_1(x)
-        #x3d = self.conv3d(x3)
-        #x3d = self.conv3d(x3d)
-
         x = self.dense256_2(x)
-        #x4d = self.conv3d(x3)
-        #x4d = self.conv3d(x3d)
-        
         x = self.dense128_2(x)
-
         x = self.dense64_1(x)
         x = self.dense32_1(x)
         x = self.dense16_1(x)
-
+        """
         x = self.flatten(x)
 
         #x4d = self.conv3d(x4)
