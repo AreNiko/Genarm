@@ -113,16 +113,16 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 						print('| {:14s} | {:14d} |'.format('Voxels diff:', int(vox_diff)))
 						print('| {:14s} | {:14d} |'.format('Nr components:', int(comps)))
 
-						#if comps > 1:
-						#	done = True
+						if comps > 1:
+							done = True
 						
 					except:
 						comps = eng.check_components(convert_to_matlabint8(new_struct[0]), nargout=1)
 						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(new_struct))
 						#reward = - (vox_diff/10 + (comps-1))
-						reward = (32 - (comps-1))/10
+						#reward = (32 - (comps-1))/10
 						#reward = 0
-						#done = True
+						done = True
 
 				if best_reward < reward or best_reward is None:
 					best_struct = new_struct
@@ -475,7 +475,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						#r = 10*(bend_diff - 1) - (vox_diff + (comps-1))/100
 						#r = 2*(bend_diff - 1)
 						#r = 1000*(og_bend - new_bend) - (vox_diff + 5*(comps-1))/100
-						r = 1000*(og_bend - new_bend) + (32 - (comps-1))/10
+						r = 1000*(og_bend - new_bend) + (1 - (comps-1))/10
 						print('| {:14s} | {:14f} |'.format('Old bending:', og_bend))
 						print('| {:14s} | {:14f} |'.format('New bending:', new_bend))
 						print('| {:14s} | {:14d} |'.format('Voxels diff:', int(vox_diff)))
@@ -483,15 +483,15 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						if new_bend != 1.0:
 							og_bend = new_bend
 
-						#if comps > 1:
-						#	done = True
+						if comps > 1:
+							done = True
 						
 					except:
 						comps = eng.check_components(convert_to_matlabint8(new_struct[0]), nargout=1)
 						#r = - (vox_diff + (comps-1))/1
 						r = (32 - (comps-1))/10
 						#r = 0
-						#done = True
+						done = True
 				reward = reward + r
 				
 				print('| {:14s} | {:14f} |\n'.format('Reward:', reward))
