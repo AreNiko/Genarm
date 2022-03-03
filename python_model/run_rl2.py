@@ -600,7 +600,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 
 	alpha_start = 1
 	alpha_end = 0.0
-	init_epsilon = 0.1
+	init_epsilon = 0.2
 	init_lr = 0.5*10**-5
 	optimizer = optimizers.Adam(init_lr)
 	gamma = 0.99
