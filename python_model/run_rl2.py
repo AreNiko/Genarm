@@ -113,15 +113,16 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 						print('| {:14s} | {:14d} |'.format('Voxels diff:', int(vox_diff)))
 						print('| {:14s} | {:14d} |'.format('Nr components:', int(comps)))
 
-						if comps > 1:
-							done = True
+						#if comps > 1:
+						#	done = True
 						
 					except:
 						comps = eng.check_components(convert_to_matlabint8(new_struct[0]), nargout=1)
 						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(new_struct))
 						#reward = - (vox_diff/10 + (comps-1))
-						reward = 0
-						done = True
+						reward = (32 - (comps-1))/10
+						#reward = 0
+						#done = True
 
 				if best_reward < reward or best_reward is None:
 					best_struct = new_struct
