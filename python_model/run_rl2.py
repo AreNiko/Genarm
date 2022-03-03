@@ -120,7 +120,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 						comps = eng.check_components(convert_to_matlabint8(new_struct[0]), nargout=1)
 						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(new_struct))
 						#reward = - (vox_diff/10 + (comps-1))
-						#reward = (32 - (comps-1))/10
+						reward = (1 - (comps-1))/10
 						#reward = 0
 						done = True
 
