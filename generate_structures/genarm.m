@@ -17,7 +17,7 @@ function [vG, figcount] = genarm(env, origo, arm_radiusx, arm_radiusy, wrist_rad
     
     PLAdens = 1.25; %Density of PLA in g/cm^3
     nozzwidth = 0.2; %Nozzle width of 3D printer in cm
-    infill = 0.2; % Infill of 3d printer, for now set to 20%
+    infill = 1; % Infill of 3d printer, for now set to 20%
     Voxsize = 0.4; % FOR NOW SET VOX SIZE TO 4mm / 0.4 cm
     % Area of a voxel in cm^3 with infill 
     % Infill not taking into account that the voxels are connected yet
@@ -57,7 +57,7 @@ function [vG, figcount] = genarm(env, origo, arm_radiusx, arm_radiusy, wrist_rad
     %vGextC = vGc;
     %vGextC(vGextC>1) = 1;
     
-    vGextC = vGc + vGc_1more.*vG_work;
+    vGextC = vGc_1more.*vG_work;
 
     %%%%%%%%%%% Definerer kraft voksler - grå
     vGextF = zeros(size(vG_work),'int8');
@@ -120,17 +120,18 @@ function [vG, figcount] = genarm(env, origo, arm_radiusx, arm_radiusy, wrist_rad
         hold on;plotVg_safe(vGextC,'edgeOff','col',[0.6 0.6 0.8]);
         title("Generation: " + i + " Stay off (gul), extF (grå), låst (blå)");
         sun1;
-
         saveFigToAnimGif('roboarm-strengthen.gif', i==1);
+        %figcount = figcount +1;
         
-        figure(figcount+1);clf;plotVg_safe(vG_work(:,origo(2):end,:));
-        hold on;plotVg_safe(vGstayOff(:,origo(2):end,:),'col',[0.9 0.9 0.5]);
-        hold on;plotVg_safe(vGextF(:,origo(2):end,:),'col',[0.5 0.5 0.5]);
-        hold on;plotVg_safe(vGextC(:,origo(2):end,:),'col',[0.6 0.6 0.8]);
+        figure(figcount+1);clf;plotVg_safe(vG_work(:,origo(2):end,:),'edgeOff');
+        hold on;plotVg_safe(vGstayOff(:,origo(2):end,:),'edgeOff','col',[0.9 0.9 0.5]);
+        hold on;plotVg_safe(vGextF(:,origo(2):end,:),'edgeOff','col',[0.5 0.5 0.5]);
+        %hold on;plotVg_safe(vGextC(:,origo(2):end,:)-vGc(:,origo(2):end,:),'edgeOff','col',[0.6 0.6 0.8]);
         title("Generation: " + i + " Dissection");
         sun1;
         saveFigToAnimGif('roboarm-half-strengthen.gif', i==1);
-
+        %figcount = figcount +1;
+        
         [E,N, ~] = vox2mesh18(vG_work);
         radius = 0.003; E(:,3) = pi*radius^2;
         %fprintf("%d %d \n", size(E), size(N))
@@ -167,32 +168,60 @@ function [vG, figcount] = genarm(env, origo, arm_radiusx, arm_radiusy, wrist_rad
         %visuellScale = 100;
         %figure(figcount+1);clf;plotMesh(N-visuellScale*dN,E,'lTykk',0.01); % Mesh med nodeforflytninger
 
-        Nstress  = edgeStress2nodeStress(N,E, sE);
-        NairStress  = nodeStress2airNodeStress(Nstress,vG_work);
+        Nstress = edgeStress2nodeStress(N,E, sE);
+        NairStress = nodeStress2airNodeStress(Nstress,vG_work);
         Nstress = cutStayOffNodes(Nstress, vGstayOff);
         NairStress = cutStayOffNodes(NairStress, vGstayOff);
         NstressSorted = sortrows(Nstress,4,'ascend');
         NairStressSorted = sortrows(NairStress,4,'descend');
-        if current_weight < weight_want
-            if addrm == 1
-                if wanted_nrnodes - amount_t1 < noVoxToRemove
-                    vG_work = safeRemoveVoxels3D(vG_work, NstressSorted, wanted_nrnodes-amount_t1);
+        
+        %rgbNode = rgbFromNstress(Nstress); % abs stress kodes med bw
+        %rgbEdge = rgbFromEs(abs(sE),'bw'); % stress kodes med bw
+        %figure(figcount);plotMeshColor(Nstress,E,'eCol',rgbEdge,'nPlot','nFilled','nDiam',30,'nCol',rgbNode);
+        %pause
+        % Plotter vGairNodeStress kodet med blåskala kuler
+        %maxAirNodeStress = max(NairStress(:,4));
+        %vGrgb = [(1 - NairStress(:,4) ./ maxAirNodeStress) (1 - NairStress(:,4) ./ maxAirNodeStress) ones(size(NairStress,1),1)];
+        %plotPointCloud(NairStress,30,'col',vGrgb,'fill');
+        %pause
+        try
+            if current_weight < weight_want
+                if addrm == 1
+                    if wanted_nrnodes - amount_t1 < noVoxToRemove
+                        vG_work = safeRemoveVoxels3D(vG_work, NstressSorted, wanted_nrnodes-amount_t1);
+                    end
+                else
+                    [vG_work, reduce] = safeRemoveVoxels3D(vG_work, NstressSorted, noVoxToRemove);
                 end
             else
-                [vG_work, reduce] = safeRemoveVoxels3D(vG_work, NstressSorted, noVoxToRemove);
+                 [vG_work, reduce] = safeRemoveVoxels3D(vG_work, NstressSorted, noVoxToRemove);
             end
-        else
-             [vG_work, reduce] = safeRemoveVoxels3D(vG_work, NstressSorted, noVoxToRemove);
-        end
-  
-        for n=1:reduce
-           vG_work( NairStressSorted(n,1), NairStressSorted(n,2), NairStressSorted(n,3) ) = 1;
-        end
 
-        vG_work = gravitate2D(vG_work, vGstayOff); vG_work = gravitate2D(vG_work, vGstayOff);
-        
-        current_weight = PLAdens*(plainfill*(nnz(vG_work)+nnz(vG(:,:,1:b_layer-3)) - nnz(vGc))*(nozzwidth/2)^2)*pi + weight_hand; 
-        
+            for n=1:reduce
+               vG_work( NairStressSorted(n,1), NairStressSorted(n,2), NairStressSorted(n,3) ) = 1;
+            end
+
+            vG_work = gravitate2D(vG_work, vGstayOff); vG_work = gravitate2D(vG_work, vGstayOff);
+
+            current_weight = PLAdens*(plainfill*(nnz(vG_work)+nnz(vG(:,:,1:b_layer-3)) - nnz(vGc))*(nozzwidth/2)^2)*pi + weight_hand; 
+        catch
+            noVoxToRemove = noVoxToRemove/2;
+            figure(figcount+3);clf;plotVg_safe(vG_work,'edgeOff');
+            hold on;plotVg_safe(vGstayOff,'edgeOff','col',[0.9 0.9 0.5]);
+            hold on;plotVg_safe(vGextF,'edgeOff','col',[0.5 0.5 0.5]);
+            hold on;plotVg_safe(vGextC,'edgeOff','col',[0.6 0.6 0.8]);
+            title("Generation: " + i + " Stay off (gul), extF (grå), låst (blå)");
+            sun1;
+
+            figure(figcount+4);clf;plotVg_safe(vG_work(:,origo(2):end,:),'edgeOff');
+            hold on;plotVg_safe(vGstayOff(:,origo(2):end,:),'edgeOff','col',[0.9 0.9 0.5]);
+            hold on;plotVg_safe(vGextF(:,origo(2):end,:),'edgeOff','col',[0.5 0.5 0.5]);
+            %hold on;plotVg_safe(vGextC(:,origo(2):end,:)-vGc(:,origo(2):end,:),'edgeOff','col',[0.6 0.6 0.8]);
+            title("Generation: " + i + " Dissection");
+            sun1;
+            figcount = figcount+4;
+            return
+        end
         if mod(i,20) == 0
             vGsave = vG_work;
         end
@@ -230,12 +259,15 @@ function [vG, figcount] = genarm(env, origo, arm_radiusx, arm_radiusy, wrist_rad
         islands = bwconncomp(vG_work).NumObjects;
         fprintf('Number of isolated structures: %d\n', islands);
         amount_t1 = sum(vG_work,'all');
-        fprintf('Max bent node from external forces: %4.5f\n', max(abs(dN), [], 'all'));
+        fprintf('Max bent node from external forces: %4.5f\n', max(sum(abs(dN),2), [], 'all'));
         fprintf('Antall noder: %d\n', amount_t1);
         fprintf("Current weight versus wanted weight: %.5f/%.5f \n", current_weight, weight_want);
+        if i == 300
+            pause
+        end
     end
     %vG_work(:,:,1:b_layer-3) = vG(:,:,1:b_layer-3);
-    vG_work = vG_work + vGextC;
+    vG_work = vG_work;
     
     vG_work(vG_work>1) = 1;
     if thickness > 4

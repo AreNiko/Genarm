@@ -32,6 +32,20 @@ max_radius = max(arm_radiusx, arm_radiusy);
 env = zeros(height, height, height*2, 'int8');
 origo = [round(height/2) round(height/2) max_radius+thickness+10];
 
+%{
+arm_radiusx = 14;
+arm_radiusy = 14;
+wrist_radius = 12; 
+height = 100;
+arm_height = 14;
+thickness = 7;
+max_radius = max(arm_radiusx, arm_radiusy);
+xdim = 64;
+ydim = 55;
+% Initial enviornment
+env = zeros(xdim, ydim, 160, 'int8');
+origo = [round(xdim/2) round(ydim/2) (max_radius+thickness+10)];
+%}
 % Weight
 
 weight_hand = 0.58*1000; % 0.58 kg of hand converted to grams 

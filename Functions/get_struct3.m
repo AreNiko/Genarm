@@ -13,6 +13,13 @@ function [vG, vGc, vGextC, vGextF, vGstayOff] = get_struct3()
 
     [vG, vGc, vGextC, vGextF, vGstayOff] = genstructure(env, origo, max_radius, wrist_radius, height, thickness, arm_height);
     %{
+    vG = vG(:,:,35:end);
+    vGc = vGc(:,:,35:end); 
+    vGextC = zeros(size(vG)); 
+    vGextC(:,:,1:2) = vG(:,:,1:2);
+    vGextF = vGextF(:,:,35:end);
+    vGstayOff = vGstayOff(:,:,35:end);
+    
     figure(1);clf;plotVg_safe(vG,'edgeOff');
     hold on;plotVg_safe(vGstayOff,'edgeOff','col',[0.9 0.9 0.5]);
     hold on;plotVg_safe(vGextF,'edgeOff','col',[0.5 0.5 0.5]);

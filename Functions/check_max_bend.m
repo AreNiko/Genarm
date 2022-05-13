@@ -12,4 +12,4 @@ function [max_bend, comps] = check_max_bend(vG, vGextC, vGextF)
     [sE, dN] = FEM_truss(N, E, extF, extC);
     max_bend = max(sum(abs(dN),2), [], 'all');
 
-    comps = bwconncomp(vG).NumObjects;
+    comps = bwconncomp(vG, 6).NumObjects;

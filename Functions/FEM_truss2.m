@@ -373,12 +373,12 @@ end
 
 %full(KK)
 U = KK \ extF ; % nodal displ = stiffness / force
-NrNaN = sum(isnan(U(:)));
-while NrNaN > 0
-    KK = KK + rand(size(extF)).*1e-20;
-    U = KK \ extF;
-    NrNaN = sum(isnan(U(:)));
-end
+%NrNaN = sum(isnan(U(:)));
+%while NrNaN > 0
+%    KK = KK + rand(size(extF)).*1e-20;
+%    U = KK \ extF;
+%    NrNaN = sum(isnan(U(:)));
+%end
     
 spparms('spumoni',0); % eller 2
 
