@@ -30,7 +30,8 @@ def start_engine():
 	isengine = matlab.engine.find_matlab()
 	print(isengine)
 	if not isengine:
-		eng = matlab.engine.start_matlab()
+		future = matlab.engine.start_matlab(background=True)
+		eng = future.result()
 		print("Starting matlab engine")
 	else:
 		eng = matlab.engine.connect_matlab(isengine[0])
@@ -53,7 +54,8 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 	#eng = start_engine()
 	xdim, ydim, zdim = tf.cast(tf.shape(og_struct[0]),tf.float32)
 
-	og_bend = eng.check_max_bend(convert_to_matlabint8(obser[0,:,:,:,0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]))
+	#og_bend = eng.check_max_bend(convert_to_matlabint8(obser[0,:,:,:,0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]))
+	og_bend, new_disp, _ = eng.check_max_stress(convert_to_matlabint8(obser[0,:,:,:,0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]), nargout=3)
 	scores = []
 	best_reward = -1000000000
 	best_struct = None
@@ -77,7 +79,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 			for _ in range(action_repeat):
 				t += 1
 				new_struct = flip_coord(action, observation[:,:,:,:,0])
-				
+
 				done = False
 				if np.sum(new_struct) == 0:
 					reward = -100.0
@@ -91,9 +93,13 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 					try:
 						#eng.clf(nargout=0)
 						#eng.plotVg_safe(convert_to_matlabint8(new_struct[0]), 'edgeOff', 'col',collist, nargout=0)
-						new_bend, comps = eng.check_max_bend(convert_to_matlabint8(new_struct[0]), 
-							                                 convert_to_matlabint8(structC[0]), 
-							                                 convert_to_matlabint8(structF[0]), nargout=2)
+						#new_bend, comps = eng.check_max_bend(convert_to_matlabint8(new_struct[0]),
+						#	                                 convert_to_matlabint8(structC[0]),
+						#	                                 convert_to_matlabint8(structF[0]), nargout=2)
+
+						new_bend, new_disp, comps = eng.check_max_stress(convert_to_matlabint8(new_struct[0]),
+							                                 convert_to_matlabint8(structC[0]),
+							                                 convert_to_matlabint8(structF[0]), nargout=3)
 						if new_bend == 0 or np.isnan(new_bend):
 							new_bend = og_bend
 							#done = True
@@ -102,27 +108,28 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 						place_diff = np.abs(np.sum(og_struct.numpy() - new_struct))
 
 						bend_diff = og_bend/new_bend
-						
+
 						#r = bend_diff + place_diff/5 - (vox_diff/10 + 10*(comps-1))
 						#r = 10*(bend_diff - 1) - (vox_diff + (comps-1))/100
 						#r = 2*(bend_diff - 1)
 						#reward = 1000*(og_bend - new_bend) - (vox_diff + 5*(comps-1))/100
-						reward = 1000*(og_bend - new_bend) + (1 - (comps-1))/10
-						print('| {:14s} | {:14f} |'.format('Old bending:', og_bend))
-						print('| {:14s} | {:14f} |'.format('New bending:', new_bend))
+						reward = (og_bend - new_bend)/1000 + (1 - (comps-1))/10
+						print('| {:14s} | {:14f} |'.format('Old Stress:', og_bend))
+						print('| {:14s} | {:14f} |'.format('New STress:', new_bend))
 						print('| {:14s} | {:14d} |'.format('Voxels diff:', int(vox_diff)))
 						print('| {:14s} | {:14d} |'.format('Nr components:', int(comps)))
 
 						if comps > 1:
 							done = True
-						
+
 					except:
 						comps = eng.check_components(convert_to_matlabint8(new_struct[0]), nargout=1)
 						vox_diff = np.abs(np.sum(og_struct.numpy()) - np.sum(new_struct))
 						#reward = - (vox_diff/10 + (comps-1))
 						reward = (1 - (comps-1))/10
 						#reward = 0
-						done = True
+						if comps > 1:
+							done = True
 
 				if best_reward < reward or best_reward is None:
 					best_struct = new_struct
@@ -136,7 +143,7 @@ def eval_policy(obser, agent, maxlen_environment, eval_episodes, action_repeat):
 					break
 				if maxlen_environment >= 0 and t == maxlen_environment:
 					break
-				
+
 			observation = tf.stack([tf.convert_to_tensor(new_struct), structC, structF, stayoff], axis=4)
 			if done:
 				print("Episode finished after {} timesteps".format(t+1))
@@ -174,7 +181,7 @@ def get_data(folder, test_number, filename):
 	path = folder + test_number
 	if not os.path.exists(path):
 		os.makedirs(path)
-	   
+
 	if not os.path.isfile(path+filename):
 		print("No file named: " + path + filename)
 		open(path+filename, "w+")
@@ -205,7 +212,7 @@ def custom_loss_function(true_struct, new_struct, struct):
 	new_struct2 = tf.math.subtract(struct, new_struct)
 	#diff = tf.abs(tf.math.subtract(new_struct2, true_struct2))
 	#loss = tf.reduce_sum(diff)
-	loss = tf.losses.mean_squared_error(true_struct2, new_struct2) 
+	loss = tf.losses.mean_squared_error(true_struct2, new_struct2)
 	return loss
 
 def calculate_returns(rewards, gamma):
@@ -390,30 +397,31 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 
 	xdim, ydim, zdim = tf.cast(tf.shape(og_struct[0]),tf.float32)
 	#eng = start_engine()
-	original_bend = eng.check_max_bend(convert_to_matlabint8(obser[0,:,:,:,0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]))
-
+	original_stress, original_bend, og_comps = eng.check_max_stress(convert_to_matlabint8(obser[0,:,:,:,0]), convert_to_matlabint8(structC[0]), convert_to_matlabint8(structF[0]), nargout=3)
+	print(original_stress)
 	print("Generating episodes:")
 	for i in range(num_episodes):
 		episode = EpisodeData()
 		observation = obser
+		og_stress = original_stress
 		og_bend = original_bend
 		print("__________________________________")
 		print("Episode: ", i)
 		for t in range(maxlen):
 			#observation = preprocess(observation)
 
-			logits = policy_network.policy(observation)
+			logits = activations.softmax(policy_network.policy(observation))
+
 			# remove num_samples dimension and batch dimension
 			#action = tf.random.categorical(logits, 1)[0][0]
 
 			action = tf.random.categorical(logits[0], 1)
-			
-			#print(action)
+
 			#actiony = tf.random.categorical(logitsy[0], 1)
 			#actionz = tf.random.categorical(logitsz[0], 1)
 			#action = tf.stack([actionx[:,0], actiony[:,0], actionz[:,0]], axis=0)
 			#print(action)
-			
+
 			#action = tf.math.sigmoid(tf.cast(action,tf.float32))
 			#action = tf.reshape(logits[0], [50,3])
 			#print(logits)
@@ -443,7 +451,7 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 
 			for _ in range(action_repeat):
 				new_struct = flip_coord(action, observation[:,:,:,:,0])
-				
+
 				done = False
 				if np.sum(new_struct) == 0:
 					r = -100.0
@@ -457,11 +465,11 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 					try:
 						#eng.clf(nargout=0)
 						#eng.plotVg_safe(convert_to_matlabint8(new_struct[0]), 'edgeOff', 'col',collist, nargout=0)
-						
-						new_bend, comps = eng.check_max_bend(convert_to_matlabint8(new_struct[0]), 
-							                                 convert_to_matlabint8(structC[0]), 
-							                                 convert_to_matlabint8(structF[0]), nargout=2)
-						
+
+						new_stress, new_bend, comps = eng.check_max_stress(convert_to_matlabint8(new_struct[0]),
+							                                 convert_to_matlabint8(structC[0]),
+							                                 convert_to_matlabint8(structF[0]), nargout=3)
+
 						if new_bend == 0 or np.isnan(new_bend):
 							new_bend = og_bend
 							#done = True
@@ -470,14 +478,16 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						place_diff = np.abs(np.sum(og_struct.numpy() - new_struct))
 
 						bend_diff = og_bend/new_bend
-						
+
 						#r = bend_diff + place_diff/5 - (vox_diff/10 + 10*(comps-1))
 						#r = 10*(bend_diff - 1) - (vox_diff + (comps-1))/100
 						#r = 2*(bend_diff - 1)
 						#r = 1000*(og_bend - new_bend) - (vox_diff + 5*(comps-1))/100
-						r = 1000*(og_bend - new_bend) + (1 - (comps-1))/10
+						r = 1000*(og_bend - new_bend)
+						#r = (og_stress - new_stress)/1000 + (1 - (comps-1))/10
 						print('| {:14s} | {:14f} |'.format('Old bending:', og_bend))
 						print('| {:14s} | {:14f} |'.format('New bending:', new_bend))
+						print('| {:14s} | {:14f} |'.format('Bending diff:', bend_diff))
 						print('| {:14s} | {:14d} |'.format('Voxels diff:', int(vox_diff)))
 						print('| {:14s} | {:14d} |'.format('Nr components:', int(comps)))
 						if new_bend != 1.0:
@@ -485,21 +495,22 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 
 						if comps > 1:
 							done = True
-						
+
 					except:
 						comps = eng.check_components(convert_to_matlabint8(new_struct[0]), nargout=1)
 						#r = - (vox_diff + (comps-1))/1
-						r = (32 - (comps-1))/10
+						r = (-(comps-1))/10
 						#r = 0
-						done = True
+						if comps > 1:
+							done = True
 				reward = reward + r
-				
+
 				print('| {:14s} | {:14f} |\n'.format('Reward:', reward))
 
 				if done:
 					break
 
-				
+
 
 			episode.rewards.append(reward)
 			observation = tf.stack([tf.convert_to_tensor(new_struct), structC, structF, stayoff], axis=4)
@@ -539,6 +550,9 @@ def create_dataset(obser, policy_network, value_network, num_episodes, maxlen, a
 	episode_avg = 0
 	plt.figure(1)
 	plt.clf()
+	episode_max = -100000000000
+	episode_min = 100000000000
+	all_episode_reward = []
 	for episode in episodes:
 		# Could also get this when sampling episodes for efficiency
 		# use predict?
@@ -550,6 +564,12 @@ def create_dataset(obser, policy_network, value_network, num_episodes, maxlen, a
 		episode.advantages = advantages
 		dataset_size += len(episode.observations)
 
+		if episode_max < np.sum(episode.rewards):
+			episode_max = np.sum(episode.rewards)
+		if episode_min > np.sum(episode.rewards):
+			episode_min = np.sum(episode.rewards)
+
+		all_episode_reward.append(episode.rewards)
 		episode_avg += np.sum(episode.rewards)
 		plt.plot(episode.ts, episode.rewards)
 		episode_legend.append("Episode " + str(ep_number))
@@ -562,8 +582,9 @@ def create_dataset(obser, policy_network, value_network, num_episodes, maxlen, a
 	plt.savefig("rl2_plots/"+ test_number + "/iteration_" + str(iteration) + ".png")
 
 	episode_avg /= num_episodes
-	with open("rl2_data/" + test_number + "/" + "Episode-avg_" + str(iteration) + ".txt", "wb+") as fp:
-		pickle.dump([iteration, episode_avg], fp)
+	with open("rl2_data/" + test_number + "/" + "Episode-stats_" + str(iteration) + ".txt", "wb+") as fp:
+		pickle.dump([iteration, episode_max, episode_min, episode_avg, all_episode_reward], fp)
+
 	slices = (
 		tf.concat([e.observations for e in episodes], axis=0), # policy loss and value loss
 		tf.concat([e.actions for e in episodes], axis=0), # policy loss
@@ -618,9 +639,9 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 
 	#eng = start_engine()
 
-	#structog, vGextC, vGextF, vGstayOff = eng.get_struct2(nargout=4)
+	structog, vGextC, vGextF, vGstayOff = eng.get_struct2(nargout=4)
 	#structog, _, vGextC, vGextF, vGstayOff = eng.get_struct3(nargout=5)
-	structog, _, vGextC, vGextF, vGstayOff = eng.get_struct4(nargout=5)
+	#structog, _, vGextC, vGextF, vGstayOff = eng.get_struct4(nargout=5)
 	#structog, vGextC, vGextF, vGstayOff = eng.get_struct5(nargout=4)
 	og_maxbending = eng.check_max_bend(structog, vGextC, vGextF, nargout=1)
 
@@ -656,7 +677,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 
 	mse = losses.MeanSquaredError()
 	train_loss = metrics.Mean()
-	val_loss = metrics.Mean()	
+	val_loss = metrics.Mean()
 	mean_high = tf.Variable(-100000, dtype='float32', name='mean_high', trainable=False)
 	#model.summary()
 	#tf.keras.utils.plot_model(model, "3Dconv_model.png", show_shapes=True)
@@ -664,7 +685,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 	#os.makedirs(os.path.dirname("training_reinforcement/" + test_number + "/"), exist_ok=True)
 	checkpoint_path = base_dir + "/checkpoints/"
 	#checkpoint_path = os.path.dirname(checkpoint_path)
-	
+
 	ckpt = tf.train.Checkpoint(
 		policy_network=policy_network,
 		value_network=value_network,
@@ -707,18 +728,18 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 
 		avg_loss_vals = get_data("results_rl2/", test_number, "/avg_train_loss.txt")
 		avg_diff_vals = get_data("results_rl2/", test_number, "/avg_train_diff.txt")
-		if avg_loss_vals:		
+		if avg_loss_vals:
 			saved_progress = avg_loss_vals[-1][0]+1
 		else:
 			saved_progress = 0
-		
+
 		step_val_loss_vals = get_data("results_rl2/", test_number, "/step_val_loss.txt")
 		step_val_diff_vals = get_data("results_rl2/", test_number, "/step_val_diff.txt")
 		if step_val_loss_vals:
 			step = step_val_loss_vals[-1][0]+1
 		else:
 			step = 0
-			
+
 		avg_val_loss_vals = get_data("results_rl2/", test_number, "/avg_val_loss.txt")
 		avg_val_diff_vals = get_data("results_rl2/", test_number, "/avg_val_diff.txt")
 		"""
@@ -729,22 +750,22 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 		except AttributeError:
 			print("No previously saved weights")
 		"""
-	
-	
+
+
 	print("Summaries are written to '%s'." % train_dir)
 	train_writer = tf.summary.create_file_writer(
 		os.path.join(train_dir, "train"), flush_millis=3000)
 
 	summary_interval_step = 50
 	summary_interval = 1
-	
+
 	tol_list = []
 	tol_val_list = []
 	avg_tol = 0
 	avg_tol_val = 0
 	tol = np.linspace(0.0, 1.0, 101)
-
-
+	writer = tf.summary.create_file_writer(base_dir  + "summary3/")
+	kl_divergence = losses.KLDivergence(reduction=losses.Reduction.NONE)
 	m_list, M_list = [], []
 	median_list, mean_list = [], []
 	iteration_list = []
@@ -770,7 +791,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 			  (iteration, time.time() - start))
 		print(alpha)
 		dataset = dataset.batch(batch_size)
-		
+
 		for epoch in range(epoch_range):
 			print(epoch, "/", epoch_range)
 			start1 = time.time()
@@ -783,20 +804,25 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 			# Trains model on structures with a truth structure created from
 			# The direct stiffness method and shifted voxels
 			for batch in dataset:
-				obs, action, advantage, pi_old, value_target, t = batch
+
 				#action = tf.expand_dims(action, -1)
 				with tf.GradientTape() as tape:
 					#pi = activations.softmax(policy_network.policy(obs))
-					pi = activations.softmax(policy_network.policy(obs))
+					obs, action, advantage, pi_old, value_target, t = batch
+					logs = policy_network.policy(obs)
+					action = tf.expand_dims(action, -1)
+					pi = activations.softmax(logs)
 					#pi = tf.concat([logitsx[0], logitsy[0], logitsz[0]], 1)
 					#pi = activations.softmax(pi)
+					#print(pi[0])
+					#print(action[0])
+					pi_a = tf.squeeze(tf.gather(pi[0], action[0], batch_dims=1), -1)
+					pi_old_a = tf.squeeze(tf.gather(pi_old[0], action[0], batch_dims=1), -1)
 					v = value_network(obs, np.float32(maxlen)-t)
-					#print(pi)
-					#print(action)
-					#pi_a = tf.squeeze(tf.gather(pi, action, batch_dims=1), -1)
-					#pi_old_a = tf.squeeze(tf.gather(pi_old, action, batch_dims=1), -1)
-					pi_a = tf.concat([pi, tf.cast(action, tf.float32)], axis=-1)
-					pi_old_a = tf.concat([pi_old, tf.cast(action, tf.float32)], axis=-1)
+					#print(pi_a)
+					#pi_a = tf.tensor([pi[0,action[0]]
+					#pi_a = tf.concat([pi, tf.cast(action, tf.float32)], axis=-1)
+					#pi_old_a = tf.concat([pi_old, tf.cast(action, tf.float32)], axis=-1)
 					#pi_a = tf.stack([pi, action], axis=2)
 					#pi_old_a = tf.stack([pi_old, action], axis=2)
 
@@ -813,7 +839,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 				# Update loss
 				train_loss.update_state(loss)
 
-			
+
 			print("Time taken for one epoch: ", time.time() - start1)
 			"""
 			if np.sum(out) != 0:
@@ -829,6 +855,60 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 			#	eng.plotVg_safe(convert_to_matlabint8(out[0]), 'edgeOff', 'col',collist, nargout=0)
 		step += 1
 
+		ratios, entropies, entropies_old, actions, advantages, kl_divs, diff, diff_lb = [], [], [], [], [], [], [], []
+		for batch in dataset:
+			obs, action, advantage, pi_old, value_target, t = batch
+			action = tf.expand_dims(action, -1)[0]
+			logits = policy_network.policy(obs)
+			pi = activations.softmax(logits)[0]
+			pi_old = pi_old[0]
+			v = value_network(obs, np.float32(maxlen)-t)
+			pi_a = tf.squeeze(tf.gather(pi, action, batch_dims=1), -1)
+			pi_old_a = tf.squeeze(tf.gather(pi_old, action, batch_dims=1), -1)
+			ratio = pi_a / pi_old_a
+
+			kl_divs.append(kl_divergence(pi_old, pi))
+			ratios.append(ratio)
+			advantages.append(advantage)
+			entropies.append(entropy(pi))
+			entropies_old.append(entropy(pi_old))
+			actions.append(tf.one_hot(tf.squeeze(action, -1), 1000))
+			diff.append(estimate_improvement(pi_a, pi_old_a, advantage, t, gamma))
+			diff_lb.append(estimate_improvement_lb(pi_a, pi_old_a, advantage, t, gamma, epsilon))
+
+		actions = tf.concat(actions, axis=0)
+		action_frequencies = tf.reduce_sum(actions, axis=0) / tf.reduce_sum(actions)
+		action_entropy = entropy(action_frequencies)
+		ratios = tf.concat(ratios, axis=0)
+		entropies = tf.concat(entropies, axis=0)
+		entropies_old = tf.concat(entropies_old, axis=0)
+		advantages = tf.concat(advantages, axis=0)
+		diff = tf.concat(diff, axis=0)
+		diff_lb = tf.concat(diff_lb, axis=0)
+		kl_divs = tf.concat(kl_divs, axis=0)
+		with writer.as_default():
+			tf.summary.histogram("advantages", advantages, step=step)
+			tf.summary.histogram("sample_improvements", diff, step=step)
+			tf.summary.histogram("sample_improvements_lb", diff_lb, step=step)
+			tf.summary.scalar("estimated_improvement",
+				tf.reduce_sum(diff)/num_episodes, step=step)
+			tf.summary.scalar("estimated_improvement_lb",
+				tf.reduce_sum(diff_lb)/num_episodes, step=step)
+			tf.summary.scalar("mean_advantage", tf.reduce_mean(advantages), step=step)
+			tf.summary.histogram("entropy", entropies, step=step)
+			tf.summary.histogram("prob_ratios", ratios, step=step)
+			tf.summary.scalar("mean_entropy", tf.reduce_mean(entropies), step=step)
+			tf.summary.scalar("mean_entropy_old", tf.reduce_mean(entropies_old), step=step)
+			tf.summary.histogram("kl_divergence", kl_divs, step=step)
+			tf.summary.scalar("mean_kl_divergence", tf.reduce_mean(kl_divs), step=step)
+			tf.summary.scalar("kl_divergence_max", tf.reduce_max(kl_divs), step=step)
+			#tf.summary.scalar("action_entropy", action_entropy, step=step)
+			#tf.summary.scalar("action_freq_left", action_frequencies[0], step=step)
+			#tf.summary.scalar("action_freq_straight", action_frequencies[1], step=step)
+			#tf.summary.scalar("action_freq_right", action_frequencies[2], step=step)
+			#tf.summary.scalar("action_freq_gas", action_frequencies[3], step=step)
+			#tf.summary.scalar("action_freq_break", action_frequencies[4], step=step)
+
 		if step % checkpoint_interval == 0:
 			print("Checkpointing model after %d iterations of training." % step)
 			ckpt_manager.save()
@@ -836,7 +916,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 		if step % eval_interval == 0:
 			start = time.time()
 
-			scores, best_episode, best_struct = eval_policy(inpus, agent, maxlen_environment, 
+			scores, best_episode, best_struct = eval_policy(inpus, agent, maxlen_environment,
 				eval_episodes, action_repeat=action_repeat
 			)
 			#best_differences_minus = np.abs(best_differences[best_differences < 0])
@@ -881,7 +961,7 @@ def runstuff(train_dir, test_number, use_pre_struct=True, continue_train=True, s
 			eng.plotVg_safe(convert_to_matlabint8(best_struct[0]), 'edgeOff', 'col',collist, 'alp', 1, nargout=0)
 			#eng.plotVg_safe(convert_to_matlabint8(best_differences_minus), 'edgeOff', 'col',collist3, 'alp', 0.8, nargout=0)
 			#eng.plotVg_safe(convert_to_matlabint8(best_differences_positive), 'edgeOff', 'col',collist2, 'alp', 0.8, nargout=0)
-			
+
 
 			if mean > mean_high:
 				print("New mean high! Old score: %g. New score: %g." %

@@ -52,7 +52,7 @@ def custom_loss_function(true_struct, new_struct, struct):
 	new_struct2 = tf.math.subtract(struct, new_struct)
 	#diff = tf.abs(tf.math.subtract(new_struct2, true_struct2))
 	#loss = tf.reduce_sum(diff)
-	loss = tf.losses.mean_squared_error(true_struct2, new_struct2) 
+	loss = tf.losses.mean_squared_error(true_struct2, new_struct2)
 	return loss
 
 
@@ -60,7 +60,7 @@ def custom_loss_function(true_struct, new_struct, struct):
 def convert_to_matlabint8(inarr):
 	return matlab.int8(np.int8(np.ceil(inarr)).tolist())
 
-def runstuff(train_dir, test_number, model_type=2):
+def runstuff(train_dir, test_number, threshold, model_type=2):
 	# Construct model and measurements
 	collist = matlab.double([0, 0.68, 0.7647])
 	batch_size = 1
@@ -69,6 +69,7 @@ def runstuff(train_dir, test_number, model_type=2):
 	layers.RandomFlip(mode="horizontal_and_vertical"),
 	layers.RandomRotation(0.25)
 	])
+	os.makedirs(os.path.dirname("test_results/" + "model" + str(model_type) + "_" + test_number + "_" + threshold + "/"), exist_ok=True)
 
 	names = matlab.engine.find_matlab()
 	#print(names)
@@ -77,35 +78,42 @@ def runstuff(train_dir, test_number, model_type=2):
 	else:
 		eng = matlab.engine.connect_matlab(names[0])
 
+	def get_struct(arm_radiusx,arm_radiusy,wrist_radius,height):
+
+		structog, _, vGextC, vGextF, vGstayOff = eng.get_struct1(14,14,12,100, nargout=5)
+
+		struct = np.array(structog)
+		structC = np.array(vGextC)
+		structF = np.array(vGextF)
+		structOff = np.array(vGstayOff)
+
+		(xstruct,ystruct,zstruct) = struct.shape
+		(xC,yC,zC) = structC.shape
+		(xF,yF,zF) = structF.shape
+		(xoff,yoff,zoff) = structOff.shape
+
+		struct = tf.convert_to_tensor(struct, dtype=tf.float32)
+		structCten = tf.convert_to_tensor(structC, dtype=tf.float32)
+		structFten = tf.convert_to_tensor(structF, dtype=tf.float32)
+		structOfften = tf.convert_to_tensor(structOff, dtype=tf.float32)
+
+		new_dataset = tf.data.Dataset.from_tensors((struct,structCten,structFten,structOfften))
+		new_dataset = new_dataset.batch(batch_size)
+		eng.plotVg_safe(structog, 'edgeOff', nargout=0)
+
+		return new_dataset, structog, vGextC, vGextF, vGstayOff
 	#structog, vGextC, vGextF, vGstayOff = eng.get_struct2(nargout=4)
-	structog, _, vGextC, vGextF, vGstayOff = eng.get_struct1(14,14,12,100, nargout=5)
+	new_dataset, structog, vGextC, vGextF, vGstayOff = get_struct(14,14,12,100)
 
-	struct = np.array(structog)
-	structC = np.array(vGextC)
-	structF = np.array(vGextF)
-	structOff = np.array(vGstayOff)
 
-	(xstruct,ystruct,zstruct) = struct.shape
-	(xC,yC,zC) = structC.shape
-	(xF,yF,zF) = structF.shape
-	(xoff,yoff,zoff) = structOff.shape
 
-	struct = tf.convert_to_tensor(struct, dtype=tf.float32)
-	structCten = tf.convert_to_tensor(structC, dtype=tf.float32)
-	structFten = tf.convert_to_tensor(structF, dtype=tf.float32)
-	structOfften = tf.convert_to_tensor(structOff, dtype=tf.float32)
-
-	new_dataset = tf.data.Dataset.from_tensors((struct,structCten,structFten,structOfften))
-	new_dataset = new_dataset.batch(batch_size)
-	eng.plotVg_safe(structog, 'edgeOff', nargout=0)
-	
 	"""
 	#model = gen_model.ConvModel3D((xstruct,ystruct,zstruct), (xC,yC,zC), (xF,yF,zF), (xoff,yoff,zoff))
 	model = gen_model.ConvStructModel3D((xstruct,ystruct,zstruct,4))
 	optimizer = get_optimizer()
 	mse = losses.MeanSquaredError()
 	train_loss = metrics.Mean()
-	val_loss = metrics.Mean()	
+	val_loss = metrics.Mean()
 	model.summary()
 	#tf.keras.utils.plot_model(model, "3Dconv_model.png", show_shapes=True
 
@@ -126,16 +134,20 @@ def runstuff(train_dir, test_number, model_type=2):
 		model = tf.keras.models.load_model('models_0/' + test_number + '/Genmodel')
 	elif model_type == 1:
 		model = tf.keras.models.load_model('models_1/' + test_number + '/Genmodel')
-	else:
+	elif model_type == 2:
 		model = tf.keras.models.load_model('models_2/' + test_number + '/Genmodel')
+	else:
+		model = tf.keras.models.load_model('models/' + test_number + '/Genmodel')
+
+	model.summary()
 
 	def bend_function(struct, vGextC, vGextF):
 		sE, dN = eng.Struct_bend(convert_to_matlabint8(struct[0]), convert_to_matlabint8(vGextC[0]), convert_to_matlabint8(vGextF[0]), nargout=2)
 		return np.max(np.abs(np.array(dN))), np.sum(np.abs(np.array(dN)))
-	
-	
-	
-	
+
+
+
+
 	print("Summaries are written to '%s'." % train_dir)
 	train_writer = tf.summary.create_file_writer(
 		os.path.join(train_dir, "test"), flush_millis=3000)
@@ -144,53 +156,77 @@ def runstuff(train_dir, test_number, model_type=2):
 	summary_interval = 1
 	test_results = []
 	compare_results = []
+	tol = np.linspace(0.0, 1.0, 101)
+
 	for struct, structC, structF, structOff in new_dataset.take(1):
 		ogtruct = struct
 		vG = convert_to_matlabint8(struct)
 		lossog = bend_function(struct, structC, structF)
-		print('Original max bending: %f | sum bending: %f' % (lossog[0], lossog[1])) 
-		for epoch in range(300):
+		print('Original max bending: %f | sum bending: %f' % (lossog[0], lossog[1]))
+		for epoch in range(200):
 			print("Epoch: ", epoch)
-			
-			
+
 			if model_type == 0:
 				new_struct = model(struct, training=False)
 			elif model_type == 1:
-				new_struct = model(struct, structC, structF, structOff, training=False)
+				new_struct = model([struct, structC, structF, structOff], training=False)
 			else:
 				inpus = tf.stack([struct, structC, structF, structOff], axis=4)
 				new_struct = model(inpus, training=False)
-			
+
 			# Trains model on structures with a truth structure created from
 			# The direct stiffness method and shifted vox
+			"""
+			out_true = ogtruct.numpy()
+			check_diff = 1e23
+			for i in tol:
+				out = new_struct.numpy()
+				out[out <= i] = 0
+				out[out > i] = 1
+
+				check_tol = np.abs(np.sum(out_true) - np.sum(out))
+				if check_tol < check_diff:
+					check_diff = check_tol
+					current_tol = i
+
+			#avg_tol_val += current_tol
 			out = new_struct.numpy()
-			out[out <= 0.5] = 0
-			out[out > 0.5] = 1
+			out[out <= current_tol] = 0
+			out[out > current_tol] = 1
+			"""
+			out = new_struct.numpy()
+
+			out[out <= float(threshold)/100] = 0
+			out[out > float(threshold)/100] = 1
 			loss = bend_function(out, structC, structF)
-			test_results.append([epoch, loss[0], loss[1]])
+			test_results.append([epoch, loss[0]/lossog[0], loss[1]/lossog[1], np.sum(out)])
 
-			structog, sE, dN = eng.reinforce_struct(structog, vGextC, vGextF, vGstayOff, 75, nargout=3)
+			try:
+				structog, sE, dN = eng.reinforce_struct_test(structog, vGextC, vGextF, vGstayOff, 100, nargout=3)
+				compare_results.append([epoch, np.max(np.abs(np.array(dN)))/lossog[0], np.sum(np.abs(np.array(dN)))/lossog[1], np.sum(np.array(structog))])
+			except:
+				sE = np.nan
+				dN = np.nan
 
-			compare_results.append([epoch, np.max(np.abs(np.array(dN))), np.sum(np.abs(np.array(dN)))])
 
-			print("3Dconv Model: max bending: %f | sum bending: %f | Amount: %d" % (loss[0], loss[1], np.sum(out)))
-			print("Generative  : max bending: %f | sum bending: %f | Amount: %d" % (np.max(np.abs(np.array(dN))), np.sum(np.abs(np.array(dN))), np.sum(np.array(structog))))
+			print("3Dconv Model: max bending change: %f | sum bending change: %f | Amount: %d" % (loss[0]/lossog[0], loss[1]/lossog[1], np.sum(out)))
+			print("Generative  : max bending change: %f | sum bending change: %f | Amount: %d" % (np.max(np.abs(np.array(dN)))/lossog[0], np.sum(np.abs(np.array(dN)))/lossog[1], np.sum(np.array(structog))))
 
 			eng.clf(nargout=0)
 			eng.plotVg_safe(matlab.int8(np.int8(np.ceil(out[0])).tolist()), 'edgeOff', 'col',collist, nargout=0)
 			eng.saveFigToAnimGif('3Dconvoxnet_testing' + test_number + '.gif', epoch==0, nargout=0)
 			struct = out
-	
-	with open("test_results/" + "model" + str(model_type) + "_" + test_number + "/3Dconvmodel_loss.txt", "wb") as fp:
+
+	with open("test_results/" + "model" + str(model_type) + "_" + test_number + "_" + threshold + "/3Dconvmodel_loss.txt", "wb") as fp:
 		pickle.dump(test_results, fp)
-	with open("test_results/" + "model" + str(model_type) + "_" + test_number + "/generative_loss.txt", "wb") as fp:
+	with open("test_results/" + "model" + str(model_type) + "_" + test_number + "_" + threshold + "/generative_loss.txt", "wb") as fp:
 		pickle.dump(compare_results, fp)
-	with open("test_results/" + "model" + str(model_type) + "_" + test_number + "/3Dconv_structures.txt", "wb") as fp:
+	with open("test_results/" + "model" + str(model_type) + "_" + test_number + "_" + threshold + "/3Dconv_structures.txt", "wb") as fp:
 		pickle.dump([ogtruct[0].numpy(),out[0]], fp)
-	with open("test_results/" + "model" + str(model_type) + "_" + test_number + "/generative_structures.txt", "wb") as fp:
+	with open("test_results/" + "model" + str(model_type) + "_" + test_number + "_" + threshold + "/generative_structures.txt", "wb") as fp:
 		pickle.dump([ogtruct[0].numpy(),np.array(structog)], fp)
 
-	print('Original max bending: %f | sum bending: %f' % (lossog[0], lossog[1])) 
+	print('Original max bending: %f | sum bending: %f' % (lossog[0], lossog[1]))
 	print("New max bending: %f | sum bending: %f" % (loss[0], loss[1]))
 	eng.clf(nargout=0)
 	eng.plotVg_safe(matlab.int8(np.int8(np.ceil(out[0])).tolist()), 'edgeOff', 'col',collist, nargout=0)
@@ -200,12 +236,13 @@ def runstuff(train_dir, test_number, model_type=2):
 def parse_args():
 	"""Parse command line argument."""
 	parser = argparse.ArgumentParser("Train segmention model on 3D structures.")
+	parser.add_argument("model_type", help="Choose model type to train, 0, 1 or 2")
 	parser.add_argument("train_dir", help="Directory to put logs and saved model.")
 	parser.add_argument("test_number", help="logs the result files to specific runs")
+	parser.add_argument("threshold", help="Choose the threshold split to determine when a space is a voxel")
 
 	return parser.parse_args()
 
 if __name__ == '__main__':
 	args = parse_args()
-	model_type = 0
-	runstuff(args.train_dir, args.test_number, model_type)
+	runstuff(args.train_dir, args.test_number, args.threshold, int(args.model_type))
