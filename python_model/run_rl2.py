@@ -482,8 +482,8 @@ def sample_episodes(obser, policy_network, num_episodes, maxlen, action_repeat=1
 						#r = bend_diff + place_diff/5 - (vox_diff/10 + 10*(comps-1))
 						#r = 10*(bend_diff - 1) - (vox_diff + (comps-1))/100
 						#r = 2*(bend_diff - 1)
-						#r = 1000*(og_bend - new_bend) - (vox_diff + 5*(comps-1))/100
-						r = 1000*(og_bend - new_bend)
+						r = 1000*(og_bend - new_bend) - (vox_diff + comps-1)/100
+						#r = 1000*(og_bend - new_bend)
 						#r = (og_stress - new_stress)/1000 + (1 - (comps-1))/10
 						print('| {:14s} | {:14f} |'.format('Old bending:', og_bend))
 						print('| {:14s} | {:14f} |'.format('New bending:', new_bend))
